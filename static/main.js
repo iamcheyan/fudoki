@@ -263,6 +263,7 @@
   }
   function playLineRow(row){
     stopQueue();
+    if (typeof stopRowLoop === 'function') try { stopRowLoop(); } catch(e) {}
     const t = textOfRow(row);
     if(!t.trim()) return;
     highlightRow(row, true);
@@ -279,6 +280,7 @@
   }
   function playAllLines(){
     stopQueue();
+    if (typeof stopRowLoop === 'function') try { stopRowLoop(); } catch(e) {}
     const rows = Array.from(linesEl.querySelectorAll('.line'));
     if(!rows.length) return;
     const step = () => {
@@ -321,8 +323,7 @@
 
   // rendering
   function renderLines(lines){
-    // reset selection and content
-    if(typeof clearSelection==='function') try{ clearSelection(); }catch(e){}
+    // reset content
     linesEl.innerHTML='';
     const frag = document.createDocumentFragment();
     let any = false;
@@ -383,13 +384,16 @@
           } 
         });
         btn.addEventListener('mouseleave', () => { if (timer) clearTimeout(timer); });
-        // selection UI: show start/end mark buttons on hover
-        btn.addEventListener('mouseenter', () => showMarkButton(row, btn));
-        btn.addEventListener('mouseleave', () => removeMarkButton(btn));
-        btn.dataset.li = String(li);
-        btn.dataset.ti = String(ti);
         row.appendChild(btn);
       });
+      // per-line loop play button (bottom-right)
+      const loopIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M4 10h3l4-3v10l-4-3H4z"/><path d="M14 9v6l4-3-4-3z"/></svg>';
+      const rowBtn = document.createElement('button');
+      rowBtn.type='button';
+      rowBtn.className='row-loop absolute right-2 bottom-2 rounded-full bg-emerald-600 text-white shadow-md px-2 py-1 hover:bg-emerald-700';
+      rowBtn.innerHTML=loopIcon;
+      rowBtn.addEventListener('click', ()=> toggleRowLoop(row, rowBtn));
+      row.appendChild(rowBtn);
       frag.appendChild(row);
     });
     linesEl.appendChild(frag);
@@ -397,46 +401,30 @@
     editingHint.classList.toggle('hidden', !any);
   }
 
-  // Selection & segment loop
-  let sel = { row: null, start: null, end: null, speaker: null };
-  const hornSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M4 10h3l4-3v10l-4-3H4z"/><path d="M17 7a5 5 0 010 10"/></svg>';
-  function removeMarkButton(btn){ const m=btn.querySelector('.mark-btn'); if(m) m.remove(); }
-  function showMarkButton(row, btn){
-    const m = document.createElement('button');
-    m.type='button'; m.className='mark-btn absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] px-1.5 py-0.5 rounded bg-emerald-600 text-white shadow-sm';
-    const ti = parseInt(btn.dataset.ti||'0',10);
-    if(!sel.row || sel.row!==row || sel.start==null || sel.end!=null){ m.textContent='起点'; m.onclick=()=>{ clearSelection(); sel.row=row; sel.start=ti; updateSelection(); }; }
-    else { m.textContent='終点'; m.onclick=()=>{ sel.end=ti; if(sel.end<sel.start){ const t=sel.start; sel.start=sel.end; sel.end=t; } updateSelection(); }; }
-    btn.appendChild(m);
+  // Row loop button: loop a single line until toggled off
+  let rowLoop = null; // {row: HTMLElement, btn: HTMLElement}
+  function stopRowLoop(){
+    if(!rowLoop) return;
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+    setRowState(rowLoop.row,'idle');
+    rowLoop.btn?.classList.remove('bg-rose-600');
+    rowLoop.btn?.classList.add('bg-emerald-600');
+    rowLoop = null;
   }
-  function clearSelection(){ if(sel.speaker){ sel.speaker.remove(); sel.speaker=null; } if(sel.row){ sel.row.querySelectorAll('button').forEach(b=> b.classList.remove('ring-1','ring-emerald-400','bg-emerald-50','dark:bg-emerald-900/20')); } sel={row:null,start:null,end:null,speaker:null}; }
-  function updateSelection(){
-    if(!sel.row) return;
-    const btns = Array.from(sel.row.querySelectorAll('button'));
-    btns.forEach(b=> b.classList.remove('ring-1','ring-emerald-400','bg-emerald-50','dark:bg-emerald-900/20'));
-    if(sel.start==null || sel.end==null) return;
-    for(let i=sel.start;i<=sel.end;i++){ const b=btns[i]; if(!b) continue; if(b.dataset.symbol==='1') continue; b.classList.add('ring-1','ring-emerald-400','bg-emerald-50','dark:bg-emerald-900/20'); }
-    if(sel.speaker){ sel.speaker.remove(); sel.speaker=null; }
-    const mid = Math.floor((sel.start+sel.end)/2); const midBtn = btns[mid]; if(!midBtn) return;
-    const sp = document.createElement('button'); sp.type='button'; sp.innerHTML=hornSVG; sp.className='absolute -top-5 px-2 py-1 rounded-full bg-emerald-600 text-white shadow-md hover:bg-emerald-700';
-    const x = midBtn.offsetLeft + midBtn.offsetWidth/2; sp.style.left = Math.max(0, x-12)+'px'; sp.style.position='absolute';
-    sp.onclick = () => toggleSegmentLoop(); sel.row.appendChild(sp); sel.speaker = sp;
-  }
-  let segLoop = null; // {row,start,end}
-  function stopSegmentLoop(){ if(segLoop){ window.speechSynthesis.cancel(); segLoop=null; } }
-  function toggleSegmentLoop(){
-    if(!sel.row || sel.start==null || sel.end==null) return;
-    if(segLoop){ stopSegmentLoop(); return; }
-    // stop line/full queue to avoid overlap
-    try { stopQueue(); } catch(e) {}
-    segLoop = {row:sel.row, start:sel.start, end:sel.end};
-    const btns = Array.from(sel.row.querySelectorAll('button'));
-    const text = btns.slice(sel.start, sel.end+1).filter(b=>b.dataset.symbol!=='1').map(b=> b.dataset.surface || b.textContent || '').join('');
+  function toggleRowLoop(row, btn){
+    if(rowLoop && rowLoop.row===row){ stopRowLoop(); return; }
+    stopQueue(); stopRowLoop();
+    setRowState(row,'reading'); centerRow(row);
+    btn.classList.remove('bg-emerald-600'); btn.classList.add('bg-rose-600');
+    rowLoop = {row, btn};
     const speakOnce = () => {
-      if(!segLoop) return;
+      if(!rowLoop || rowLoop.row!==row) return;
+      const text = textOfRow(row);
+      if(!text.trim()){ stopRowLoop(); return; }
       const u = new SpeechSynthesisUtterance(text);
-      applyVoice(u); u.rate = rate; u.pitch = 1.0; u.onend = () => { if(segLoop) speakOnce(); };
-      window.speechSynthesis.cancel(); try{ window.speechSynthesis.resume(); }catch(e){} window.speechSynthesis.speak(u);
+      applyVoice(u); u.rate = rate; u.pitch = 1.0; u.onend = () => { if(rowLoop && rowLoop.row===row) speakOnce(); };
+      window.speechSynthesis.cancel(); try { window.speechSynthesis.resume(); } catch(e) {}
+      window.speechSynthesis.speak(u);
     };
     speakOnce();
   }
