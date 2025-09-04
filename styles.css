@@ -94,6 +94,19 @@ h1 { font-size: 22px; margin: 0 0 16px; font-weight: 600; }
 }
 .chip:hover { background: var(--chip-hover); }
 
+.chip.selected {
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  border-color: var(--accent);
+}
+
+/* 選択範囲の再生ボタン */
+.selection-play {
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 10000;
+  padding: 6px 10px;
+}
+
 .hint { color: var(--muted); font-size: 14px; }
 
 .footer { margin-top: 20px; color: var(--muted); }

@@ -148,21 +148,23 @@
       return;
     }
     const frag = document.createDocumentFragment();
-    parts.forEach(p => {
+    parts.forEach((p, idx) => {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'chip';
       chip.dataset.text = p;
+      chip.dataset.idx = String(idx);
       chip.setAttribute('aria-label', `読み上げ: ${p}`);
       // 簡易ふりがな生成（全かなは正確／漢字を含む語は辞書が必要）
       const kana = toHiragana(readingForToken(p));
       chip.innerHTML = kana && kana !== p
         ? `<ruby>${escapeHtml(p)}<rt>${escapeHtml(kana)}</rt></ruby>`
         : `<ruby>${escapeHtml(p)}<rt>${escapeHtml(kana || p)}</rt></ruby>`;
-      chip.addEventListener('click', () => speak(p));
+      chip.addEventListener('click', () => handleChipClick(idx));
       frag.appendChild(chip);
     });
     segmentsEl.appendChild(frag);
+    clearRangeSelection();
   }
 
   playBtn.addEventListener('click', () => {
@@ -247,4 +249,78 @@
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
   }
+
+  // クリック範囲選択 → 再生
+  let rangeStart = null; // number | null
+  let rangeEnd = null;   // number | null
+  let playBtnFloating = null; // 再生ボタン
+
+  function getChips() { return Array.from(segmentsEl.querySelectorAll('.chip')); }
+  function getSelectedChips() { return getChips().filter(c => c.classList.contains('selected')); }
+  function clearRangeSelection() {
+    rangeStart = null; rangeEnd = null;
+    getChips().forEach(c => c.classList.remove('selected'));
+    hidePlayBtn();
+  }
+  function selectRange(a, b) {
+    const [min, max] = a <= b ? [a, b] : [b, a];
+    getChips().forEach(c => {
+      const i = Number(c.dataset.idx || -1);
+      if (i >= min && i <= max) c.classList.add('selected');
+      else c.classList.remove('selected');
+    });
+  }
+  function ensurePlayBtn() {
+    if (!playBtnFloating) {
+      playBtnFloating = document.createElement('button');
+      playBtnFloating.type = 'button';
+      playBtnFloating.className = 'btn primary selection-play';
+      playBtnFloating.textContent = '🔊';
+      playBtnFloating.setAttribute('aria-label', '選択範囲を読み上げ');
+      playBtnFloating.addEventListener('click', () => {
+        const text = getSelectedChips().map(c => c.dataset.text || '').join('');
+        speak(text);
+      });
+      document.body.appendChild(playBtnFloating);
+    }
+  }
+  function hidePlayBtn() { if (playBtnFloating) playBtnFloating.style.display = 'none'; }
+  function showPlayBtnAt(rect) {
+    ensurePlayBtn();
+    const top = Math.max(8, rect.top - 36);
+    const left = rect.left + rect.width / 2;
+    playBtnFloating.style.display = 'inline-block';
+    playBtnFloating.style.top = `${top}px`;
+    playBtnFloating.style.left = `${left}px`;
+  }
+  function updatePlayBtnPosition() {
+    const selected = getSelectedChips();
+    if (!selected.length) { hidePlayBtn(); return; }
+    const rects = selected.map(el => el.getBoundingClientRect());
+    const left = Math.min(...rects.map(r => r.left));
+    const right = Math.max(...rects.map(r => r.right));
+    const top = Math.min(...rects.map(r => r.top));
+    const bottom = Math.max(...rects.map(r => r.bottom));
+    showPlayBtnAt({ left, top, width: right - left, height: bottom - top });
+  }
+  function handleChipClick(idx) {
+    if (rangeStart === null) {
+      rangeStart = idx;
+      selectRange(idx, idx);
+      updatePlayBtnPosition();
+      return;
+    }
+    rangeEnd = idx;
+    selectRange(rangeStart, rangeEnd);
+    updatePlayBtnPosition();
+  }
+
+  // 外側クリックで選択解除
+  document.addEventListener('mousedown', (e) => {
+    if (segmentsEl.contains(e.target)) return;
+    if (playBtnFloating && playBtnFloating.contains(e.target)) return;
+    clearRangeSelection();
+  });
+  window.addEventListener('scroll', () => updatePlayBtnPosition(), { passive: true });
+  window.addEventListener('resize', () => updatePlayBtnPosition());
 })();
