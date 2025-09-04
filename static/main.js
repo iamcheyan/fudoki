@@ -1,7 +1,7 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const textEl = $('text');
-  const openBtn = $('openBtn');
+  const openBtn = null; // removed
   const closeBtn = $('closeBtn');
   const editBtn = $('editBtn');
   const editingHint = $('editingHint');
@@ -20,10 +20,19 @@
   // docs management
   const docSelect = $('docSelect');
   const addDocBtn = $('addDocBtn');
-  const saveDocBtn = $('saveDocBtn');
+  // removed toolbar Save button
   const deleteDocBtn = $('deleteDocBtn');
 
   const LS = { text: 'text', theme: 'theme', voiceURI: 'voiceURI', rate: 'rate', texts: 'texts', activeId: 'activeId', loopAll: 'loopAll' };
+  // Seed default non-deletable document (first run)
+  const DEFAULT_DOC_ID = 'default-01';
+  const DEFAULT_DOC_TITLE = '外来語がつくる新しい日本語';
+  const DEFAULT_DOC_CONTENT = [
+    '外来語がつくる新しい日本語。私は学生ですが、毎日の生活の中で English の言葉や カタカナ の外来語をよく使います。',
+    'たとえば、友達と話すときに「スマホ」や「コンビニ」などの言葉は、もはや普通の日本語になっていると思います。',
+    'さらに、大学の授業では Presentation という言葉がよく使われ、日本語と英語をまぜて話すことも多いです。',
+    'このように、英語やカタカナ語は私たちの生活に深く入っていて、日本語の表現をもっと豊かにしていると感（かん）じます。'
+  ].join('\n');
 
   // theme
   const sunSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 18a6 6 0 100-12 6 6 0 000 12zm0 4a1 1 0 011 1h-2a1 1 0 011-1zm0-22a1 1 0 01-1-1h2a1 1 0 01-1 1zM1 13a1 1 0 01-1-1h2a1 1 0 01-1 1zm22 0a1 1 0 01-1-1h2a1 1 0 01-1 1zM4.222 19.778a1 1 0 01.707-1.707l1.414 1.414a1 1 0 01-1.414 1.414l-1.707-1.121zM17.657 6.343a1 1 0 01.707-1.707l1.414 1.414a1 1 0 01-1.414 1.414L17.657 6.343zM19.778 19.778l-1.121 1.707a1 1 0 01-1.414-1.414l1.414-1.414a1 1 0 011.121 1.121zM6.343 6.343L4.929 7.757A1 1 0 013.515 6.343L5.222 4.636a1 1 0 011.121 1.707z"/></svg>';
@@ -124,10 +133,10 @@
   });
 
   // text and editor
-  function openEditor(){ editor.classList.remove('hidden'); }
+  function openEditor(){ editor.classList.remove('hidden'); try{ setTimeout(()=> textEl.focus(), 0); } catch(e){} }
   function closeEditor(){ editor.classList.add('hidden'); }
   function toggleEditor(){ editor.classList.toggle('hidden'); }
-  openBtn.addEventListener('click', toggleEditor);
+  // `openBtn` removed; use "現在のテキストを編集する" instead
   if (closeBtn) closeBtn.addEventListener('click', closeEditor);
   editBtn.addEventListener('click', openEditor);
 
@@ -138,24 +147,48 @@
   function getActiveId(){ return localStorage.getItem(LS.activeId) || ''; }
   function setActiveId(id){ localStorage.setItem(LS.activeId, id||''); }
   function titleOf(text){ const f=(text||'').split('\n')[0]?.trim()||''; return f||'無題'; }
+  function shortTitle(s, max=24){ const t=(s||'').trim(); if(t.length<=max) return t; return t.slice(0, max-1)+'…'; }
   function renderDocSelect(){
     const docs = loadDocs();
     docSelect.innerHTML='';
     docs.forEach(d => {
-      const opt=document.createElement('option'); opt.value=d.id; opt.textContent=titleOf(d.content); docSelect.appendChild(opt);
+      const full=titleOf(d.content);
+      const opt=document.createElement('option');
+      opt.value=d.id; opt.textContent=shortTitle(full, 24); opt.title=full;
+      docSelect.appendChild(opt);
     });
     let active = getActiveId(); if(!active && docs[0]){ active=docs[0].id; setActiveId(active); }
     if(active) docSelect.value=active;
   }
-  // migrate single LS.text into docs
-  (function migrate(){ const docs=loadDocs(); if(docs.length===0){ const legacy=localStorage.getItem(LS.text)||''; if((legacy||'').trim()){ const d={id:uuid(),content:legacy,createdAt:Date.now()}; saveDocs([d]); setActiveId(d.id);} } })();
+  // First run seeding: ensure a default, non-deletable document exists
+  (function seedDefault(){
+    let docs = loadDocs();
+    if(docs.length===0){
+      const def={ id:DEFAULT_DOC_ID, content:DEFAULT_DOC_CONTENT, createdAt:Date.now(), locked:true };
+      saveDocs([def]); setActiveId(def.id);
+    }
+  })();
   renderDocSelect();
   function loadActiveIntoEditor(){ const docs=loadDocs(); const id=getActiveId(); const cur=docs.find(d=>d.id===id); textEl.value=(cur&&cur.content)||''; }
   loadActiveIntoEditor();
-  docSelect.addEventListener('change', ()=>{ setActiveId(docSelect.value); loadActiveIntoEditor(); segment(); });
+  function updateDeleteButtonState(){
+    try{
+      const docs=loadDocs(); const id=getActiveId(); const cur=docs.find(d=>d.id===id);
+      const locked = !!(cur && cur.locked);
+      if(deleteDocBtn){ deleteDocBtn.disabled = locked; deleteDocBtn.classList.toggle('opacity-50', locked); deleteDocBtn.classList.toggle('cursor-not-allowed', locked); }
+    }catch(e){}
+  }
+  docSelect.addEventListener('change', ()=>{ setActiveId(docSelect.value); loadActiveIntoEditor(); updateDeleteButtonState(); segment(); });
   addDocBtn.addEventListener('click', ()=>{ const docs=loadDocs(); const d={id:uuid(),content:'',createdAt:Date.now()}; docs.unshift(d); saveDocs(docs); setActiveId(d.id); renderDocSelect(); loadActiveIntoEditor(); openEditor(); });
-  saveDocBtn.addEventListener('click', ()=>{ const docs=loadDocs(); const id=getActiveId(); const i=docs.findIndex(d=>d.id===id); if(i>=0){ docs[i].content=textEl.value||''; } else { const d={id:uuid(),content:textEl.value||'',createdAt:Date.now()}; docs.unshift(d); setActiveId(d.id);} saveDocs(docs); renderDocSelect(); segment(); });
-  deleteDocBtn.addEventListener('click', ()=>{ const docs=loadDocs(); const id=getActiveId(); const n=docs.filter(d=>d.id!==id); saveDocs(n); const next=n[0]?.id||''; setActiveId(next); renderDocSelect(); loadActiveIntoEditor(); segment(); });
+  // toolbar Save removed; saving is done via the editor's 保存按钮（segmentBtn）
+  deleteDocBtn.addEventListener('click', ()=>{
+    const docs=loadDocs(); const id=getActiveId(); const cur=docs.find(d=>d.id===id);
+    if(cur && cur.locked){ return; }
+    const n=docs.filter(d=>d.id!==id);
+    saveDocs(n);
+    const next=n[0]?.id||''; setActiveId(next); renderDocSelect(); loadActiveIntoEditor(); updateDeleteButtonState(); segment();
+  });
+  updateDeleteButtonState();
   if ((textEl.value || '').trim()) { setTimeout(()=>segment(),0); }
 
   // speak helpers
@@ -189,7 +222,7 @@
   // queued playback by lines (sentence-level), highlight full line
   let queue = null; // {mode:'lines', rows:HTMLElement[], idx:number, paused:boolean, u:Utterance}
   function clearHighlights(){
-    linesEl.querySelectorAll('button').forEach(b=>{
+    linesEl.querySelectorAll('button:not(.row-loop)').forEach(b=>{
       b.classList.remove('ring-2','ring-blue-400','border-blue-400','bg-blue-100','dark:bg-blue-900/30','dark:border-blue-500');
     });
   }
@@ -201,13 +234,24 @@
   }
   // row styling helpers
   function applyRowBase(row){
-    row.classList.add('rounded-3xl','border-2','px-3','py-2','shadow-sm');
+    row.classList.add('rounded-3xl','border-2','px-3','py-2','shadow-sm','transition-colors','duration-200');
   }
   function setRowState(row, state){ // 'idle' | 'reading' | 'done'
-    row.classList.remove('border-slate-300','bg-slate-50','border-blue-400','bg-blue-50','border-pink-300','bg-pink-50');
-    if(state==='idle'){ row.classList.add('border-slate-300','bg-slate-50'); }
-    else if(state==='reading'){ row.classList.add('border-blue-400','bg-blue-50'); }
-    else if(state==='done'){ row.classList.add('border-pink-300','bg-pink-50'); row.dataset.done='1'; }
+    row.classList.remove(
+      'border-slate-300','bg-slate-50',
+      'border-blue-400','bg-blue-50',
+      'border-emerald-500','bg-emerald-100',
+      'border-pink-300','bg-pink-50'
+    );
+    if(state==='idle'){
+      row.classList.add('border-slate-300','bg-slate-50');
+    } else if(state==='reading'){
+      // Make current reading line more conspicuous
+      row.classList.add('border-emerald-500','bg-emerald-100');
+    } else if(state==='done'){
+      row.classList.add('border-pink-300','bg-pink-50');
+      row.dataset.done='1';
+    }
   }
   function centerRow(row){
     const rect=row.getBoundingClientRect();
@@ -229,17 +273,17 @@
   }
   function clearTokenHighlights(row){
     if(!row) return;
-    row.querySelectorAll('button').forEach(b=>{
+    row.querySelectorAll('button:not(.row-loop)').forEach(b=>{
       b.classList.remove('ring-2','ring-blue-400','border-blue-400','bg-blue-100','dark:bg-blue-900/30','dark:border-blue-500');
     });
   }
   function textOfRow(row){
-    const btns = Array.from(row.querySelectorAll('button'));
+    const btns = Array.from(row.querySelectorAll('button:not(.row-loop)'));
     return btns.filter(b => b.dataset.symbol !== '1').map(b => b.dataset.surface || b.textContent || '').join('');
   }
   function startTokenHighlight(row){
     // schedule light token-level highlight using estimated duration per token
-    const btns = Array.from(row.querySelectorAll('button'));
+    const btns = Array.from(row.querySelectorAll('button:not(.row-loop)'));
     const tokens = btns.map(b=>({btn:b, text: (b.dataset.surface||b.textContent||''), symbol: b.dataset.symbol==='1'}));
     const baseCps = 8; // chars per second at rate=1
     const msFor = (t)=>{
@@ -324,6 +368,25 @@
   function isHiraganaOnly(s){ return /^[\p{Script=Hiragana}ー]+$/u.test(s||''); }
   function isKatakanaOnly(s){ return /^[\p{Script=Katakana}ー]+$/u.test(s||''); }
   function isPunct(s){ return /^[\p{P}\p{S}。、，．・…—「」『』（）()【】《》〈〉、。！？・：；,.!?]$/u.test(s||''); }
+  // Split incoming token lines by punctuation tokens; drop punctuation bubbles
+  function splitByPunctuation(lines){
+    const out=[];
+    (lines||[]).forEach((line)=>{
+      let buf=[];
+      (line||[]).forEach((tk)=>{
+        const surface=(tk?.surface||'').trim();
+        const posHead=(tk?.pos&&tk.pos[0])||'';
+        const sym = posHead==='記号' || isPunct(surface);
+        if(sym){
+          if(buf.length>0){ out.push(buf); buf=[]; }
+        }else{
+          buf.push(tk);
+        }
+      });
+      if(buf.length>0) out.push(buf);
+    });
+    return out;
+  }
 
   // rendering
   function renderLines(lines){
@@ -395,9 +458,10 @@
       // per-line loop play button (bottom-right)
       const rowBtn = document.createElement('button');
       rowBtn.type='button';
-      rowBtn.className='row-loop absolute right-2 bottom-2 rounded-full bg-emerald-600 text-white shadow-md px-2 py-1 hover:bg-emerald-700';
+      rowBtn.className='row-loop absolute right-2 bottom-2 rounded-full bg-emerald-600 text-white shadow-md px-2 py-1 hover:bg-emerald-700 focus:outline-none transition-transform duration-100 active:scale-95';
       rowBtn.innerHTML=rowPlayIcon;
-      rowBtn.addEventListener('click', ()=> toggleRowLoop(row, rowBtn));
+      rowBtn.addEventListener('click', (e)=>{ feedbackPulse(rowBtn); toggleRowLoop(row, rowBtn); });
+      rowBtn.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); feedbackPulse(rowBtn); toggleRowLoop(row, rowBtn); } });
       row.appendChild(rowBtn);
       frag.appendChild(row);
     });
@@ -447,13 +511,24 @@
     speakOnce();
   }
 
+  // Visual click feedback: brief ripple/halo
+  function feedbackPulse(btn){
+    try{
+      const ripple = document.createElement('span');
+      ripple.className = 'pointer-events-none absolute inset-0 rounded-full ring-4 ring-emerald-300/70 animate-ping';
+      btn.appendChild(ripple);
+      setTimeout(()=>{ ripple.remove(); }, 400);
+    }catch(e){}
+  }
+
   // segmentation via Flask API
   async function segment() {
     const text = textEl.value || '';
     if (!text.trim()) { renderLines([]); closeEditor(); return; }
     const res = await fetch('/api/segment', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text, mode: 'B' }) });
     const data = await res.json();
-    renderLines(data.lines || []);
+    const processed = splitByPunctuation(data.lines || []);
+    renderLines(processed);
     closeEditor();
   }
   // Save then segment from editor button

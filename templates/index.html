@@ -38,18 +38,15 @@
 
       <main class="mx-auto max-w-5xl px-4">
         <section class="mt-6" id="inputSection">
-          <!-- Document management: select / add / save / delete -->
-          <div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 flex flex-col md:flex-row gap-2 md:items-center">
-            <div class="flex items-center gap-2">
-              <label class="text-sm text-slate-600 dark:text-slate-300">テキスト</label>
-              <select id="docSelect" class="px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 bg-transparent min-w-[14rem]"></select>
+          <!-- Document management: select + add (single row, no wrap) -->
+          <div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 flex items-center gap-2 flex-nowrap">
+            <div class="flex items-center gap-2 flex-1 min-w-0 flex-nowrap">
+              <label class="text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">テキスト</label>
+              <select id="docSelect" class="px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 bg-transparent flex-1 min-w-0 truncate"></select>
+              <button id="addDocBtn" class="ml-2 shrink-0 p-2 rounded-md border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="新規">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M11 4a1 1 0 112 0v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H5a1 1 0 110-2h6V4z"/></svg>
+              </button>
             </div>
-            <div class="flex items-center gap-2">
-              <button id="addDocBtn" class="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800">新規</button>
-              <button id="saveDocBtn" class="px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700">保存</button>
-            </div>
-            <div class="flex-1"></div>
-            <button id="openBtn" class="w-full md:w-auto inline-flex items-center gap-1 px-3 py-2 rounded-md border border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800">＋エディタを開く</button>
           </div>
           <div id="editingHint" class="mt-2 text-sm text-slate-500 dark:text-slate-400 hidden">
             <button class="underline" id="editBtn">現在のテキストを編集する</button>

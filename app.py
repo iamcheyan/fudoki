@@ -129,11 +129,10 @@ def api_segment():
     tok = _get_tokenizer()
     smode = _split_mode(mode)
 
-    # split into sentences by punctuation (comma/period/exclamation/question/ellipsis)
+    # Respect explicit line breaks: each non-empty line is one unit to tokenize
     raw = (text or "").replace("\r", "")
-    # use punctuation as delimiters, discard them
-    parts = re.split(r"[、，,。．\.！？!?…]+", raw)
-    lines = [p for p in (s.strip() for s in parts) if p]
+    parts = [s.strip() for s in raw.split("\n")]
+    lines = [p for p in parts if p]
     out: List[List[TokenOut]] = []
     for line in lines:
         t = (line or "").strip()
