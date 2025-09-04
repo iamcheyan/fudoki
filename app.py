@@ -140,8 +140,14 @@ def api_segment():
         if not t:
             out.append([])
             continue
+        # Skip any parenthetical content when preparing tokens for reading/display
+        # Handles both full-width （…） and half-width (…)
+        try:
+            t_for_tok = re.sub(r"（.*?）|\(.*?\)", "", t)
+        except Exception:
+            t_for_tok = t
         arr: List[TokenOut] = []
-        for morpheme in tok.tokenize(t, smode):
+        for morpheme in tok.tokenize(t_for_tok, smode):
             surface = morpheme.surface()
             lemma = morpheme.dictionary_form()
             reading = morpheme.reading_form() or surface
