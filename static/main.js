@@ -62,6 +62,10 @@
   });
   updateLoopIcon();
 
+  // Icons for per-line loop button
+  const rowPlayIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M4 10h3l4-3v10l-4-3H4z"/><path d="M14 9v6l4-3-4-3z"/></svg>';
+  const rowPauseIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M4 10h3l4-3v10l-4-3H4z"/><rect x="14" y="8" width="3" height="8" rx="1"/><rect x="18.5" y="8" width="3" height="8" rx="1"/></svg>';
+
   // voices
   let voices = [];
   let currentVoice = null;
@@ -333,7 +337,6 @@
       row.className = 'line flex flex-wrap gap-2 relative';
       applyRowBase(row); setRowState(row,'idle');
       line.forEach((tk, ti) => {
-        any = true;
         const btn = document.createElement('button');
         const posHead = (tk.pos && tk.pos[0]) || '';
         const posClass = (() => {
@@ -350,7 +353,9 @@
           }
         })();
         btn.className = `px-3 py-1.5 rounded-full border text-sm transition select-none hover:bg-slate-100 dark:hover:bg-slate-800 relative ${posClass}`;
-        const surface = tk.surface || '';
+        const surfaceRaw = tk.surface || '';
+        const surface = surfaceRaw.trim();
+        if(!surface){ return; } // skip empty surface to avoid blank bubbles
         const reading = toHiragana(tk.reading || surface);
         const isSymbol = posHead === '記号' || isPunct(surface);
         const hiraOnly = isHiraganaOnly(surface);
@@ -385,13 +390,13 @@
         });
         btn.addEventListener('mouseleave', () => { if (timer) clearTimeout(timer); });
         row.appendChild(btn);
+        any = true;
       });
       // per-line loop play button (bottom-right)
-      const loopIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M4 10h3l4-3v10l-4-3H4z"/><path d="M14 9v6l4-3-4-3z"/></svg>';
       const rowBtn = document.createElement('button');
       rowBtn.type='button';
       rowBtn.className='row-loop absolute right-2 bottom-2 rounded-full bg-emerald-600 text-white shadow-md px-2 py-1 hover:bg-emerald-700';
-      rowBtn.innerHTML=loopIcon;
+      rowBtn.innerHTML=rowPlayIcon;
       rowBtn.addEventListener('click', ()=> toggleRowLoop(row, rowBtn));
       row.appendChild(rowBtn);
       frag.appendChild(row);
@@ -401,22 +406,35 @@
     editingHint.classList.toggle('hidden', !any);
   }
 
-  // Row loop button: loop a single line until toggled off
-  let rowLoop = null; // {row: HTMLElement, btn: HTMLElement}
+  // Row loop button: loop a single line; click toggles pause/resume
+  let rowLoop = null; // {row: HTMLElement, btn: HTMLElement, state:'playing'|'paused'}
   function stopRowLoop(){
     if(!rowLoop) return;
     try { window.speechSynthesis.cancel(); } catch(e) {}
     setRowState(rowLoop.row,'idle');
-    rowLoop.btn?.classList.remove('bg-rose-600');
-    rowLoop.btn?.classList.add('bg-emerald-600');
+    if (rowLoop.btn) rowLoop.btn.innerHTML = rowPlayIcon;
     rowLoop = null;
   }
   function toggleRowLoop(row, btn){
-    if(rowLoop && rowLoop.row===row){ stopRowLoop(); return; }
+    // If clicking the same row while looping: toggle pause/resume
+    if(rowLoop && rowLoop.row===row){
+      if(rowLoop.state==='playing'){
+        try { window.speechSynthesis.pause(); } catch(e) {}
+        rowLoop.state='paused';
+        if (rowLoop.btn) rowLoop.btn.innerHTML = rowPlayIcon; // show play icon while paused
+      } else {
+        try { window.speechSynthesis.resume(); } catch(e) {}
+        rowLoop.state='playing';
+        if (rowLoop.btn) rowLoop.btn.innerHTML = rowPauseIcon; // show pause icon while playing
+      }
+      return;
+    }
+
+    // Start a new row loop
     stopQueue(); stopRowLoop();
     setRowState(row,'reading'); centerRow(row);
-    btn.classList.remove('bg-emerald-600'); btn.classList.add('bg-rose-600');
-    rowLoop = {row, btn};
+    rowLoop = {row, btn, state:'playing'};
+    if (btn) btn.innerHTML = rowPauseIcon;
     const speakOnce = () => {
       if(!rowLoop || rowLoop.row!==row) return;
       const text = textOfRow(row);
