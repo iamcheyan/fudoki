@@ -122,8 +122,9 @@
   // text and editor
   function openEditor(){ editor.classList.remove('hidden'); }
   function closeEditor(){ editor.classList.add('hidden'); }
-  openBtn.addEventListener('click', openEditor);
-  closeBtn.addEventListener('click', closeEditor);
+  function toggleEditor(){ editor.classList.toggle('hidden'); }
+  openBtn.addEventListener('click', toggleEditor);
+  if (closeBtn) closeBtn.addEventListener('click', closeEditor);
   editBtn.addEventListener('click', openEditor);
 
   // Documents management (multiple saved texts)
@@ -194,6 +195,21 @@
     else if(state==='paused'){ playAllBtn.textContent = '▶ 再開'; }
     else { playAllBtn.textContent = '全文再生'; }
   }
+  // row styling helpers
+  function applyRowBase(row){
+    row.classList.add('rounded-3xl','border-2','px-3','py-2','shadow-sm');
+  }
+  function setRowState(row, state){ // 'idle' | 'reading' | 'done'
+    row.classList.remove('border-slate-300','bg-slate-50','border-blue-400','bg-blue-50','border-pink-300','bg-pink-50');
+    if(state==='idle'){ row.classList.add('border-slate-300','bg-slate-50'); }
+    else if(state==='reading'){ row.classList.add('border-blue-400','bg-blue-50'); }
+    else if(state==='done'){ row.classList.add('border-pink-300','bg-pink-50'); row.dataset.done='1'; }
+  }
+  function centerRow(row){
+    const rect=row.getBoundingClientRect();
+    const y=window.scrollY + rect.top + rect.height/2 - window.innerHeight/2;
+    window.scrollTo({ top: Math.max(0, y-16), behavior: 'smooth' });
+  }
   function stopQueue(){
     queue = null;
     window.speechSynthesis.cancel();
@@ -250,10 +266,11 @@
     const t = textOfRow(row);
     if(!t.trim()) return;
     highlightRow(row, true);
+    setRowState(row,'reading'); centerRow(row);
     const u = new SpeechSynthesisUtterance(t);
     applyVoice(u);
     u.rate = rate; u.pitch = 1.0;
-    u.onend = () => { queue && queue.hTimer && clearTimeout(queue.hTimer); clearTokenHighlights(row); highlightRow(row, false); setPlayBtnState('idle'); };
+    u.onend = () => { queue && queue.hTimer && clearTimeout(queue.hTimer); clearTokenHighlights(row); highlightRow(row, false); setRowState(row,'done'); setPlayBtnState('idle'); };
     u.onpause = () => { if(queue){ queue.paused = true; queue.hTimer && clearTimeout(queue.hTimer); } };
     u.onresume = () => { if(queue){ queue.paused = false; startTokenHighlight(row); } };
     queue = {mode:'lines', rows:[row], idx:0, paused:false, u, hTimer:null, hIdx:0, hBtns:null};
@@ -272,17 +289,19 @@
         else { stopQueue(); return; }
       }
       const row = rows[queue.idx];
-      clearHighlights(); highlightRow(row, true);
+      clearHighlights(); highlightRow(row, true); setRowState(row,'reading'); centerRow(row);
       const u = new SpeechSynthesisUtterance(textOfRow(row));
       applyVoice(u);
       u.rate = rate; u.pitch = 1.0;
-      u.onend = () => { if(queue){ queue.hTimer && clearTimeout(queue.hTimer); clearTokenHighlights(row); queue.idx++; step(); } };
+      u.onend = () => { if(queue){ queue.hTimer && clearTimeout(queue.hTimer); clearTokenHighlights(row); setRowState(row,'done'); queue.idx++; step(); } };
       u.onpause = () => { if(queue){ queue.paused = true; queue.hTimer && clearTimeout(queue.hTimer); } };
       u.onresume = () => { if(queue){ queue.paused = false; startTokenHighlight(row); } };
       queue.u = u;
       window.speechSynthesis.cancel(); try { window.speechSynthesis.resume(); } catch (e) {} window.speechSynthesis.speak(u); setPlayBtnState('playing');
       startTokenHighlight(row);
     };
+    // reset rows visual to idle
+    rows.forEach(r=>{ applyRowBase(r); setRowState(r,'idle'); });
     queue = {mode:'lines', rows, idx:0, paused:false, u:null};
     step();
   }
@@ -311,6 +330,7 @@
       const row = document.createElement('div');
       // mark each line row so playback can query them
       row.className = 'line flex flex-wrap gap-2 relative';
+      applyRowBase(row); setRowState(row,'idle');
       line.forEach((tk, ti) => {
         any = true;
         const btn = document.createElement('button');
@@ -430,7 +450,16 @@
     renderLines(data.lines || []);
     closeEditor();
   }
-  segmentBtn.addEventListener('click', segment);
+  // Save then segment from editor button
+  segmentBtn.textContent = '保存';
+  segmentBtn.addEventListener('click', () => {
+    const docs=loadDocs(); const id=getActiveId();
+    const i=docs.findIndex(d=>d.id===id);
+    if(i>=0){ docs[i].content=textEl.value||''; }
+    else { const d={id:uuid(),content:textEl.value||'',createdAt:Date.now()}; docs.unshift(d); setActiveId(d.id); }
+    saveDocs(docs); renderDocSelect();
+    segment();
+  });
 
   // play all with toggle pause/resume and highlighting
   playAllBtn.addEventListener('click', toggleQueue);
