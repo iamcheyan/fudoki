@@ -12,7 +12,7 @@
   let voices = [];
   let rate = 1.0;
 
-  // 文本内容持久化
+  // テキスト内容の永続化
   const TEXT_KEY = 'text';
   (function initText() {
     try {
@@ -28,13 +28,14 @@
     }, 200);
   });
 
+  // 音声リストの取得（日本語/英語のみを表示）
   function populateVoices() {
     voices = window.speechSynthesis.getVoices?.() || [];
     if (!voiceSelect) return;
     const prev = voiceSelect.value;
     voiceSelect.innerHTML = '';
 
-    // 仅筛选日语/英语语音，并按语言优先级排序（ja 优先，再 en）
+    // 日本語/英語のみ抽出。日本語を優先し、次に英語。
     const pool = voices
       .filter(v => {
         const l = (v.lang || '').toLowerCase();
@@ -44,7 +45,7 @@
         const pa = (a.lang || '').toLowerCase().startsWith('ja') ? 0 : 1;
         const pb = (b.lang || '').toLowerCase().startsWith('ja') ? 0 : 1;
         if (pa !== pb) return pa - pb;
-        // 默认语音靠前
+        // 既定音声を前へ
         if (a.default && !b.default) return -1;
         if (!a.default && b.default) return 1;
         return (a.name || '').localeCompare(b.name || '');
@@ -52,7 +53,7 @@
 
     if (!pool.length) {
       const opt = document.createElement('option');
-      opt.textContent = '未检测到日语/英语语音';
+      opt.textContent = '日本語/英語の音声が見つかりません';
       opt.disabled = true;
       opt.selected = true;
       voiceSelect.appendChild(opt);
@@ -63,11 +64,11 @@
     pool.forEach((v, idx) => {
       const opt = document.createElement('option');
       opt.value = v.voiceURI || v.name || String(idx);
-      opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (默认)' : ''}`;
+      opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (既定)' : ''}`;
       voiceSelect.appendChild(opt);
     });
 
-    // 恢复已选项或初始化默认
+    // 保存済みの選択を復元、なければ日本語/既定を選択
     let preferred = null;
     try { preferred = localStorage.getItem('voiceURI') || null; } catch (e) {}
     const matchByPref = pool.find(v => (v.voiceURI || v.name) === preferred);
@@ -82,7 +83,7 @@
     }
   }
 
-  // 初次和后续变化时尝试加载语音列表
+  // 初回と変更時に音声リストをロード
   if ('speechSynthesis' in window) {
     populateVoices();
     window.speechSynthesis.onvoiceschanged = () => {
@@ -92,12 +93,12 @@
 
   function speak(text) {
     if (!('speechSynthesis' in window)) {
-      alert('当前浏览器不支持语音合成功能。请使用 Chrome/Edge/Safari 等现代浏览器。');
+      alert('このブラウザは音声合成をサポートしていません。Chrome/Edge/Safari などの最新ブラウザをご利用ください。');
       return;
     }
     const t = (text || '').trim();
     if (!t) return;
-    // 取消之前的朗读，避免叠音
+    // 直前の発話をキャンセルして重なりを防ぐ
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(t);
     if (jaVoice) {
@@ -106,20 +107,20 @@
     } else {
       u.lang = 'ja-JP';
     }
-    u.rate = rate; // 语速
-    u.pitch = 1.0; // 音高
+    u.rate = rate; // 速度
+    u.pitch = 1.0; // ピッチ
     window.speechSynthesis.speak(u);
   }
 
   function hasJapaneseChars(s) {
-    // 包含任意日/中字符、假名、拉丁字母或数字则认为是“词”
+    // 漢字・ひらがな・カタカナ、または英数字を含むか
     return /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}A-Za-z0-9]/u.test(s);
   }
 
   function segmentJa(text) {
     const t = (text || '').replace(/[\n\r]+/g, ' ').trim();
     if (!t) return [];
-    // 优先使用 Intl.Segmenter 进行日语分词
+    // 可能なら Intl.Segmenter を使って日本語の単語単位に分割
     if (typeof Intl !== 'undefined' && Intl.Segmenter) {
       try {
         const seg = new Intl.Segmenter('ja', { granularity: 'word' });
@@ -130,10 +131,10 @@
         }
         if (parts.length) return parts;
       } catch (e) {
-        // ignore and fall back
+        // 失敗したらフォールバックへ
       }
     }
-    // 简易回退：按空白和常见标点拆分，然后保留含日文或字母数字的片段
+    // 簡易フォールバック：空白と句読点で分割し、日本語/英数字を含む断片のみ残す
     return t
       .split(/([\s、。．，,\.！？!?:；;“”"'（）()【】《》〈〉…—\-]+)/)
       .map(s => s.trim())
@@ -143,7 +144,7 @@
   function renderSegments(parts) {
     segmentsEl.innerHTML = '';
     if (!parts.length) {
-      segmentsEl.innerHTML = '<div class="hint">未拆出可点击的词。请检查文本或更换浏览器。</div>';
+      segmentsEl.innerHTML = '<div class="hint">クリック可能な語を分割できませんでした。テキストを確認するか別のブラウザをお試しください。</div>';
       return;
     }
     const frag = document.createDocumentFragment();
@@ -152,8 +153,8 @@
       chip.type = 'button';
       chip.className = 'chip';
       chip.dataset.text = p;
-      chip.setAttribute('aria-label', `朗读：${p}`);
-      // 生成简单假名（仅对全假名词准确；含汉字需词典支持）
+      chip.setAttribute('aria-label', `読み上げ: ${p}`);
+      // 簡易ふりがな生成（全かなは正確／漢字を含む語は辞書が必要）
       const kana = toHiragana(readingForToken(p));
       chip.innerHTML = kana && kana !== p
         ? `<ruby>${escapeHtml(p)}<rt>${escapeHtml(kana)}</rt></ruby>`
@@ -173,19 +174,19 @@
     renderSegments(parts);
   });
 
-  // 主题切换
+  // テーマ切り替え
   const root = document.documentElement;
   function updateToggleLabel(theme) {
     if (!themeToggleBtn) return;
-    themeToggleBtn.textContent = theme === 'light' ? '深色' : '浅色';
-    themeToggleBtn.setAttribute('aria-label', theme === 'light' ? '切换到深色模式' : '切换到浅色模式');
+    themeToggleBtn.textContent = theme === 'light' ? 'ダーク' : 'ライト';
+    themeToggleBtn.setAttribute('aria-label', theme === 'light' ? 'ダークモードに切り替える' : 'ライトモードに切り替える');
   }
   function setTheme(theme) {
     root.setAttribute('data-theme', theme);
     try { localStorage.setItem('theme', theme); } catch (e) {}
     updateToggleLabel(theme);
   }
-  // 初始化主题：优先本地存储，否则参考系统偏好
+  // 初期化：保存済みテーマ > システムの設定
   (function initTheme() {
     let theme = 'dark';
     try { theme = localStorage.getItem('theme') || theme; } catch (e) {}
@@ -199,7 +200,7 @@
     setTheme(current === 'light' ? 'dark' : 'light');
   });
 
-  // 语音选择
+  // 音声の選択
   voiceSelect?.addEventListener('change', () => {
     const uri = voiceSelect.value;
     const v = voices.find(v => (v.voiceURI || v.name) === uri);
@@ -209,13 +210,13 @@
     }
   });
 
-  // 语速控制
+  // 速度の制御
   function setRate(val) {
     rate = Math.min(2, Math.max(0.5, Number(val) || 1));
     if (rateValueEl) rateValueEl.textContent = `${rate.toFixed(1)}x`;
     try { localStorage.setItem('rate', String(rate)); } catch (e) {}
   }
-  // 初始化语速
+  // 初期化（速度）
   (function initRate() {
     let saved = 1;
     try { saved = parseFloat(localStorage.getItem('rate')) || 1; } catch (e) {}
@@ -224,11 +225,11 @@
   })();
   rateRange?.addEventListener('input', () => setRate(rateRange.value));
 
-  // 工具函数：生成假名（占位实现）
+  // ユーティリティ：ふりがな生成（簡易実装）
   function readingForToken(token) {
-    // 简单规则：
-    // - 全平假名/片假名：返回其假名（片假名转平假名）
-    // - 含汉字：返回已有的假名部分（去除标点和拉丁字符），无法精准标注需词典
+    // ルール：
+    // - ひらがな/カタカナのみ: そのまま返す（カタカナはひらがなに変換）
+    // - 漢字を含む: 既に含まれるかな部分のみ抽出（正確な読みには辞書が必要）
     const t = (token || '').trim();
     if (!t) return '';
     if (/^[\p{Script=Hiragana}\p{Script=Katakana}]+$/u.test(t)) return t;

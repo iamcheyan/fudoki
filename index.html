@@ -1,44 +1,44 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ja">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>日语朗读与拆词工具</title>
+    <title>日本語読み上げ・分割ツール</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="container">
       <div class="topbar">
-        <h1>日语朗读与拆词工具</h1>
-        <button id="themeToggle" class="btn" aria-label="切换明暗模式">浅色</button>
+        <h1>日本語読み上げ・分割ツール</h1>
+        <button id="themeToggle" class="btn" aria-label="テーマの切り替え">ライト</button>
       </div>
 
-      <label for="inputText" class="label">在下方粘贴日语文本：</label>
+      <label for="inputText" class="label">下に日本語のテキストを貼り付けてください：</label>
       <textarea id="inputText" class="input" rows="6" placeholder="ここに日本語の文章を貼り付けてください。"></textarea>
 
       <div class="actions">
-        <button id="playBtn" class="btn primary">播放整段</button>
-        <button id="segmentBtn" class="btn">拆词</button>
+        <button id="playBtn" class="btn primary">全文を再生</button>
+        <button id="segmentBtn" class="btn">分割</button>
       </div>
 
       <section class="controls">
         <div class="control">
-          <label for="voiceSelect" class="label">朗读语音：</label>
-          <select id="voiceSelect" class="select" aria-label="选择语音"></select>
+          <label for="voiceSelect" class="label">音声：</label>
+          <select id="voiceSelect" class="select" aria-label="音声を選択"></select>
         </div>
         <div class="control">
-          <label for="rateRange" class="label">语速：<span id="rateValue">1.0x</span></label>
+          <label for="rateRange" class="label">速度：<span id="rateValue">1.0x</span></label>
           <input id="rateRange" class="range" type="range" min="0.5" max="2" step="0.1" value="1" />
         </div>
       </section>
 
       <section>
-        <h2 class="subheading">点击下方块可单独朗读</h2>
+        <h2 class="subheading">下のブロックをクリックすると個別に再生できます</h2>
         <div id="segments" class="segments" aria-live="polite"></div>
       </section>
 
       <footer class="footer">
-        <small>提示：浏览器会自动选择日语语音；若设备没有日语语音，将回退到默认语音。</small>
+        <small>ヒント: ブラウザは日本語の音声を自動で選択します。端末に日本語音声がない場合は既定の音声にフォールバックします。</small>
       </footer>
     </main>
 

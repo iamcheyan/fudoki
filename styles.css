@@ -10,7 +10,7 @@
   --border: #1f2937;
 }
 
-/* 浅色主题变量 */
+/* ライトテーマ変数 */
 :root[data-theme="light"] {
   --bg: #f8fafc;          /* slate-50 */
   --panel: #ffffff;
@@ -66,7 +66,7 @@ h1 { font-size: 22px; margin: 0 0 16px; font-weight: 600; }
 .btn.primary { background: var(--accent); border-color: var(--accent-600); color: #fff; }
 .btn.primary:hover { background: var(--accent-600); }
 
-/* 顶部条 */
+/* トップバー */
 .topbar {
   display: flex;
   align-items: center;
@@ -98,7 +98,7 @@ h1 { font-size: 22px; margin: 0 0 16px; font-weight: 600; }
 
 .footer { margin-top: 20px; color: var(--muted); }
 
-/* 控件区域 */
+/* コントロール */
 .controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -115,6 +115,6 @@ h1 { font-size: 22px; margin: 0 0 16px; font-weight: 600; }
 }
 .range { padding: 6px; }
 
-/* ruby 样式（假名） */
+/* ルビ（ふりがな） */
 ruby { ruby-position: over; }
 rt { font-size: 0.72em; color: var(--muted); }
