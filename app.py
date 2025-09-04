@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import asdict, dataclass
 import re
 from typing import List
@@ -163,7 +164,16 @@ def api_segment():
 
 
 def main():  # pragma: no cover
-    port = int(os.environ.get("PORT", 8000))
+    # コマンドライン引数からポート番号を取得（指定がない場合は環境変数またはデフォルト値を使用）
+    if len(sys.argv) > 1:
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            print(f"エラー: 無効なポート番号です: {sys.argv[1]}")
+            sys.exit(1)
+    else:
+        port = int(os.environ.get("PORT", 8000))
+    
     app.run(host="0.0.0.0", port=port, debug=True)
 
 
