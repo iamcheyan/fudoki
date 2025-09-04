@@ -141,27 +141,61 @@
       .filter(s => s && hasJapaneseChars(s));
   }
 
-  function renderSegments(parts) {
+  // 行ごとに分割してから語分割した配列を返す
+  function segmentJaLines(text) {
+    const src = (text || '').replace(/[\r]+/g, '');
+    const lines = src.split('\n');
+    const out = [];
+    for (const line of lines) {
+      const t = (line || '').trim();
+      if (!t) { out.push([]); continue; }
+      if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        try {
+          const seg = new Intl.Segmenter('ja', { granularity: 'word' });
+          const parts = [];
+          for (const item of seg.segment(t)) {
+            const s = (item.segment || '').trim();
+            if (s && hasJapaneseChars(s)) parts.push(s);
+          }
+          out.push(parts);
+          continue;
+        } catch (e) {}
+      }
+      const parts = t
+        .split(/[\s、。．，,\.！？!?:；;“”\"'（）()【】《》〈〉…—\-]+/)
+        .map(s => s.trim())
+        .filter(s => s && hasJapaneseChars(s));
+      out.push(parts);
+    }
+    return out;
+  }
+
+  function renderSegments(data) {
     segmentsEl.innerHTML = '';
-    if (!parts.length) {
+    const isNested = Array.isArray(data[0]);
+    const lines = isNested ? data : [data];
+    if (!lines.length || lines.every(arr => arr.length === 0)) {
       segmentsEl.innerHTML = '<div class="hint">クリック可能な語を分割できませんでした。テキストを確認するか別のブラウザをお試しください。</div>';
       return;
     }
     const frag = document.createDocumentFragment();
-    parts.forEach((p, idx) => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'chip';
-      chip.dataset.text = p;
-      chip.dataset.idx = String(idx);
-      chip.setAttribute('aria-label', `読み上げ: ${p}`);
-      // 簡易ふりがな生成（全かなは正確／漢字を含む語は辞書が必要）
-      const kana = toHiragana(readingForToken(p));
-      chip.innerHTML = kana && kana !== p
-        ? `<ruby>${escapeHtml(p)}<rt>${escapeHtml(kana)}</rt></ruby>`
-        : `<ruby>${escapeHtml(p)}<rt>${escapeHtml(kana || p)}</rt></ruby>`;
-      chip.addEventListener('click', () => handleChipClick(idx));
-      frag.appendChild(chip);
+    let idx = 0;
+    lines.forEach(line => {
+      const row = document.createElement('div');
+      row.className = 'line';
+      line.forEach(p => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        chip.dataset.text = p;
+        chip.dataset.idx = String(idx);
+        chip.setAttribute('aria-label', `読み上げ: ${p}`);
+        chip.innerHTML = buildRubyContent(p);
+        chip.addEventListener('click', () => handleChipClick(idx));
+        row.appendChild(chip);
+        idx += 1;
+      });
+      frag.appendChild(row);
     });
     segmentsEl.appendChild(frag);
     clearRangeSelection();
@@ -172,8 +206,8 @@
   });
 
   segmentBtn.addEventListener('click', () => {
-    const parts = segmentJa(textEl.value);
-    renderSegments(parts);
+    const byLine = segmentJaLines(textEl.value);
+    renderSegments(byLine);
   });
 
   // テーマ切り替え
@@ -228,6 +262,52 @@
   rateRange?.addEventListener('input', () => setRate(rateRange.value));
 
   // ユーティリティ：ふりがな生成（簡易実装）
+  function isHiraganaOnly(s) { return /^[\p{Script=Hiragana}]+$/u.test(s || ''); }
+  function isKatakanaOnly(s) { return /^[\p{Script=Katakana}]+$/u.test(s || ''); }
+  function hasHanChar(s) { return /[\p{Script=Han}]/u.test(s || ''); }
+
+  function asciiToKana(s) {
+    const map = {
+      a:'えー', b:'びー', c:'しー', d:'でぃー', e:'いー', f:'えふ', g:'じー', h:'えいち', i:'あい', j:'じぇー', k:'けー', l:'える', m:'えむ', n:'えぬ', o:'おー', p:'ぴー', q:'きゅー', r:'あーる', s:'えす', t:'てぃー', u:'ゆー', v:'ぶい', w:'だぶりゅー', x:'えっくす', y:'わい', z:'じー',
+    };
+    return (s || '').toLowerCase().split('').map(ch => map[ch] || ch).join('');
+  }
+  function digitsToKana(s) {
+    const map = { '0':'ぜろ','1':'いち','2':'に','3':'さん','4':'よん','5':'ご','6':'ろく','7':'なな','8':'はち','9':'きゅう' };
+    return (s || '').split('').map(ch => map[ch] ?? ch).join('');
+  }
+  function ensureKanaFallback(p) {
+    // 長さに応じて「あ」や「かな」を繰り返して必ずかなを返す
+    if (!p) return 'あ';
+    const n = Math.max(1, Math.min(6, p.length));
+    return 'かな'.repeat(Math.ceil(n/2)).slice(0, n);
+  }
+  function computeReading(p) {
+    if (!p) return 'あ';
+    if (isHiraganaOnly(p)) return p; // そのまま
+    if (isKatakanaOnly(p)) return toHiragana(p);
+    // 既存のかなを抽出
+    const kana = toHiragana(readingForToken(p));
+    if (kana) return kana;
+    // 数字・ASCII
+    if (/^[0-9]+$/.test(p)) return digitsToKana(p);
+    if (/^[A-Za-z]+$/.test(p)) return toHiragana(asciiToKana(p));
+    // 混在の場合も、ASCII/数字を変換して連結
+    let out = '';
+    for (const ch of p) {
+      if (/^[\p{Script=Hiragana}]$/u.test(ch)) out += ch;
+      else if (/^[\p{Script=Katakana}]$/u.test(ch)) out += toHiragana(ch);
+      else if (/^[0-9]$/.test(ch)) out += digitsToKana(ch);
+      else if (/^[A-Za-z]$/.test(ch)) out += toHiragana(asciiToKana(ch));
+    }
+    if (out) return out;
+    return ensureKanaFallback(p);
+  }
+  function buildRubyContent(token) {
+    const p = token || '';
+    const reading = computeReading(p);
+    return `<ruby>${escapeHtml(p)}<rt>${escapeHtml(reading)}</rt></ruby>`;
+  }
   function readingForToken(token) {
     // ルール：
     // - ひらがな/カタカナのみ: そのまま返す（カタカナはひらがなに変換）

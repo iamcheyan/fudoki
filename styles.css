@@ -78,10 +78,16 @@ h1 { font-size: 22px; margin: 0 0 16px; font-weight: 600; }
 
 .segments {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
   padding: 12px 0;
   min-height: 44px;
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .chip {
