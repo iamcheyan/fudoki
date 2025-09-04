@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>日语朗读与拆词工具</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <div class="topbar">
+        <h1>日语朗读与拆词工具</h1>
+        <button id="themeToggle" class="btn" aria-label="切换明暗模式">浅色</button>
+      </div>
+
+      <label for="inputText" class="label">在下方粘贴日语文本：</label>
+      <textarea id="inputText" class="input" rows="6" placeholder="ここに日本語の文章を貼り付けてください。"></textarea>
+
+      <div class="actions">
+        <button id="playBtn" class="btn primary">播放整段</button>
+        <button id="segmentBtn" class="btn">拆词</button>
+      </div>
+
+      <section class="controls">
+        <div class="control">
+          <label for="voiceSelect" class="label">朗读语音：</label>
+          <select id="voiceSelect" class="select" aria-label="选择语音"></select>
+        </div>
+        <div class="control">
+          <label for="rateRange" class="label">语速：<span id="rateValue">1.0x</span></label>
+          <input id="rateRange" class="range" type="range" min="0.5" max="2" step="0.1" value="1" />
+        </div>
+      </section>
+
+      <section>
+        <h2 class="subheading">点击下方块可单独朗读</h2>
+        <div id="segments" class="segments" aria-live="polite"></div>
+      </section>
+
+      <footer class="footer">
+        <small>提示：浏览器会自动选择日语语音；若设备没有日语语音，将回退到默认语音。</small>
+      </footer>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+  </html>
