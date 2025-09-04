@@ -39,7 +39,7 @@
     const pool = voices
       .filter(v => {
         const l = (v.lang || '').toLowerCase();
-        return l.startsWith('ja') || l.startsWith('en');
+        return l.startsWith('ja');
       })
       .sort((a, b) => {
         const pa = (a.lang || '').toLowerCase().startsWith('ja') ? 0 : 1;
@@ -53,7 +53,7 @@
 
     if (!pool.length) {
       const opt = document.createElement('option');
-      opt.textContent = '日本語/英語の音声が見つかりません';
+      opt.textContent = '日本語の音声が見つかりません（既定音声で再生します）';
       opt.disabled = true;
       opt.selected = true;
       voiceSelect.appendChild(opt);
@@ -105,10 +105,16 @@
       u.voice = jaVoice;
       u.lang = jaVoice.lang || 'ja-JP';
     } else {
-      u.lang = 'ja-JP';
+      // 日本語音声が見つからない環境では、既定の音声で再生（lang を強制しない）
+      try {
+        const all = window.speechSynthesis.getVoices?.() || [];
+        const fallback = all.find(v => v.default) || all[0];
+        if (fallback) u.voice = fallback;
+      } catch (e) {}
     }
     u.rate = rate; // 速度
     u.pitch = 1.0; // ピッチ
+    try { window.speechSynthesis.resume(); } catch (e) {}
     window.speechSynthesis.speak(u);
   }
 

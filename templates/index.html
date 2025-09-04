@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>日本語読み上げ・分割ツール (Flask + SudachiPy)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Enable class-based dark mode for Tailwind CDN build
+      tailwind.config = { darkMode: 'class' };
+    </script>
+    <style>
+      ruby { ruby-position: over; }
+      rt { font-size: .72rem; color: rgb(100 116 139); }
+    </style>
+  </head>
+  <body class="h-full bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100">
+    <div id="app" class="min-h-full">
+      <header class="w-full border-b border-slate-200/70 dark:border-slate-700/60">
+        <div class="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
+          <h1 class="text-lg font-semibold">日本語読み上げ・分割ツール</h1>
+          <div class="flex items-center gap-2">
+            <button id="themeBtn" class="p-2 rounded-md border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="テーマ切替"></button>
+          </div>
+        </div>
+      </header>
+
+      <main class="mx-auto max-w-5xl px-4">
+        <section class="mt-6" id="inputSection">
+          <button id="openBtn" class="w-full md:w-auto inline-flex items-center gap-1 px-3 py-2 rounded-md border border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800">＋新しいテキスト</button>
+          <div id="editingHint" class="mt-2 text-sm text-slate-500 dark:text-slate-400 hidden">
+            <button class="underline" id="editBtn">現在のテキストを編集する</button>
+          </div>
+
+          <div id="editor" class="hidden mt-4 transition-all">
+            <div class="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3 shadow-sm">
+              <textarea id="text" rows="6" placeholder="ここに日本語の文章を貼り付けてください。" class="w-full outline-none bg-transparent resize-vertical text-base"></textarea>
+              <div class="mt-3 flex gap-2">
+                <button id="segmentBtn" class="px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800">分割</button>
+                <button id="closeBtn" class="px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800">閉じる</button>
+                <div class="flex-1"></div>
+                <button id="playAllBtnTop" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">全文を再生</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-6">
+          <div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 flex flex-col md:flex-row gap-3 items-center">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-slate-600 dark:text-slate-300">音声</label>
+              <select id="voiceSelect" class="px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 bg-transparent"></select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-slate-600 dark:text-slate-300">速度</label>
+              <input id="rate" type="range" min="0.5" max="2" step="0.1" value="1" />
+              <span id="rateVal" class="text-sm tabular-nums">1.0x</span>
+            </div>
+            <div class="flex-1"></div>
+            <button id="playAllBtn" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">全文再生</button>
+          </div>
+        </section>
+
+        <section class="mt-6 mb-10" aria-live="polite">
+          <div id="lines" class="space-y-3"></div>
+          <div id="placeholder" class="text-sm text-slate-500 mt-2">テキストを入力して「分割」を押してください。</div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/main.js"></script>
+  </body>
+  </html>
