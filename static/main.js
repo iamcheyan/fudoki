@@ -15,8 +15,15 @@
   const playAllBtn = $('playAllBtn');
   const playAllBtnTop = $('playAllBtnTop');
   const themeBtn = $('themeBtn');
+  const loopBtn = $('loopBtn');
 
-  const LS = { text: 'text', theme: 'theme', voiceURI: 'voiceURI', rate: 'rate' };
+  // docs management
+  const docSelect = $('docSelect');
+  const addDocBtn = $('addDocBtn');
+  const saveDocBtn = $('saveDocBtn');
+  const deleteDocBtn = $('deleteDocBtn');
+
+  const LS = { text: 'text', theme: 'theme', voiceURI: 'voiceURI', rate: 'rate', texts: 'texts', activeId: 'activeId', loopAll: 'loopAll' };
 
   // theme
   const sunSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 18a6 6 0 100-12 6 6 0 000 12zm0 4a1 1 0 011 1h-2a1 1 0 011-1zm0-22a1 1 0 01-1-1h2a1 1 0 01-1 1zM1 13a1 1 0 01-1-1h2a1 1 0 01-1 1zm22 0a1 1 0 01-1-1h2a1 1 0 01-1 1zM4.222 19.778a1 1 0 01.707-1.707l1.414 1.414a1 1 0 01-1.414 1.414l-1.707-1.121zM17.657 6.343a1 1 0 01.707-1.707l1.414 1.414a1 1 0 01-1.414 1.414L17.657 6.343zM19.778 19.778l-1.121 1.707a1 1 0 01-1.414-1.414l1.414-1.414a1 1 0 011.121 1.121zM6.343 6.343L4.929 7.757A1 1 0 013.515 6.343L5.222 4.636a1 1 0 011.121 1.707z"/></svg>';
@@ -38,6 +45,22 @@
     updateThemeIcon();
   });
   initTheme();
+
+  // loop toggle button (全文ループ)
+  const repeatSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M4 7h10a4 4 0 014 4v1"/><path d="M10 7L7 4 4 7"/><path d="M20 17H10a4 4 0 01-4-4v-1"/><path d="M14 20l3-3 3 3"/></svg>';
+  const repeatOnSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M4 7h10a4 4 0 014 4v1"/><path d="M10 7L7 4 4 7"/><path d="M20 17H10a4 4 0 01-4-4v-1"/><path d="M14 20l3-3 3 3"/></svg>';
+  function updateLoopIcon(){
+    const on = localStorage.getItem(LS.loopAll) === '1';
+    loopBtn.innerHTML = on ? repeatOnSVG : repeatSVG;
+    loopBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    loopBtn.setAttribute('aria-label', on ? 'ループ再生: ON' : 'ループ再生: OFF');
+  }
+  loopBtn.addEventListener('click', () => {
+    const cur = localStorage.getItem(LS.loopAll) === '1';
+    localStorage.setItem(LS.loopAll, cur ? '0' : '1');
+    updateLoopIcon();
+  });
+  updateLoopIcon();
 
   // voices
   let voices = [];
@@ -80,7 +103,8 @@
       voiceSelect.appendChild(opt);
     });
     const pref = localStorage.getItem(LS.voiceURI);
-    const chosen = voices.find(v => (v.voiceURI||v.name) === pref) || voices.find(v => (v.lang||'').toLowerCase().startsWith('ja')) || voices[0];
+    const kyoko = voices.find(v => /kyoko/i.test(v.name||'') && (v.lang||'').toLowerCase().startsWith('ja'));
+    const chosen = voices.find(v => (v.voiceURI||v.name) === pref) || kyoko || voices.find(v => (v.lang||'').toLowerCase().startsWith('ja')) || voices[0];
     if (chosen) {
       currentVoice = chosen; voiceSelect.value = chosen.voiceURI || chosen.name;
     }
@@ -102,13 +126,32 @@
   closeBtn.addEventListener('click', closeEditor);
   editBtn.addEventListener('click', openEditor);
 
-  textEl.value = localStorage.getItem(LS.text) || '';
-  textEl.addEventListener('input', () => { localStorage.setItem(LS.text, textEl.value || ''); });
-  // On startup, if there is saved text, render last segmentation
-  if ((textEl.value || '').trim()) {
-    // Defer to next tick to ensure DOM ready
-    setTimeout(() => segment(), 0);
+  // Documents management (multiple saved texts)
+  function uuid(){ return 'xxxxxxxx'.replace(/[x]/g, () => (Math.random()*16|0).toString(16)); }
+  function loadDocs(){ try { return JSON.parse(localStorage.getItem(LS.texts)||'[]'); } catch { return []; } }
+  function saveDocs(arr){ localStorage.setItem(LS.texts, JSON.stringify(arr||[])); }
+  function getActiveId(){ return localStorage.getItem(LS.activeId) || ''; }
+  function setActiveId(id){ localStorage.setItem(LS.activeId, id||''); }
+  function titleOf(text){ const f=(text||'').split('\n')[0]?.trim()||''; return f||'無題'; }
+  function renderDocSelect(){
+    const docs = loadDocs();
+    docSelect.innerHTML='';
+    docs.forEach(d => {
+      const opt=document.createElement('option'); opt.value=d.id; opt.textContent=titleOf(d.content); docSelect.appendChild(opt);
+    });
+    let active = getActiveId(); if(!active && docs[0]){ active=docs[0].id; setActiveId(active); }
+    if(active) docSelect.value=active;
   }
+  // migrate single LS.text into docs
+  (function migrate(){ const docs=loadDocs(); if(docs.length===0){ const legacy=localStorage.getItem(LS.text)||''; if((legacy||'').trim()){ const d={id:uuid(),content:legacy,createdAt:Date.now()}; saveDocs([d]); setActiveId(d.id);} } })();
+  renderDocSelect();
+  function loadActiveIntoEditor(){ const docs=loadDocs(); const id=getActiveId(); const cur=docs.find(d=>d.id===id); textEl.value=(cur&&cur.content)||''; }
+  loadActiveIntoEditor();
+  docSelect.addEventListener('change', ()=>{ setActiveId(docSelect.value); loadActiveIntoEditor(); segment(); });
+  addDocBtn.addEventListener('click', ()=>{ const docs=loadDocs(); const d={id:uuid(),content:'',createdAt:Date.now()}; docs.unshift(d); saveDocs(docs); setActiveId(d.id); renderDocSelect(); loadActiveIntoEditor(); openEditor(); });
+  saveDocBtn.addEventListener('click', ()=>{ const docs=loadDocs(); const id=getActiveId(); const i=docs.findIndex(d=>d.id===id); if(i>=0){ docs[i].content=textEl.value||''; } else { const d={id:uuid(),content:textEl.value||'',createdAt:Date.now()}; docs.unshift(d); setActiveId(d.id);} saveDocs(docs); renderDocSelect(); segment(); });
+  deleteDocBtn.addEventListener('click', ()=>{ const docs=loadDocs(); const id=getActiveId(); const n=docs.filter(d=>d.id!==id); saveDocs(n); const next=n[0]?.id||''; setActiveId(next); renderDocSelect(); loadActiveIntoEditor(); segment(); });
+  if ((textEl.value || '').trim()) { setTimeout(()=>segment(),0); }
 
   // speak helpers
   function speak(t, rateOverride){
@@ -223,7 +266,11 @@
     if(!rows.length) return;
     const step = () => {
       if(!queue) return;
-      if(queue.idx >= rows.length){ stopQueue(); return; }
+      if(queue.idx >= rows.length){
+        const loop = localStorage.getItem(LS.loopAll)==='1';
+        if(loop){ queue.idx = 0; }
+        else { stopQueue(); return; }
+      }
       const row = rows[queue.idx];
       clearHighlights(); highlightRow(row, true);
       const u = new SpeechSynthesisUtterance(textOfRow(row));
@@ -255,13 +302,15 @@
 
   // rendering
   function renderLines(lines){
+    // reset selection and content
+    if(typeof clearSelection==='function') try{ clearSelection(); }catch(e){}
     linesEl.innerHTML='';
     const frag = document.createDocumentFragment();
     let any = false;
     lines.forEach((line, li) => {
       const row = document.createElement('div');
       // mark each line row so playback can query them
-      row.className = 'line flex flex-wrap gap-2';
+      row.className = 'line flex flex-wrap gap-2 relative';
       line.forEach((tk, ti) => {
         any = true;
         const btn = document.createElement('button');
@@ -279,7 +328,7 @@
             default: return 'border-slate-300 dark:border-slate-600';
           }
         })();
-        btn.className = `px-3 py-1.5 rounded-full border text-sm transition select-none hover:bg-slate-100 dark:hover:bg-slate-800 ${posClass}`;
+        btn.className = `px-3 py-1.5 rounded-full border text-sm transition select-none hover:bg-slate-100 dark:hover:bg-slate-800 relative ${posClass}`;
         const surface = tk.surface || '';
         const reading = toHiragana(tk.reading || surface);
         const isSymbol = posHead === '記号' || isPunct(surface);
@@ -314,6 +363,11 @@
           } 
         });
         btn.addEventListener('mouseleave', () => { if (timer) clearTimeout(timer); });
+        // selection UI: show start/end mark buttons on hover
+        btn.addEventListener('mouseenter', () => showMarkButton(row, btn));
+        btn.addEventListener('mouseleave', () => removeMarkButton(btn));
+        btn.dataset.li = String(li);
+        btn.dataset.ti = String(ti);
         row.appendChild(btn);
       });
       frag.appendChild(row);
@@ -321,6 +375,50 @@
     linesEl.appendChild(frag);
     placeholderEl.classList.toggle('hidden', any);
     editingHint.classList.toggle('hidden', !any);
+  }
+
+  // Selection & segment loop
+  let sel = { row: null, start: null, end: null, speaker: null };
+  const hornSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M4 10h3l4-3v10l-4-3H4z"/><path d="M17 7a5 5 0 010 10"/></svg>';
+  function removeMarkButton(btn){ const m=btn.querySelector('.mark-btn'); if(m) m.remove(); }
+  function showMarkButton(row, btn){
+    const m = document.createElement('button');
+    m.type='button'; m.className='mark-btn absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] px-1.5 py-0.5 rounded bg-emerald-600 text-white shadow-sm';
+    const ti = parseInt(btn.dataset.ti||'0',10);
+    if(!sel.row || sel.row!==row || sel.start==null || sel.end!=null){ m.textContent='起点'; m.onclick=()=>{ clearSelection(); sel.row=row; sel.start=ti; updateSelection(); }; }
+    else { m.textContent='終点'; m.onclick=()=>{ sel.end=ti; if(sel.end<sel.start){ const t=sel.start; sel.start=sel.end; sel.end=t; } updateSelection(); }; }
+    btn.appendChild(m);
+  }
+  function clearSelection(){ if(sel.speaker){ sel.speaker.remove(); sel.speaker=null; } if(sel.row){ sel.row.querySelectorAll('button').forEach(b=> b.classList.remove('ring-1','ring-emerald-400','bg-emerald-50','dark:bg-emerald-900/20')); } sel={row:null,start:null,end:null,speaker:null}; }
+  function updateSelection(){
+    if(!sel.row) return;
+    const btns = Array.from(sel.row.querySelectorAll('button'));
+    btns.forEach(b=> b.classList.remove('ring-1','ring-emerald-400','bg-emerald-50','dark:bg-emerald-900/20'));
+    if(sel.start==null || sel.end==null) return;
+    for(let i=sel.start;i<=sel.end;i++){ const b=btns[i]; if(!b) continue; if(b.dataset.symbol==='1') continue; b.classList.add('ring-1','ring-emerald-400','bg-emerald-50','dark:bg-emerald-900/20'); }
+    if(sel.speaker){ sel.speaker.remove(); sel.speaker=null; }
+    const mid = Math.floor((sel.start+sel.end)/2); const midBtn = btns[mid]; if(!midBtn) return;
+    const sp = document.createElement('button'); sp.type='button'; sp.innerHTML=hornSVG; sp.className='absolute -top-5 px-2 py-1 rounded-full bg-emerald-600 text-white shadow-md hover:bg-emerald-700';
+    const x = midBtn.offsetLeft + midBtn.offsetWidth/2; sp.style.left = Math.max(0, x-12)+'px'; sp.style.position='absolute';
+    sp.onclick = () => toggleSegmentLoop(); sel.row.appendChild(sp); sel.speaker = sp;
+  }
+  let segLoop = null; // {row,start,end}
+  function stopSegmentLoop(){ if(segLoop){ window.speechSynthesis.cancel(); segLoop=null; } }
+  function toggleSegmentLoop(){
+    if(!sel.row || sel.start==null || sel.end==null) return;
+    if(segLoop){ stopSegmentLoop(); return; }
+    // stop line/full queue to avoid overlap
+    try { stopQueue(); } catch(e) {}
+    segLoop = {row:sel.row, start:sel.start, end:sel.end};
+    const btns = Array.from(sel.row.querySelectorAll('button'));
+    const text = btns.slice(sel.start, sel.end+1).filter(b=>b.dataset.symbol!=='1').map(b=> b.dataset.surface || b.textContent || '').join('');
+    const speakOnce = () => {
+      if(!segLoop) return;
+      const u = new SpeechSynthesisUtterance(text);
+      applyVoice(u); u.rate = rate; u.pitch = 1.0; u.onend = () => { if(segLoop) speakOnce(); };
+      window.speechSynthesis.cancel(); try{ window.speechSynthesis.resume(); }catch(e){} window.speechSynthesis.speak(u);
+    };
+    speakOnce();
   }
 
   // segmentation via Flask API

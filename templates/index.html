@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>日本語読み上げ・分割ツール (Flask + SudachiPy)</title>
+    <title>フクドッキ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       // Enable class-based dark mode for Tailwind CDN build
@@ -18,8 +18,19 @@
     <div id="app" class="min-h-full">
       <header class="w-full border-b border-slate-200/70 dark:border-slate-700/60">
         <div class="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-          <h1 class="text-lg font-semibold">日本語読み上げ・分割ツール</h1>
+          <h1 class="text-lg font-semibold inline-flex items-center gap-2">
+            <!-- App Icon: speaker + loop + book bubble (simple SVG) -->
+            <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-600 text-white shadow-sm">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                <path d="M4 10h3l4-3v10l-4-3H4z"/> <!-- speaker -->
+                <path d="M17 7a5 5 0 010 10"/> <!-- sound wave -->
+                <path d="M20 6l2 2-2 2"/> <!-- small loop arrow head -->
+              </svg>
+            </span>
+            フクドッキ
+          </h1>
           <div class="flex items-center gap-2">
+            <button id="loopBtn" class="p-2 rounded-md border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="ループ再生"></button>
             <button id="themeBtn" class="p-2 rounded-md border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="テーマ切替"></button>
           </div>
         </div>
@@ -27,7 +38,20 @@
 
       <main class="mx-auto max-w-5xl px-4">
         <section class="mt-6" id="inputSection">
-          <button id="openBtn" class="w-full md:w-auto inline-flex items-center gap-1 px-3 py-2 rounded-md border border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800">＋新しいテキスト</button>
+          <!-- Document management: select / add / save / delete -->
+          <div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 flex flex-col md:flex-row gap-2 md:items-center">
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-slate-600 dark:text-slate-300">テキスト</label>
+              <select id="docSelect" class="px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 bg-transparent min-w-[14rem]"></select>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="addDocBtn" class="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800">新規</button>
+              <button id="saveDocBtn" class="px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700">保存</button>
+              <button id="deleteDocBtn" class="px-3 py-1.5 rounded-md border border-rose-300 text-rose-700 dark:text-rose-300 dark:border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20">削除</button>
+            </div>
+            <div class="flex-1"></div>
+            <button id="openBtn" class="w-full md:w-auto inline-flex items-center gap-1 px-3 py-2 rounded-md border border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800">＋エディタを開く</button>
+          </div>
           <div id="editingHint" class="mt-2 text-sm text-slate-500 dark:text-slate-400 hidden">
             <button class="underline" id="editBtn">現在のテキストを編集する</button>
           </div>
