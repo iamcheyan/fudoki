@@ -179,7 +179,11 @@
     }catch(e){}
   }
   docSelect.addEventListener('change', ()=>{ setActiveId(docSelect.value); loadActiveIntoEditor(); updateDeleteButtonState(); segment(); });
-  addDocBtn.addEventListener('click', ()=>{ const docs=loadDocs(); const d={id:uuid(),content:'',createdAt:Date.now()}; docs.unshift(d); saveDocs(docs); setActiveId(d.id); renderDocSelect(); loadActiveIntoEditor(); openEditor(); });
+  addDocBtn.addEventListener('click', ()=>{
+    const docs=loadDocs(); const d={id:uuid(),content:'',createdAt:Date.now()};
+    docs.unshift(d); saveDocs(docs); setActiveId(d.id);
+    renderDocSelect(); loadActiveIntoEditor(); updateDeleteButtonState(); openEditor();
+  });
   // toolbar Save removed; saving is done via the editor's 保存按钮（segmentBtn）
   deleteDocBtn.addEventListener('click', ()=>{
     const docs=loadDocs(); const id=getActiveId(); const cur=docs.find(d=>d.id===id);
@@ -538,13 +542,16 @@
     const i=docs.findIndex(d=>d.id===id);
     if(i>=0){ docs[i].content=textEl.value||''; }
     else { const d={id:uuid(),content:textEl.value||'',createdAt:Date.now()}; docs.unshift(d); setActiveId(d.id); }
-    saveDocs(docs); renderDocSelect();
+    saveDocs(docs); renderDocSelect(); updateDeleteButtonState();
     segment();
   });
 
   // play all with toggle pause/resume and highlighting
   playAllBtn.addEventListener('click', toggleQueue);
-  playAllBtnTop.addEventListener('click', () => speak(textEl.value));
+  if (playAllBtnTop) {
+    // editor area top play button removed; keep guard in case of stale DOM
+    try { playAllBtnTop.remove(); } catch(e) {}
+  }
 
   // util
   function toHiragana(s){ return (s||'').replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60)); }
