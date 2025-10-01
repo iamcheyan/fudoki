@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自动朗读功能测试</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+    button { padding: 8px 16px; margin: 5px; }
+    .token-pill { 
+      display: inline-block; 
+      padding: 4px 8px; 
+      margin: 2px; 
+      background: #f0f0f0; 
+      border: 1px solid #ccc; 
+      cursor: pointer; 
+    }
+    .token-pill:hover { background: #e0e0e0; }
+    #status { margin: 10px 0; padding: 10px; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h1>自动朗读功能测试</h1>
+  
+  <div class="test-section">
+    <h3>语音合成测试</h3>
+    <button onclick="testSpeech()">测试语音合成</button>
+    <button onclick="testJapanese()">测试日语朗读</button>
+    <div id="voiceStatus"></div>
+  </div>
+  
+  <div class="test-section">
+    <h3>自动朗读复选框测试</h3>
+    <label>
+      <input type="checkbox" id="autoRead"> 自动朗读
+    </label>
+    <div id="checkboxStatus"></div>
+  </div>
+  
+  <div class="test-section">
+    <h3>模拟词汇点击测试</h3>
+    <div class="token-pill" data-token='{"surface":"日本","lemma":"日本"}' onclick="testTokenClick(this)">日本</div>
+    <div class="token-pill" data-token='{"surface":"こんにちは","lemma":"こんにちは"}' onclick="testTokenClick(this)">こんにちは</div>
+    <div class="token-pill" data-token='{"surface":"ありがとう","lemma":"ありがとう"}' onclick="testTokenClick(this)">ありがとう</div>
+  </div>
+  
+  <div id="status"></div>
+
+  <script>
+    // 模拟speak函数
+    function speak(text, rateOverride) {
+      console.log('speak函数被调用:', text);
+      document.getElementById('status').innerHTML += `<div>speak函数被调用: "${text}"</div>`;
+      
+      if (!('speechSynthesis' in window)) {
+        console.log('浏览器不支持语音合成');
+        document.getElementById('status').innerHTML += '<div style="color: red;">浏览器不支持语音合成</div>';
+        return;
+      }
+      
+      const stripped = String(text || '')
+        .replace(/（[^）]*）|\([^)]*\)/g, '')
+        .replace(/[\s\u00A0]+/g, ' ')
+        .trim();
+      
+      if (!stripped) {
+        console.log('文本为空，跳过朗读');
+        document.getElementById('status').innerHTML += '<div style="color: orange;">文本为空，跳过朗读</div>';
+        return;
+      }
+      
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(stripped);
+      u.rate = 1.0;
+      u.pitch = 1.0;
+      u.lang = 'ja-JP';
+      
+      u.onstart = () => {
+        console.log('开始朗读:', stripped);
+        document.getElementById('status').innerHTML += `<div style="color: green;">开始朗读: "${stripped}"</div>`;
+      };
+      
+      u.onend = () => {
+        console.log('朗读结束');
+        document.getElementById('status').innerHTML += '<div style="color: blue;">朗读结束</div>';
+      };
+      
+      u.onerror = (e) => {
+        console.error('朗读错误:', e);
+        document.getElementById('status').innerHTML += `<div style="color: red;">朗读错误: ${e.error}</div>`;
+      };
+      
+      try {
+        window.speechSynthesis.resume();
+        window.speechSynthesis.speak(u);
+        console.log('语音合成命令已发送');
+        document.getElementById('status').innerHTML += '<div>语音合成命令已发送</div>';
+      } catch (e) {
+        console.error('语音合成异常:', e);
+        document.getElementById('status').innerHTML += `<div style="color: red;">语音合成异常: ${e.message}</div>`;
+      }
+    }
+    
+    // 模拟toggleTokenDetails函数
+    function testTokenClick(element) {
+      console.log('词汇被点击:', element);
+      document.getElementById('status').innerHTML += '<div>词汇被点击</div>';
+      
+      const autoReadCheckbox = document.getElementById('autoRead');
+      console.log('自动朗读复选框状态:', autoReadCheckbox.checked);
+      document.getElementById('status').innerHTML += `<div>自动朗读复选框状态: ${autoReadCheckbox.checked}</div>`;
+      
+      if (autoReadCheckbox && autoReadCheckbox.checked) {
+        console.log('自动朗读模式启用');
+        document.getElementById('status').innerHTML += '<div style="color: green;">自动朗读模式启用</div>';
+        
+        const tokenData = JSON.parse(element.getAttribute('data-token'));
+        const surface = tokenData.surface || '';
+        console.log('提取的词汇:', surface);
+        document.getElementById('status').innerHTML += `<div>提取的词汇: "${surface}"</div>`;
+        
+        if (surface) {
+          speak(surface);
+        } else {
+          console.log('词汇为空');
+          document.getElementById('status').innerHTML += '<div style="color: orange;">词汇为空</div>';
+        }
+        return;
+      } else {
+        console.log('自动朗读模式未启用');
+        document.getElementById('status').innerHTML += '<div style="color: orange;">自动朗读模式未启用</div>';
+      }
+    }
+    
+    function testSpeech() {
+      document.getElementById('status').innerHTML = '<div><strong>开始语音合成测试...</strong></div>';
+      speak('Hello World');
+    }
+    
+    function testJapanese() {
+      document.getElementById('status').innerHTML = '<div><strong>开始日语朗读测试...</strong></div>';
+      speak('こんにちは');
+    }
+    
+    // 检查语音合成支持
+    window.addEventListener('load', () => {
+      const voiceStatus = document.getElementById('voiceStatus');
+      const checkboxStatus = document.getElementById('checkboxStatus');
+      
+      if ('speechSynthesis' in window) {
+        voiceStatus.innerHTML = '<div style="color: green;">✓ 浏览器支持语音合成</div>';
+        
+        const voices = window.speechSynthesis.getVoices();
+        voiceStatus.innerHTML += `<div>可用语音数量: ${voices.length}</div>`;
+        
+        const japaneseVoices = voices.filter(v => v.lang.startsWith('ja'));
+        voiceStatus.innerHTML += `<div>日语语音数量: ${japaneseVoices.length}</div>`;
+      } else {
+        voiceStatus.innerHTML = '<div style="color: red;">✗ 浏览器不支持语音合成</div>';
+      }
+      
+      // 监听复选框变化
+      const autoReadCheckbox = document.getElementById('autoRead');
+      autoReadCheckbox.addEventListener('change', () => {
+        checkboxStatus.innerHTML = `<div>复选框状态变化: ${autoReadCheckbox.checked}</div>`;
+      });
+    });
+  </script>
+</body>
+</html>

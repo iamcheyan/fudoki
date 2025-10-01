@@ -10,13 +10,15 @@
   const playAllBtn = $('playAllBtn');
   const newDocBtn = $('newDocBtn');
   const documentList = $('documentList');
-  const deleteDocBtn = $('deleteDocBtn');
+  const langSelect = $('langSelect');
+  const themeToggle = document.getElementById('themeToggle');
   
   // 显示控制元素
   const showKanaCheckbox = $('showKana');
   const showRomajiCheckbox = $('showRomaji');
   const showPosCheckbox = $('showPos');
   const autoReadCheckbox = $('autoRead');
+  const repeatPlayCheckbox = $('repeatPlay');
 
   // 本地存储键
   const LS = { 
@@ -28,8 +30,255 @@
     showKana: 'showKana',
     showRomaji: 'showRomaji', 
     showPos: 'showPos',
-    autoRead: 'autoRead'
+    autoRead: 'autoRead',
+    repeatPlay: 'repeatPlay',
+    lang: 'lang',
+    theme: 'theme'
   };
+
+  // 简易i18n词典（默认日语）
+  const I18N = {
+    ja: {
+      title: 'Fudoki',
+      navAnalyze: 'テキスト解析',
+      navTTS: '音声読み上げ',
+      navHelp: 'ヘルプ',
+      sidebarDocsTitle: 'ドキュメント',
+      newDoc: '＋ 新規ドキュメント',
+      deleteDoc: 'ドキュメント削除',
+      textareaPlaceholder: 'ここに日本語テキストを入力して解析…',
+      analyzeBtn: '解析する',
+      emptyText: '上の入力欄に日本語を入力し「解析する」をクリックしてください',
+      voiceTitle: '音声設定',
+      voiceSelectLabel: '音声を選択',
+      speedLabel: '話速',
+      playAll: '全文再生',
+      displayTitle: '表示設定',
+      showKana: 'ふりがなを表示',
+      showRomaji: 'ローマ字を表示',
+      showPos: '品詞を表示',
+      loading: 'テキストを解析中…',
+      errorPrefix: '解析に失敗しました: '
+      ,lbl_surface: '表層形'
+      ,lbl_base: '基本形'
+      ,lbl_reading: '読み'
+      ,lbl_translation: '翻訳'
+      ,lbl_pos: '品詞'
+      ,lbl_pos_raw: '原始タグ'
+      ,dict_init: '辞書を初期化中…'
+      ,no_translation: '翻訳が見つかりません'
+      ,translation_failed: '翻訳の読み込みに失敗しました'
+      ,dlg_detail_translation: 'の詳細翻訳'
+      ,lbl_field: '分野'
+      ,lbl_note: '備考'
+      ,lbl_chinese: '中文'
+    },
+    en: {
+      title: 'Fudoki',
+      navAnalyze: 'Analyze',
+      navTTS: 'TTS',
+      navHelp: 'Help',
+      sidebarDocsTitle: 'Documents',
+      newDoc: '+ New Document',
+      deleteDoc: 'Delete Document',
+      textareaPlaceholder: 'Enter Japanese text here for analysis…',
+      analyzeBtn: 'Analyze',
+      emptyText: 'Type Japanese above, then click "Analyze" to start',
+      voiceTitle: 'Voice Settings',
+      voiceSelectLabel: 'Voice',
+      speedLabel: 'Speed',
+      playAll: 'Play All',
+      displayTitle: 'Display Settings',
+      showKana: 'Show Kana',
+      showRomaji: 'Show Romaji',
+      showPos: 'Show POS',
+      loading: 'Analyzing text…',
+      errorPrefix: 'Analysis failed: '
+      ,lbl_surface: 'Surface'
+      ,lbl_base: 'Base'
+      ,lbl_reading: 'Reading'
+      ,lbl_translation: 'Translation'
+      ,lbl_pos: 'Part of speech'
+      ,lbl_pos_raw: 'Raw tags'
+      ,dict_init: 'Initializing dictionary…'
+      ,no_translation: 'No translation found'
+      ,translation_failed: 'Failed to load translation'
+      ,dlg_detail_translation: ' — details'
+      ,lbl_field: 'Field'
+      ,lbl_note: 'Note'
+      ,lbl_chinese: 'Chinese'
+    },
+    zh: {
+      title: 'Fudoki',
+      navAnalyze: '文本分析',
+      navTTS: '语音朗读',
+      navHelp: '帮助',
+      sidebarDocsTitle: '文档管理',
+      newDoc: '+ 新建文档',
+      deleteDoc: '删除文档',
+      textareaPlaceholder: '在此输入日语文本进行分析...',
+      analyzeBtn: '分析文本',
+      emptyText: '请在上方输入日语文本，点击"分析文本"开始处理',
+      voiceTitle: '语音设置',
+      voiceSelectLabel: '语音选择',
+      speedLabel: '语速调节',
+      playAll: '播放全文',
+      displayTitle: '显示设置',
+      showKana: '显示假名',
+      showRomaji: '显示罗马音',
+      showPos: '显示词性',
+      loading: '正在分析文本...',
+      errorPrefix: '分析失败: '
+      ,lbl_surface: '表层形'
+      ,lbl_base: '基本形'
+      ,lbl_reading: '读音'
+      ,lbl_translation: '翻译'
+      ,lbl_pos: '词性'
+      ,lbl_pos_raw: '原始标签'
+      ,dict_init: '正在初始化词典...'
+      ,no_translation: '未找到翻译'
+      ,translation_failed: '翻译加载失败'
+      ,dlg_detail_translation: ' 的详细翻译'
+      ,lbl_field: '领域'
+      ,lbl_note: '备注'
+      ,lbl_chinese: '中文'
+    }
+  };
+
+  let storedLang = localStorage.getItem(LS.lang);
+  let currentLang = (storedLang === 'ja' || storedLang === 'en' || storedLang === 'zh') ? storedLang : 'ja';
+  if (storedLang !== currentLang) {
+    try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
+  }
+  // 当前显示的详情弹层及其锚点
+  let activeTokenDetails = null; // { element, details }
+
+  // 计算并设置详情弹层的位置
+  function positionTokenDetails(element, details) {
+    if (!element || !details) return;
+    const rect = element.getBoundingClientRect();
+    const detailsHeight = 200; // 预估高度
+    const viewportHeight = window.innerHeight;
+    let top = rect.bottom + 5;
+    if (top + detailsHeight > viewportHeight - 20) {
+      top = rect.top - detailsHeight - 5;
+    }
+    details.style.left = Math.max(10, Math.min(rect.left, window.innerWidth - 350)) + 'px';
+    details.style.top = Math.max(10, top) + 'px';
+  }
+
+  // 滚动/缩放时，若有弹层，保持跟随
+  const repositionActiveDetails = () => {
+    if (activeTokenDetails && activeTokenDetails.details && activeTokenDetails.element) {
+      positionTokenDetails(activeTokenDetails.element, activeTokenDetails.details);
+    }
+  };
+  window.addEventListener('scroll', repositionActiveDetails, { passive: true });
+  window.addEventListener('resize', repositionActiveDetails, { passive: true });
+  if (content) {
+    content.addEventListener('scroll', repositionActiveDetails, { passive: true });
+  }
+
+  function t(key) {
+    const dict = I18N[currentLang] || I18N.ja;
+    return dict[key] || key;
+  }
+
+  // 播放全文按钮的动态文案
+  function playAllLabel(playing) {
+    switch (currentLang) {
+      case 'ja':
+        return playing ? '一時停止' : '全文再生';
+      case 'en':
+        return playing ? 'Pause' : 'Play All';
+      case 'zh':
+      default:
+        return playing ? '暂停' : '播放全文';
+    }
+  }
+
+  function applyI18n() {
+    // 语言代码与标题
+    document.documentElement.lang = currentLang;
+    document.title = t('title');
+
+    const logoText = $('logoText');
+    if (logoText) logoText.textContent = t('title');
+    const navAnalyze = $('navAnalyze');
+    if (navAnalyze) navAnalyze.textContent = t('navAnalyze');
+    const navTTS = $('navTTS');
+    if (navTTS) navTTS.textContent = t('navTTS');
+    const navHelp = $('navHelp');
+    if (navHelp) navHelp.textContent = t('navHelp');
+
+    const sidebarDocsTitle = $('sidebarDocsTitle');
+    if (sidebarDocsTitle) sidebarDocsTitle.textContent = t('sidebarDocsTitle');
+    if (newDocBtn) newDocBtn.textContent = t('newDoc');
+    const deleteDocBtn = $('deleteDocBtn');
+    if (deleteDocBtn) deleteDocBtn.textContent = t('deleteDoc');
+
+    if (textInput) textInput.placeholder = t('textareaPlaceholder');
+    if (analyzeBtn) analyzeBtn.textContent = t('analyzeBtn');
+
+    const voiceTitle = $('voiceTitle');
+    if (voiceTitle) voiceTitle.textContent = t('voiceTitle');
+    const voiceSelectLabel = $('voiceSelectLabel');
+    if (voiceSelectLabel) voiceSelectLabel.textContent = t('voiceSelectLabel');
+    const speedLabel = $('speedLabel');
+    if (speedLabel) speedLabel.textContent = t('speedLabel');
+    if (playAllBtn) playAllBtn.textContent = t('playAll');
+
+    const displayTitle = $('displayTitle');
+    if (displayTitle) displayTitle.textContent = t('displayTitle');
+    const showKanaLabel = $('showKanaLabel');
+    if (showKanaLabel) showKanaLabel.lastChild && (showKanaLabel.lastChild.textContent = ' ' + t('showKana'));
+    const showRomajiLabel = $('showRomajiLabel');
+    if (showRomajiLabel) showRomajiLabel.lastChild && (showRomajiLabel.lastChild.textContent = ' ' + t('showRomaji'));
+    const showPosLabel = $('showPosLabel');
+    if (showPosLabel) showPosLabel.lastChild && (showPosLabel.lastChild.textContent = ' ' + t('showPos'));
+
+    const emptyText = $('emptyText');
+    if (emptyText) emptyText.textContent = t('emptyText');
+
+    if (langSelect) {
+      langSelect.value = currentLang;
+      Array.from(langSelect.options || []).forEach(opt => opt.selected = (opt.value === currentLang));
+    }
+    // 语言变化时刷新主题图标与aria标签
+    applyTheme(savedTheme);
+  }
+
+  if (langSelect) {
+    langSelect.addEventListener('change', () => {
+      currentLang = langSelect.value || 'ja';
+      try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
+      applyI18n();
+      refreshOpenCardTexts();
+    });
+  }
+
+  // 主题切换
+  const THEME = { LIGHT: 'light', DARK: 'dark' };
+  function applyTheme(theme) {
+    const t = (theme === THEME.DARK) ? THEME.DARK : THEME.LIGHT;
+    document.documentElement.setAttribute('data-theme', t === THEME.DARK ? 'dark' : 'light');
+    if (themeToggle) {
+      themeToggle.innerHTML = t === THEME.DARK
+        ? '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21.64 13a1 1 0 0 1-1.1.27A8 8 0 0 1 10.73 3.46a1 1 0 0 1 .27-1.1 1 1 0 0 1 1.09-.17 10 10 0 1 0 9.72 9.72 1 1 0 0 1-.17 1.09Z"></path></svg>'
+        : '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="5"></line><line x1="12" y1="19" x2="12" y2="22"></line><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"></line><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"></line><line x1="2" y1="12" x2="5" y2="12"></line><line x1="19" y1="12" x2="22" y2="12"></line><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"></line><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"></line></g></svg>';
+      themeToggle.setAttribute('aria-label', t === THEME.DARK ? '切换为亮色' : '切换为深色');
+      themeToggle.setAttribute('title', '切换主题');
+    }
+  }
+  let savedTheme = localStorage.getItem(LS.theme) || THEME.LIGHT;
+  applyTheme(savedTheme);
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      savedTheme = (savedTheme === THEME.DARK) ? THEME.LIGHT : THEME.DARK;
+      try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
+      applyTheme(savedTheme);
+    });
+  }
 
   // 点击页面其他地方隐藏详细信息
   document.addEventListener('click', function(event) {
@@ -79,7 +328,12 @@
   // 语音合成相关
   let voices = [];
   let currentVoice = null;
-  let rate = parseFloat(localStorage.getItem(LS.rate)) || 1;
+  let rate = parseFloat(localStorage.getItem(LS.rate)) || 1;// 播放状态跟踪// 全局变量
+  let isPlaying = false;
+  let currentUtterance = null;
+  let currentPlayingText = null; // 用于重复播放
+  let currentHighlightedToken = null; // 当前高亮的词汇元素
+  let highlightTimeout = null; // 高亮定时器存储当前播放的文本用于重复播放
 
   // 初始化速度滑块
   speedSlider.value = String(rate);
@@ -179,19 +433,19 @@
     const details = [];
     
     // 基本信息
-    details.push(`<div class="detail-item"><strong>表层形:</strong> ${token.surface}</div>`);
+    details.push(`<div class="detail-item"><strong>${t('lbl_surface') || '表层形'}:</strong> ${token.surface}</div>`);
     if (token.lemma && token.lemma !== token.surface) {
-      details.push(`<div class="detail-item"><strong>基本形:</strong> ${token.lemma}</div>`);
+      details.push(`<div class="detail-item"><strong>${t('lbl_base') || '基本形'}:</strong> ${token.lemma}</div>`);
     }
     if (token.reading && token.reading !== token.surface) {
-      details.push(`<div class="detail-item"><strong>读音:</strong> ${token.reading}</div>`);
+      details.push(`<div class="detail-item"><strong>${t('lbl_reading') || '读音'}:</strong> ${token.reading}</div>`);
     }
     
     // 翻译信息占位符
-    details.push(`<div class="detail-item translation-item"><strong>翻译:</strong> <span class="translation-content">加载中...</span></div>`);
+    details.push(`<div class="detail-item translation-item"><strong>${t('lbl_translation') || '翻译'}:</strong> <span class="translation-content">${t('loading') || '加载中...'}</span></div>`);
     
     // 词性信息
-    details.push(`<div class="detail-item"><strong>词性:</strong> ${posInfo.main}</div>`);
+    details.push(`<div class="detail-item"><strong>${t('lbl_pos') || '词性'}:</strong> ${posInfo.main}</div>`);
     if (posInfo.details.length > 0) {
       posInfo.details.forEach(detail => {
         details.push(`<div class="detail-item">${detail}</div>`);
@@ -202,7 +456,7 @@
     if (posInfo.original && posInfo.original.length > 0) {
       const originalPos = posInfo.original.filter(p => p !== '*').join(' / ');
       if (originalPos) {
-        details.push(`<div class="detail-item"><strong>原始标签:</strong> ${originalPos}</div>`);
+        details.push(`<div class="detail-item"><strong>${t('lbl_pos_raw') || '原始标签'}:</strong> ${originalPos}</div>`);
       }
     }
     
@@ -531,7 +785,7 @@
       // 新建文档按钮
       if (newDocBtn) {
         newDocBtn.addEventListener('click', () => {
-          this.createDocument('请在此输入新文档内容...');
+          this.createDocument('新しいドキュメントの内容をここに入力してください');
         });
       }
 
@@ -561,6 +815,13 @@
   // 语音合成功能
   function speak(text, rateOverride) {
     if (!('speechSynthesis' in window)) return;
+    
+    // 如果正在播放，停止当前播放
+    if (isPlaying) {
+      stopSpeaking();
+      return;
+    }
+    
     // 朗读前移除括号（全角/半角）及其中内容
     const stripped = String(text || '')
       .replace(/（[^）]*）|\([^)]*\)/g, '')
@@ -568,17 +829,172 @@
       .trim();
     if (!stripped) return;
     
+    // 存储当前播放的文本用于重复播放
+    currentPlayingText = stripped;
+    
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(stripped);
+    currentUtterance = u;
     applyVoice(u);
     u.rate = typeof rateOverride === 'number' ? rateOverride : rate;
     u.pitch = 1.0;
+    
+    // 添加事件监听器
+    u.onstart = () => {
+      isPlaying = true;
+      updatePlayButtonStates();
+    };
+    
+    u.onend = () => {
+      isPlaying = false;
+      currentUtterance = null;
+      updatePlayButtonStates();
+      
+      // 检查是否需要重复播放
+      if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
+        // 延迟一小段时间后重复播放，避免立即重复
+        setTimeout(() => {
+          if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
+            speak(currentPlayingText, rateOverride);
+          }
+        }, 500);
+      } else {
+        // 如果不重复播放，清除当前播放文本和高亮
+        currentPlayingText = null;
+        clearTokenHighlight();
+      }
+    };
+    
+    u.onerror = () => {
+      isPlaying = false;
+      currentUtterance = null;
+      currentPlayingText = null;
+      clearTokenHighlight(); // 出错时也清除高亮
+      updatePlayButtonStates();
+    };
     
     try {
       window.speechSynthesis.resume();
     } catch (e) {}
     
     window.speechSynthesis.speak(u);
+  }
+
+  // 高亮词汇函数
+  function highlightToken(text) {
+    // 清除之前的高亮
+    clearTokenHighlight();
+    
+    if (!text) return;
+    
+    // 查找匹配的词汇卡片
+    const tokenPills = document.querySelectorAll('.token-pill');
+    for (const pill of tokenPills) {
+      const kanjiEl = pill.querySelector('.token-kanji');
+      if (kanjiEl && kanjiEl.textContent.trim() === text.trim()) {
+        pill.classList.add('playing');
+        currentHighlightedToken = pill;
+        
+        // 滚动到可视区域
+        pill.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+        break;
+      }
+    }
+  }
+  
+  // 清除词汇高亮
+  function clearTokenHighlight() {
+    if (currentHighlightedToken) {
+      currentHighlightedToken.classList.remove('playing');
+      currentHighlightedToken = null;
+    }
+    
+    // 清除所有可能的高亮状态
+    document.querySelectorAll('.token-pill.playing').forEach(pill => {
+      pill.classList.remove('playing');
+    });
+    
+    if (highlightTimeout) {
+      clearTimeout(highlightTimeout);
+      highlightTimeout = null;
+    }
+  }
+
+  function stopSpeaking() {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    isPlaying = false;
+    currentUtterance = null;
+    currentPlayingText = null; // 停止时清除重复播放文本
+    clearTokenHighlight(); // 清除词汇高亮
+    updatePlayButtonStates();
+  }
+
+  function updatePlayButtonStates() {
+    // 更新播放全文按钮
+    updateButtonIcon(playAllBtn, isPlaying);
+    
+    // 更新所有行播放按钮
+    document.querySelectorAll('.play-line-btn').forEach(btn => {
+      updateButtonIcon(btn, isPlaying);
+    });
+    
+    // 更新所有词汇播放按钮
+    document.querySelectorAll('.play-token-btn').forEach(btn => {
+      updateButtonIcon(btn, isPlaying);
+    });
+  }
+
+  function updateButtonIcon(button, playing) {
+    if (!button) return;
+    
+    const svg = button.querySelector('svg');
+    if (!svg) return;
+    
+    // 获取按钮文本内容
+    const textContent = button.textContent.trim();
+    let buttonText = '';
+    
+    // 根据按钮类型确定文本
+    if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
+      buttonText = playAllLabel(playing);
+    } else {
+      buttonText = playing ? '停止' : '播放';
+    }
+    
+    if (playing) {
+      // 停止图标 (方形)
+      svg.innerHTML = '<rect x="6" y="6" width="4" height="12" fill="currentColor"/><rect x="14" y="6" width="4" height="12" fill="currentColor"/>';
+      // 根据按钮类型设置不同的title
+      if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
+        button.title = playAllLabel(true);
+      } else {
+        button.title = '停止';
+      }
+    } else {
+      // 播放图标 (三角形)
+      svg.innerHTML = '<path d="M8 5v14l11-7z" fill="currentColor"/>';
+      // 根据按钮类型设置不同的title
+      if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
+        button.title = playAllLabel(false);
+      } else {
+        button.title = '播放';
+      }
+    }
+    
+    // 更新按钮文本（保留SVG）
+    if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
+      // 对于播放全文按钮，保留SVG和更新文本
+      const svgElement = button.querySelector('svg');
+      button.innerHTML = '';
+      button.appendChild(svgElement);
+      button.appendChild(document.createTextNode(buttonText));
+    }
   }
 
   function applyVoice(u) {
@@ -630,7 +1046,7 @@
         <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.5;" viewBox="0 0 24 24">
           <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7,13H17V11H7"/>
         </svg>
-        <p>在上方输入日语文本，点击"分析文本"开始处理</p>
+        <p>${t('emptyText')}</p>
       </div>
     `;
   }
@@ -639,7 +1055,7 @@
     content.innerHTML = `
       <div style="text-align: center; color: #667eea; padding: 2rem;">
         <div class="loading" style="margin: 0 auto 1rem;"></div>
-        <p>正在分析文本...</p>
+        <p>${t('loading')}</p>
       </div>
     `;
   }
@@ -650,8 +1066,8 @@
         <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.7;" viewBox="0 0 24 24">
           <path fill="currentColor" d="M12,2L13.09,8.26L22,9L13.09,9.74L12,16L10.91,9.74L2,9L10.91,8.26L12,2Z"/>
         </svg>
-        <p>分析失败: ${message}</p>
-        <button class="btn btn-secondary" onclick="analyzeText()" style="margin-top: 1rem;">重试</button>
+        <p>${t('errorPrefix')}${message}</p>
+        <button class="btn btn-secondary" onclick="analyzeText()" style="margin-top: 1rem;">${t('analyzeBtn')}</button>
       </div>
     `;
   }
@@ -729,6 +1145,14 @@
     if (event) {
       event.stopPropagation();
     }
+    
+    if (isPlaying) {
+      stopSpeaking();
+      return;
+    }
+    
+    // 高亮当前播放的词汇
+    highlightToken(text);
     speak(text);
   };
 
@@ -736,16 +1160,16 @@
   window.toggleTokenDetails = function(element) {
     // 检查是否启用了自动朗读功能
     if (autoReadCheckbox && autoReadCheckbox.checked) {
-      // 如果启用了自动朗读，直接朗读词汇
+      // 如果启用了自动朗读，朗读词汇
       const tokenData = JSON.parse(element.getAttribute('data-token'));
       const surface = tokenData.surface || '';
       if (surface) {
         speak(surface);
       }
-      return; // 不显示详细信息面板
+      // 继续执行显示详细信息面板的逻辑，不要直接返回
     }
     
-    // 原有的详细信息显示逻辑
+    // 详细信息显示逻辑
     const details = element.querySelector('.token-details');
     if (details) {
       const isVisible = details.style.display !== 'none';
@@ -759,29 +1183,30 @@
       });
       
       if (!isVisible) {
-        // 计算详细信息面板的位置
-        const rect = element.getBoundingClientRect();
-        const detailsHeight = 200; // 预估高度
-        const viewportHeight = window.innerHeight;
-        
-        // 确定显示位置（在元素下方或上方）
-        let top = rect.bottom + 5;
-        if (top + detailsHeight > viewportHeight - 20) {
-          top = rect.top - detailsHeight - 5;
-        }
-        
-        // 设置位置
-        details.style.left = Math.max(10, Math.min(rect.left, window.innerWidth - 350)) + 'px';
-        details.style.top = Math.max(10, top) + 'px';
-        
+        // 设置位置并显示
+        positionTokenDetails(element, details);
         details.style.display = 'block';
         element.classList.add('active');
-        
+        // 记录当前活动弹层
+        activeTokenDetails = { element, details };
         // 加载翻译信息
         loadTranslation(element);
+      } else {
+        // 若当前就是活动弹层，关闭时清除引用
+        if (activeTokenDetails && activeTokenDetails.details === details) {
+          activeTokenDetails = null;
+        }
       }
     }
   };
+
+  // 当点击页面空白处关闭所有详情时，同时清除活动引用
+  document.addEventListener('click', (e) => {
+    const isPill = e.target.closest && e.target.closest('.token-pill');
+    if (!isPill) {
+      activeTokenDetails = null;
+    }
+  });
 
   // 加载翻译信息
   async function loadTranslation(element) {
@@ -793,7 +1218,7 @@
     try {
       // 确保词典服务已初始化
       if (!window.dictionaryService.isReady()) {
-        translationContent.textContent = '正在初始化词典...';
+        translationContent.textContent = t('dict_init') || '正在初始化词典...';
         await window.dictionaryService.init();
       }
       
@@ -823,15 +1248,15 @@
           const kanaInfo = detailedInfo.kana.map(k => k.text).join('、');
           const kanaElement = document.createElement('div');
           kanaElement.className = 'translation-kana';
-          kanaElement.textContent = `读音: ${kanaInfo}`;
+          kanaElement.textContent = `${t('lbl_reading') || '读音'}: ${kanaInfo}`;
           translationContent.appendChild(kanaElement);
         }
       } else {
-        translationContent.textContent = '未找到翻译';
+        translationContent.textContent = t('no_translation') || '未找到翻译';
       }
     } catch (error) {
       console.error('加载翻译失败:', error);
-      translationContent.textContent = '翻译加载失败';
+      translationContent.textContent = t('translation_failed') || '翻译加载失败';
     }
   }
 
@@ -843,7 +1268,7 @@
     modal.innerHTML = `
       <div class="translation-modal-content">
         <div class="translation-modal-header">
-          <h3>${detailedInfo.word} 的详细翻译</h3>
+          <h3>${detailedInfo.word} ${t('dlg_detail_translation') || '的详细翻译'}</h3>
           <button class="close-modal-btn" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
         </div>
         <div class="translation-modal-body">
@@ -852,10 +1277,10 @@
               <div class="sense-number">${index + 1}.</div>
               <div class="sense-content">
                 <div class="sense-gloss">${sense.gloss}</div>
-                ${sense.partOfSpeech.length > 0 ? `<div class="sense-pos">词性: ${sense.partOfSpeech.join(', ')}</div>` : ''}
-                ${sense.field.length > 0 ? `<div class="sense-field">领域: ${sense.field.join(', ')}</div>` : ''}
-                ${sense.misc.length > 0 ? `<div class="sense-misc">备注: ${sense.misc.join(', ')}</div>` : ''}
-                ${sense.chineseSource ? `<div class="sense-chinese">中文: ${sense.chineseSource}</div>` : ''}
+                ${sense.partOfSpeech.length > 0 ? `<div class="sense-pos">${t('lbl_pos') || '词性'}: ${sense.partOfSpeech.join(', ')}</div>` : ''}
+                ${sense.field.length > 0 ? `<div class="sense-field">${t('lbl_field') || '领域'}: ${sense.field.join(', ')}</div>` : ''}
+                ${sense.misc.length > 0 ? `<div class="sense-misc">${t('lbl_note') || '备注'}: ${sense.misc.join(', ')}</div>` : ''}
+                ${sense.chineseSource ? `<div class="sense-chinese">${t('lbl_chinese') || '中文'}: ${sense.chineseSource}</div>` : ''}
               </div>
             </div>
           `).join('')}
@@ -875,6 +1300,11 @@
 
   // 播放整行文本
   window.playLine = function(lineIndex) {
+    if (isPlaying) {
+      stopSpeaking();
+      return;
+    }
+    
     const lineContainer = document.querySelectorAll('.line-container')[lineIndex];
     if (lineContainer) {
       const tokens = lineContainer.querySelectorAll('.token-pill');
@@ -888,6 +1318,11 @@
 
   // 播放全部文本
   playAllBtn.addEventListener('click', () => {
+    if (isPlaying) {
+      stopSpeaking();
+      return;
+    }
+    
     const text = textInput.value.trim();
     if (text) {
       speak(text);
@@ -973,12 +1408,14 @@
     const showRomaji = localStorage.getItem(LS.showRomaji) !== 'false';
     const showPos = localStorage.getItem(LS.showPos) !== 'false';
     const autoRead = localStorage.getItem(LS.autoRead) === 'true';
+    const repeatPlay = localStorage.getItem(LS.repeatPlay) === 'true';
     
     // 设置复选框状态
     if (showKanaCheckbox) showKanaCheckbox.checked = showKana;
     if (showRomajiCheckbox) showRomajiCheckbox.checked = showRomaji;
     if (showPosCheckbox) showPosCheckbox.checked = showPos;
     if (autoReadCheckbox) autoReadCheckbox.checked = autoRead;
+    if (repeatPlayCheckbox) repeatPlayCheckbox.checked = repeatPlay;
     
     // 应用显示设置
     updateDisplaySettings();
@@ -1010,6 +1447,12 @@
         localStorage.setItem(LS.autoRead, autoReadCheckbox.checked);
       });
     }
+    
+    if (repeatPlayCheckbox) {
+      repeatPlayCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.repeatPlay, repeatPlayCheckbox.checked);
+      });
+    }
   }
 
   function updateDisplaySettings() {
@@ -1036,6 +1479,10 @@
 
   // 初始化显示控制
   initDisplayControls();
+
+  // 初始语言应用（双重保障）
+  applyI18n();
+  setTimeout(applyI18n, 0);
 
   // 初始化文档管理器
   const documentManager = new DocumentManager();
