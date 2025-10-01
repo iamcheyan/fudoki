@@ -134,11 +134,33 @@ class JapaneseSegmenter {
     for (let i = 0; i < chars.length; i++) {
       const char = chars[i];
       if (char.trim()) {
+        // 根据字符类型分配词性
+        let pos;
+        if (/[\u3040-\u309F]/.test(char)) {
+          // 平假名
+          pos = ['助詞', '*', '*', '*', '*', '*'];
+        } else if (/[\u30A0-\u30FF]/.test(char)) {
+          // 片假名
+          pos = ['名詞', '一般', '*', '*', '*', '*'];
+        } else if (/[\u4E00-\u9FAF]/.test(char)) {
+          // 汉字
+          pos = ['名詞', '一般', '*', '*', '*', '*'];
+        } else if (/[a-zA-Z]/.test(char)) {
+          // 英文字母
+          pos = ['名詞', '固有名詞', '一般', '*', '*', '*'];
+        } else if (/\d/.test(char)) {
+          // 数字
+          pos = ['名詞', '数', '*', '*', '*', '*'];
+        } else {
+          // 其他符号
+          pos = ['記号', '*', '*', '*', '*', '*'];
+        }
+        
         tokens.push({
           surface: char,
           lemma: char,
           reading: char,
-          pos: ['記号', '*', '*', '*', '*', '*']
+          pos: pos
         });
       }
     }

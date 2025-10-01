@@ -10,6 +10,11 @@
   const playAllBtn = $('playAllBtn');
   const newDocBtn = $('newDocBtn');
   const documentList = $('documentList');
+  
+  // 显示控制元素
+  const showKanaCheckbox = $('showKana');
+  const showRomajiCheckbox = $('showRomaji');
+  const showPosCheckbox = $('showPos');
 
   // 本地存储键
   const LS = { 
@@ -17,7 +22,10 @@
     voiceURI: 'voiceURI', 
     rate: 'rate', 
     texts: 'texts', 
-    activeId: 'activeId' 
+    activeId: 'activeId',
+    showKana: 'showKana',
+    showRomaji: 'showRomaji', 
+    showPos: 'showPos'
   };
 
   // 点击页面其他地方隐藏详细信息
@@ -61,6 +69,63 @@
   // 初始化速度滑块
   speedSlider.value = String(rate);
 
+  // 罗马音转换函数
+  function getRomaji(kana) {
+    if (!kana) return '';
+    
+    const kanaToRomaji = {
+      'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
+      'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
+      'が': 'ga', 'ぎ': 'gi', 'ぐ': 'gu', 'げ': 'ge', 'ご': 'go',
+      'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so',
+      'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo',
+      'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to',
+      'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'で': 'de', 'ど': 'do',
+      'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no',
+      'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
+      'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
+      'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po',
+      'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
+      'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
+      'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
+      'わ': 'wa', 'ゐ': 'wi', 'ゑ': 'we', 'を': 'wo', 'ん': 'n',
+      // 片假名
+      'ア': 'a', 'イ': 'i', 'ウ': 'u', 'エ': 'e', 'オ': 'o',
+      'カ': 'ka', 'キ': 'ki', 'ク': 'ku', 'ケ': 'ke', 'コ': 'ko',
+      'ガ': 'ga', 'ギ': 'gi', 'グ': 'gu', 'ゲ': 'ge', 'ゴ': 'go',
+      'サ': 'sa', 'シ': 'shi', 'ス': 'su', 'セ': 'se', 'ソ': 'so',
+      'ザ': 'za', 'ジ': 'ji', 'ズ': 'zu', 'ゼ': 'ze', 'ゾ': 'zo',
+      'タ': 'ta', 'チ': 'chi', 'ツ': 'tsu', 'テ': 'te', 'ト': 'to',
+      'ダ': 'da', 'ヂ': 'ji', 'ヅ': 'zu', 'デ': 'de', 'ド': 'do',
+      'ナ': 'na', 'ニ': 'ni', 'ヌ': 'nu', 'ネ': 'ne', 'ノ': 'no',
+      'ハ': 'ha', 'ヒ': 'hi', 'フ': 'fu', 'ヘ': 'he', 'ホ': 'ho',
+      'バ': 'ba', 'ビ': 'bi', 'ブ': 'bu', 'ベ': 'be', 'ボ': 'bo',
+      'パ': 'pa', 'ピ': 'pi', 'プ': 'pu', 'ペ': 'pe', 'ポ': 'po',
+      'マ': 'ma', 'ミ': 'mi', 'ム': 'mu', 'メ': 'me', 'モ': 'mo',
+      'ヤ': 'ya', 'ユ': 'yu', 'ヨ': 'yo',
+      'ラ': 'ra', 'リ': 'ri', 'ル': 'ru', 'レ': 're', 'ロ': 'ro',
+      'ワ': 'wa', 'ヰ': 'wi', 'ヱ': 'we', 'ヲ': 'wo', 'ン': 'n',
+      // 长音符号
+      'ー': '-',
+      // 小字符
+      'ゃ': 'ya', 'ゅ': 'yu', 'ょ': 'yo',
+      'ャ': 'ya', 'ュ': 'yu', 'ョ': 'yo',
+      'っ': 'tsu', 'ッ': 'tsu'
+    };
+    
+    let romaji = '';
+    for (let i = 0; i < kana.length; i++) {
+      const char = kana[i];
+      if (kanaToRomaji[char]) {
+        romaji += kanaToRomaji[char];
+      } else {
+        romaji += char;
+      }
+    }
+    
+    return romaji;
+  }
+
   // 词性解析函数
   function parsePartOfSpeech(pos) {
     if (!Array.isArray(pos) || pos.length === 0) {
@@ -68,18 +133,18 @@
     }
 
     const posMap = {
-      '名詞': '名词',
-      '動詞': '动词', 
-      '形容詞': '形容词',
-      '副詞': '副词',
-      '助詞': '助词',
-      '助動詞': '助动词',
-      '連体詞': '连体词',
-      '接続詞': '接续词',
-      '感動詞': '感叹词',
-      '記号': '符号',
-      '補助記号': '辅助符号',
-      'フィラー': '填充词',
+      '名詞': '名',
+      '動詞': '动', 
+      '形容詞': '形',
+      '副詞': '副',
+      '助詞': '助',
+      '助動詞': '助动',
+      '連体詞': '连体',
+      '接続詞': '接续',
+      '感動詞': '感叹',
+      '記号': '标点',
+      '補助記号': '符号',
+      'フィラー': '填充',
       '其他': '其他'
     };
 
@@ -424,11 +489,17 @@
         const posDisplay = posInfo.main || '未知';
         const detailInfo = formatDetailInfo(token, posInfo);
         
+        // 获取罗马音
+        const romaji = getRomaji(reading || surface);
+        
         return `
           <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(token).replace(/'/g, "&apos;")}'>
-            ${surface}
-            ${reading && reading !== surface ? `<span class="furigana">${reading}</span>` : ''}
-            <span class="pos-tag">${posDisplay}</span>
+            <div class="token-content">
+              <div class="token-kana display-kana">${reading && reading !== surface ? reading : ''}</div>
+              <div class="token-romaji display-romaji">${romaji}</div>
+              <div class="token-kanji display-kanji">${surface}</div>
+              <div class="token-pos display-pos">${posDisplay}</div>
+            </div>
             <div class="token-details" style="display: none;">
               ${detailInfo}
               <button class="play-token-btn" onclick="playToken('${surface}', event)" title="播放">
@@ -589,6 +660,69 @@
       }
     }
   });
+
+  // 显示控制功能
+  function initDisplayControls() {
+    // 从本地存储加载设置
+    const showKana = localStorage.getItem(LS.showKana) !== 'false';
+    const showRomaji = localStorage.getItem(LS.showRomaji) !== 'false';
+    const showPos = localStorage.getItem(LS.showPos) !== 'false';
+    
+    // 设置复选框状态
+    if (showKanaCheckbox) showKanaCheckbox.checked = showKana;
+    if (showRomajiCheckbox) showRomajiCheckbox.checked = showRomaji;
+    if (showPosCheckbox) showPosCheckbox.checked = showPos;
+    
+    // 应用显示设置
+    updateDisplaySettings();
+    
+    // 添加事件监听器
+    if (showKanaCheckbox) {
+      showKanaCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.showKana, showKanaCheckbox.checked);
+        updateDisplaySettings();
+      });
+    }
+    
+    if (showRomajiCheckbox) {
+      showRomajiCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.showRomaji, showRomajiCheckbox.checked);
+        updateDisplaySettings();
+      });
+    }
+    
+    if (showPosCheckbox) {
+      showPosCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.showPos, showPosCheckbox.checked);
+        updateDisplaySettings();
+      });
+    }
+  }
+
+  function updateDisplaySettings() {
+    const showKana = showKanaCheckbox ? showKanaCheckbox.checked : true;
+    const showRomaji = showRomajiCheckbox ? showRomajiCheckbox.checked : true;
+    const showPos = showPosCheckbox ? showPosCheckbox.checked : true;
+    
+    // 创建或更新CSS规则
+    let styleElement = document.getElementById('display-control-styles');
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = 'display-control-styles';
+      document.head.appendChild(styleElement);
+    }
+    
+    let css = '';
+    if (!showKana) css += '.display-kana { display: none !important; }\n';
+    if (!showRomaji) css += '.display-romaji { display: none !important; }\n';
+    // 汉字永远显示，不添加隐藏规则
+    if (!showPos) css += '.display-pos { display: none !important; }\n';
+    
+    styleElement.textContent = css;
+  }
+
+  // 初始化显示控制
+  initDisplayControls();
 
   // 初始化时如果有文本则自动分析
   if (textInput.value.trim()) {
