@@ -36,10 +36,6 @@
         <button class="delete-doc-btn" id="deleteDocBtn" disabled>删除文档</button>
       </div>
 
-      <footer class="footer">
-            <a href="https://iamcheyan.com/" target="_blank" rel="noreferrer noopener">Cheyan</a> All Rights Reserved <br/>
-            <a href="https://github.com/iamcheyan/fudoki" target="_blank" rel="noreferrer noopener">GitHub</a>
-      </footer>
     </aside>
 
     <!-- 主内容区域 -->
@@ -133,12 +129,11 @@
           <div class="system-controls">
             <div class="control-group">
               <label class="control-label" id="themeLabel">主题模式</label>
-              <button id="themeToggle" class="theme-toggle-btn" aria-label="切换主题" title="切换主题">
-                <svg class="theme-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                  <path d="M12 3a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm7.07 3.93a1 1 0 0 1 0 1.41l-.71.71a1 1 0 0 1-1.41-1.41l.71-.71a1 1 0 0 1 1.41 0ZM20 13a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2h-1Zm-2.64 6.36a1 1 0 0 1-1.41 0l-.71-.71a1 1 0 1 1 1.41-1.41l.71.71a1 1 0 0 1 0 1.41ZM13 20a1 1 0 1 1-2 0v-1a1 1 0 1 1 2 0v1ZM6.34 18.95a1 1 0 0 1-1.41 0 1 1 0 0 1 0-1.41l.71-.71a1 1 0 1 1 1.41 1.41l-.71.71ZM4 13a1 1 0 1 1 0-2H3a1 1 0 1 1 0 2h1Zm2.05-7.66a1 1 0 0 1 1.41 0l.71.71A1 1 0 1 1 6.76 7.46l-.71-.71a1 1 0 0 1 0-1.41ZM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"/>
-                </svg>
-                <span class="theme-text" id="themeText">浅色</span>
-              </button>
+              <select id="themeSelect" class="theme-select">
+                <option value="light">浅色模式</option>
+                <option value="dark">深色模式</option>
+                <option value="auto">跟随系统</option>
+              </select>
             </div>
             
             <div class="control-group">
@@ -152,9 +147,21 @@
           </div>
         </div>
       </div>
+      
+      <!-- 高度调整手柄 -->
+      <div class="toolbar-resize-handle" id="toolbarResizeHandle" title="拖拽调整高度">
+        <div class="resize-handle-line"></div>
+        <div class="resize-handle-line"></div>
+        <div class="resize-handle-line"></div>
+      </div>
     </aside>
+
+    
   </div>
 
+  <footer class="footer">
+    <a href="https://iamcheyan.com/" target="_blank" rel="noreferrer noopener">Cheyan</a> All Rights Reserved - <a href="https://github.com/iamcheyan/fudoki" target="_blank" rel="noreferrer noopener">GitHub</a>
+</footer>
   <!-- JavaScript文件 -->
   <script src="static/libs/kuromoji.js"></script>
   <script src="static/libs/kuroshiro.min.js"></script>

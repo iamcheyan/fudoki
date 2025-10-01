@@ -62,7 +62,7 @@
 
 body {
   font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
-  background: var(--bg);
+  background: #faf9f6;
   color: var(--text);
   line-height: 1.6;
   font-size: 14px;
@@ -70,8 +70,7 @@ body {
 
 /* 顶部导航栏 - 日式简约 */
 .header {
-  background: var(--bg);
-  padding: 8px 0;
+  padding: 20px 0;
 }
 
 .header-content {
@@ -94,8 +93,8 @@ body {
 }
 
 .logo-icon {
-  width: 28px;
-  height: 28px;
+  width: 64px;
+  height: auto;
   display: inline-block;
 }
 
@@ -127,16 +126,19 @@ body {
 /* 主要布局 - 紧凑型三栏 */
 .main-container {
   max-width: 1000px;
-  margin: 0 auto;
+  margin: 0 auto 30px auto;
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 1px;
+  box-shadow: 0 10px 30px #ddd;
   min-height: calc(100vh - 60px);
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 /* 左侧边栏 - 文档管理 */
 .sidebar-left {
-  background: var(--bg);
+  background: #faf7ed;
   padding: 16px 12px;
 }
 
@@ -659,32 +661,7 @@ body {
   gap: 12px;
 }
 
-.theme-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 13px;
-  color: var(--text);
-  width: 100%;
-  justify-content: flex-start;
-}
-
-.theme-toggle-btn:hover {
-  background: var(--elev);
-  border-color: var(--primary);
-}
-
-.theme-icon {
-  fill: var(--text);
-  transition: fill 0.2s ease;
-}
-
+.theme-select,
 .lang-select {
   width: 100%;
   padding: 8px 12px;
@@ -697,6 +674,8 @@ body {
   transition: all 0.2s ease;
 }
 
+.theme-select:hover,
+.theme-select:focus,
 .lang-select:hover,
 .lang-select:focus {
   border-color: var(--primary);
@@ -1220,8 +1199,7 @@ select, input[type="range"] {
 }
 
 /* 主题切换按钮微样式 */
-#themeToggle { color: var(--text); background: var(--bg); border: none;  cursor: pointer;}
-#themeToggle:hover { background: rgba(0,0,0,0.05); }
+
 
 /* 主题切换图标按钮 */
 .theme-icon-btn {
@@ -1334,12 +1312,12 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 
 /* 页脚 */
 .footer {
-  margin-top: 16px;
+  margin: 20px auto 50px auto;
   padding: 12px 0 0;
-  border-top: 1px solid var(--control-border);
   font-size: 11.5px;
   color: var(--control-muted);
   line-height: 1.6;
+  text-align: center;
 }
 .footer a {
   color: var(--primary);
@@ -1369,5 +1347,43 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 /* 保证弹出卡片的层级 */
 .token-details { z-index: 10010; }
 
-/* 某些容器可能设置了溢出，确保不裁切弹层（不改变布局，只保证常见容器） */
-.content-area, .main-container { overflow: visible; }
+
+/* 高度调整手柄样式 */
+.toolbar-resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.toolbar-resize-handle:hover {
+  background: var(--elev);
+}
+
+.resize-handle-line {
+  width: 20px;
+  height: 1px;
+  background: var(--text);
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.toolbar-resize-handle:hover .resize-handle-line {
+  opacity: 0.7;
+}
+
+/* 调整工具栏内容区域，为手柄留出空间 */
+#sidebar-right .toolbar-content {
+  padding: 15px;
+  overflow-y: auto;
+  max-height: calc(100% - 52px); /* 40px header + 12px handle */
+}

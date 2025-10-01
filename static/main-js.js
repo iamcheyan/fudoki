@@ -11,7 +11,7 @@
   const newDocBtn = $('newDocBtn');
   const documentList = $('documentList');
   const langSelect = $('langSelect');
-  const themeToggle = document.getElementById('themeToggle');
+  const themeSelect = document.getElementById('themeSelect');
   
   // 显示控制元素
   const showKanaCheckbox = $('showKana');
@@ -305,21 +305,33 @@
   function applyTheme(theme) {
     const t = (theme === THEME.DARK) ? THEME.DARK : THEME.LIGHT;
     document.documentElement.setAttribute('data-theme', t === THEME.DARK ? 'dark' : 'light');
-    if (themeToggle) {
-      themeToggle.innerHTML = t === THEME.DARK
-        ? '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21.64 13a1 1 0 0 1-1.1.27A8 8 0 0 1 10.73 3.46a1 1 0 0 1 .27-1.1 1 1 0 0 1 1.09-.17 10 10 0 1 0 9.72 9.72 1 1 0 0 1-.17 1.09Z"></path></svg>'
-        : '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="5"></line><line x1="12" y1="19" x2="12" y2="22"></line><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"></line><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"></line><line x1="2" y1="12" x2="5" y2="12"></line><line x1="19" y1="12" x2="22" y2="12"></line><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"></line><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"></line></g></svg>';
-      themeToggle.setAttribute('aria-label', t === THEME.DARK ? '切换为亮色' : '切换为深色');
-      themeToggle.setAttribute('title', '切换主题');
+    if (themeSelect) {
+      themeSelect.value = t === THEME.DARK ? 'dark' : 'light';
     }
   }
   let savedTheme = localStorage.getItem(LS.theme) || THEME.LIGHT;
   applyTheme(savedTheme);
-  if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-      savedTheme = (savedTheme === THEME.DARK) ? THEME.LIGHT : THEME.DARK;
+  if (themeSelect) {
+    themeSelect.addEventListener('change', () => {
+      const selectedValue = themeSelect.value;
+      if (selectedValue === 'auto') {
+        // 跟随系统主题
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? THEME.DARK : THEME.LIGHT;
+        savedTheme = systemTheme;
+      } else {
+        savedTheme = selectedValue === 'dark' ? THEME.DARK : THEME.LIGHT;
+      }
       try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
       applyTheme(savedTheme);
+    });
+    
+    // 监听系统主题变化（当选择跟随系统时）
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (themeSelect.value === 'auto') {
+        savedTheme = e.matches ? THEME.DARK : THEME.LIGHT;
+        try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
+        applyTheme(savedTheme);
+      }
     });
   }
 
@@ -1540,9 +1552,6 @@
     styleElement.textContent = css;
   }
 
-  // 初始化显示控制
-  initDisplayControls();
-
   // 工具栏拖拽功能
   function initToolbarDrag() {
     const toolbar = document.querySelector('.sidebar-right');
@@ -1684,9 +1693,6 @@
     setTimeout(restoreToolbarState, 100);
   }
   
-  // 初始化工具栏拖拽
-  initToolbarDrag();
-
   // 初始语言应用（双重保障）
   applyI18n();
   setTimeout(applyI18n, 0);
@@ -1702,6 +1708,88 @@
     setTimeout(() => analyzeText(), 100);
   } else {
     showEmptyState();
+  }
+
+// 高度调整功能
+  function initToolbarResize() {
+    const resizeHandle = document.getElementById('toolbarResizeHandle');
+    const toolbar = document.getElementById('sidebar-right');
+    
+    if (!resizeHandle || !toolbar) return;
+    
+    let isResizing = false;
+    let startY = 0;
+    let startHeight = 0;
+    
+    // 开始调整高度
+    function startResize(e) {
+      isResizing = true;
+      startY = e.clientY;
+      startHeight = toolbar.offsetHeight;
+      
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ns-resize';
+      
+      e.preventDefault();
+    }
+    
+    // 调整高度中
+    function resize(e) {
+      if (!isResizing) return;
+      
+      const deltaY = e.clientY - startY;
+      const newHeight = startHeight + deltaY;
+      
+      // 限制最小和最大高度
+      const minHeight = 200;
+      const maxHeight = window.innerHeight - 100;
+      const constrainedHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+      
+      toolbar.style.height = constrainedHeight + 'px';
+      
+      e.preventDefault();
+    }
+    
+    // 结束调整高度
+    function endResize() {
+      if (!isResizing) return;
+      
+      isResizing = false;
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      
+      // 保存高度到本地存储
+      const height = toolbar.offsetHeight;
+      localStorage.setItem('toolbarHeight', height.toString());
+    }
+    
+    // 绑定事件
+    resizeHandle.addEventListener('mousedown', startResize);
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', endResize);
+    
+    // 恢复保存的高度
+    const savedHeight = localStorage.getItem('toolbarHeight');
+    if (savedHeight) {
+      const height = parseInt(savedHeight, 10);
+      if (height >= 200 && height <= window.innerHeight - 100) {
+        toolbar.style.height = height + 'px';
+      }
+    }
+  }
+  
+  // 确保DOM加载完成后初始化所有功能
+  function initializeApp() {
+    initDisplayControls();
+    initToolbarDrag();
+    initToolbarResize();
+  }
+
+  // 如果DOM已经加载完成，立即初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+  } else {
+    initializeApp();
   }
 
 })();
