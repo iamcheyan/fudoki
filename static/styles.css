@@ -764,7 +764,7 @@ input:focus, textarea:focus, select:focus {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #666;
+  color: var(--muted);
   margin-bottom: 4px;
   font-weight: 600;
   cursor: pointer;
@@ -778,14 +778,16 @@ input:focus, textarea:focus, select:focus {
 select, input[type="range"] {
   width: 100%;
   padding: 4px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   font-size: 12px;
   border-radius: 2px;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .speed-display {
   font-size: 11px;
-  color: #999;
+  color: var(--muted);
   text-align: center;
   margin-top: 2px;
 }
@@ -803,7 +805,7 @@ select, input[type="range"] {
 }
 
 .play-all-btn:hover {
-  background: #0052a3;
+  background: #6B5B00;
 }
 
 .display-controls {
@@ -836,8 +838,8 @@ select, input[type="range"] {
 }
 
 .play-line-btn:hover {
-  background: #f5f5f5;
-  border-color: #bbb;
+  background: var(--elevated);
+  border-color: var(--border);
 }
 
 .play-token-btn {
@@ -856,7 +858,7 @@ select, input[type="range"] {
 }
 
 .play-token-btn:hover {
-  background: #f5f5f5;
+  background: var(--elevated);
 }
 
 /* 加载和错误状态 */
@@ -934,7 +936,7 @@ select, input[type="range"] {
 
 /* 翻译功能样式 */
 .translation-item {
-  background: #f8f9fa;
+  background: var(--elevated);
   border-radius: 4px;
   padding: 8px;
   margin: 6px 0;
@@ -967,7 +969,7 @@ select, input[type="range"] {
 
 .translation-kana {
   font-size: 11px;
-  color: #666;
+  color: var(--muted);
   margin-top: 4px;
   font-style: italic;
 }
@@ -987,12 +989,12 @@ select, input[type="range"] {
 }
 
 .translation-modal-content {
-  background: white;
+  background: var(--bg);
   border-radius: 8px;
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .translation-modal-header {
@@ -1000,13 +1002,13 @@ select, input[type="range"] {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border);
 }
 
 .translation-modal-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #333;
+  color: var(--text);
 }
 
 .close-modal-btn {
@@ -1014,7 +1016,7 @@ select, input[type="range"] {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #999;
+  color: var(--muted);
   padding: 0;
   width: 30px;
   height: 30px;
@@ -1024,7 +1026,7 @@ select, input[type="range"] {
 }
 
 .close-modal-btn:hover {
-  color: #666;
+  color: var(--text);
 }
 
 .translation-modal-body {
@@ -1035,7 +1037,7 @@ select, input[type="range"] {
   display: flex;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .sense-item:last-child {
@@ -1057,14 +1059,14 @@ select, input[type="range"] {
 
 .sense-gloss {
   font-size: 14px;
-  color: #333;
+  color: var(--text);
   margin-bottom: 6px;
   line-height: 1.4;
 }
 
 .sense-pos, .sense-field, .sense-misc, .sense-chinese {
   font-size: 12px;
-  color: #666;
+  color: var(--muted);
   margin-bottom: 3px;
 }
 
@@ -1077,7 +1079,7 @@ select, input[type="range"] {
 }
 
 .sense-misc {
-  color: #666;
+  color: var(--muted);
   font-style: italic;
 }
 
@@ -1094,14 +1096,14 @@ select, input[type="range"] {
 .nhk-news-list {
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 2px;
-  background: #fafafa;
+  background: var(--elevated);
 }
 
 .nhk-news-item {
   padding: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 12px;
@@ -1109,7 +1111,7 @@ select, input[type="range"] {
 }
 
 .nhk-news-item:hover {
-  background: #f8f8f8;
+  background: var(--bg);
 }
 
 .nhk-news-item:last-child {
@@ -1118,7 +1120,7 @@ select, input[type="range"] {
 
 .nhk-news-title {
   font-weight: 500;
-  color: #333;
+  color: var(--text);
   margin-bottom: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1128,14 +1130,14 @@ select, input[type="range"] {
 
 .nhk-news-meta {
   font-size: 10px;
-  color: #999;
+  color: var(--muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .nhk-news-category {
-  background: #e6f3ff;
+  background: var(--elevated);
   color: var(--primary);
   padding: 1px 4px;
   border-radius: 2px;
@@ -1143,13 +1145,13 @@ select, input[type="range"] {
 }
 
 .nhk-news-date {
-  color: #999;
+  color: var(--muted);
 }
 
 .nhk-loading {
   text-align: center;
   padding: 20px;
-  color: #999;
+  color: var(--muted);
   font-size: 12px;
 }
 
@@ -1167,10 +1169,10 @@ select, input[type="range"] {
 .nhk-category-title {
   font-size: 11px;
   font-weight: 600;
-  color: #666;
+  color: var(--muted);
   margin-bottom: 6px;
   padding: 4px 8px;
-  background: #f0f0f0;
+  background: var(--elevated);
   border-radius: 2px;
 }
 
@@ -1184,7 +1186,7 @@ select, input[type="range"] {
 .article-title {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-bottom: 12px;
   line-height: 1.4;
 }
@@ -1192,7 +1194,7 @@ select, input[type="range"] {
 .article-meta {
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
 }
 
 .article-link {
@@ -1221,11 +1223,11 @@ select, input[type="range"] {
   font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
   font-size: 14px;
   line-height: 1.6;
-  color: #333;
-  background: #f8f9fa;
+  color: var(--text);
+  background: var(--elevated);
   padding: 16px;
   border-radius: 4px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   max-height: 400px;
   overflow-y: auto;
 }
@@ -1233,12 +1235,12 @@ select, input[type="range"] {
 .article-actions {
   text-align: center;
   padding-top: 16px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border);
 }
 
 .article-debug {
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background: var(--elevated);
+  border: 1px solid var(--border);
   border-radius: 4px;
   padding: 12px;
   margin: 12px 0;
@@ -1247,15 +1249,15 @@ select, input[type="range"] {
 
 .article-debug code {
   display: block;
-  background: #ffffff;
-  border: 1px solid #ddd;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 2px;
   padding: 8px;
   margin-top: 4px;
   word-break: break-all;
   font-family: monospace;
   font-size: 11px;
-  color: #333;
+  color: var(--text);
 }
 
 /* 主题切换按钮微样式 */
