@@ -170,6 +170,81 @@ class NHKRSSScraper:
             print(f"获取RSS文章失败 {rss_url}: {e}")
             return []
     
+    def fetch_article_content(self, article_url: str) -> str:
+        """获取文章完整内容"""
+        try:
+            response = self.session.get(article_url, timeout=15)
+            response.raise_for_status()
+            response.encoding = 'utf-8'
+            
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # NHK网站特定的内容选择器
+            content_selectors = [
+                '.content--detail-body',  # NHK主要内容区域
+                '.content--detail',
+                '.article-body',
+                '.article-content', 
+                '.content-body',
+                'article',
+                '.main-content',
+                '.news-content',  # 新闻内容
+                '.article-text',  # 文章文本
+                '.content-text',   # 内容文本
+                'div[class*="content"]',  # 包含content的div
+                'div[class*="article"]',   # 包含article的div
+                'div[class*="news"]'       # 包含news的div
+            ]
+            
+            content = None
+            for selector in content_selectors:
+                content_element = soup.select_one(selector)
+                if content_element:
+                    # 检查内容长度，确保不是空内容
+                    text_preview = content_element.get_text(strip=True)[:100]
+                    if len(text_preview) > 20:  # 至少20个字符
+                        content = content_element
+                        break
+            
+            if content:
+                # 清理内容，移除脚本、样式和导航元素
+                for element in content(["script", "style", "nav", "header", "footer", "aside"]):
+                    element.decompose()
+                
+                # 移除广告和无关元素
+                for element in content.find_all(['div', 'section'], class_=lambda x: x and any(
+                    keyword in x.lower() for keyword in ['ad', 'advertisement', 'sidebar', 'related', 'social']
+                )):
+                    element.decompose()
+                
+                # 获取纯文本内容
+                text_content = content.get_text(separator='\n', strip=True)
+                
+                # 清理多余的空行
+                lines = [line.strip() for line in text_content.split('\n') if line.strip()]
+                cleaned_content = '\n'.join(lines)
+                
+                # 如果内容太短，尝试获取整个页面的主要内容
+                if len(cleaned_content) < 100:
+                    # 尝试获取所有段落
+                    paragraphs = soup.find_all('p')
+                    if paragraphs:
+                        paragraph_texts = []
+                        for p in paragraphs:
+                            text = p.get_text(strip=True)
+                            if len(text) > 10:  # 过滤太短的段落
+                                paragraph_texts.append(text)
+                        if paragraph_texts:
+                            cleaned_content = '\n'.join(paragraph_texts)
+                
+                return cleaned_content[:3000]  # 增加长度限制
+            else:
+                return "无法获取文章内容"
+                
+        except Exception as e:
+            print(f"获取文章内容失败 {article_url}: {e}")
+            return f"获取文章内容失败: {str(e)}"
+    
     def get_all_articles(self) -> Dict[str, List[Dict]]:
         """获取所有分类的NHK文章"""
         print("正在获取NHK文章...")
@@ -321,6 +396,32 @@ def get_nhk_articles_by_category(category):
                 'error': f'分类 {japanese_category} 不存在'
             }), 404
             
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/nhk/article-content', methods=['GET'])
+def get_article_content():
+    """获取文章完整内容"""
+    try:
+        article_url = request.args.get('url')
+        if not article_url:
+            return jsonify({
+                'success': False,
+                'error': '缺少文章URL参数'
+            }), 400
+        
+        scraper = NHKRSSScraper()
+        content = scraper.fetch_article_content(article_url)
+        
+        return jsonify({
+            'success': True,
+            'content': content,
+            'url': article_url
+        })
+        
     except Exception as e:
         return jsonify({
             'success': False,

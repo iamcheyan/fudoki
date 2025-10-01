@@ -236,15 +236,64 @@
         this.nhkNewsList.innerHTML = html || '<div class="nhk-error">未找到新闻</div>';
       }
       
-      selectNews(title, link) {
-        // 将新闻标题添加到文本输入框
-        const currentText = this.textInput.value;
-        const newText = currentText ? `${currentText}\n\n${title}` : title;
-        this.textInput.value = newText;
+      async selectNews(title, link) {
+        // 显示加载状态
+        this.showArticleLoading();
         
-        // 自动触发分析
-        if (window.analyzeText) {
-          window.analyzeText();
+        try {
+          // 获取文章内容
+          const response = await fetch(`${this.getApiBase()}/article-content?url=${encodeURIComponent(link)}`);
+          const data = await response.json();
+          
+          if (data.success) {
+            // 显示文章内容在content-area
+            this.displayArticleContent(title, data.content, link);
+          } else {
+            this.showArticleError('获取文章内容失败: ' + data.error);
+          }
+        } catch (error) {
+          this.showArticleError('网络错误: ' + error.message);
+        }
+      }
+      
+      showArticleLoading() {
+        const contentArea = document.getElementById('content');
+        contentArea.innerHTML = '<div class="empty-state">正在加载文章内容...</div>';
+      }
+      
+      showArticleError(message) {
+        const contentArea = document.getElementById('content');
+        contentArea.innerHTML = `<div class="error-state">${message}</div>`;
+      }
+      
+      displayArticleContent(title, content, link) {
+        const contentArea = document.getElementById('content');
+        contentArea.innerHTML = `
+          <div class="article-content">
+            <h2 class="article-title">${title}</h2>
+            <div class="article-meta">
+              <a href="${link}" target="_blank" class="article-link">查看原文</a>
+            </div>
+            <div class="article-body">
+              <pre>${content}</pre>
+            </div>
+            <div class="article-actions">
+              <button class="btn btn-primary" onclick="nhkNewsManager.analyzeArticle()">分析此文</button>
+            </div>
+          </div>
+        `;
+      }
+      
+      analyzeArticle() {
+        // 将文章内容添加到文本输入框并触发分析
+        const articleBody = document.querySelector('.article-body pre');
+        if (articleBody) {
+          this.textInput.value = articleBody.textContent;
+          
+          // 自动触发分析
+          if (window.analyzeText) {
+            window.analyzeText();
+          }
         }
       }
       

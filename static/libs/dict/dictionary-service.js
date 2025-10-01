@@ -22,26 +22,83 @@ class DictionaryService {
   }
 
   /**
-   * 加载JMDict JSON数据
+   * 加载JMDict JSON数据（支持分片文件）
    */
   async loadJMDict() {
     try {
       console.log('开始加载JMDict词典数据...');
-      const response = await fetch('/static/libs/dict/jmdict-eng-3.6.1.json');
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // 首先尝试加载元数据文件
+      let metadata;
+      try {
+        const metadataResponse = await fetch('/static/libs/dict/chunks/jmdict_metadata.json');
+        if (metadataResponse.ok) {
+          metadata = await metadataResponse.json();
+          console.log(`发现分片文件，共 ${metadata.total_chunks} 个分片`);
+        }
+      } catch (error) {
+        console.log('未找到分片元数据，尝试加载原始文件...');
       }
 
-      this.jmdictData = await response.json();
-      this.isLoaded = true;
-      console.log(`JMDict词典加载完成，共 ${this.jmdictData.words.length} 个词条`);
-      
-      return this.jmdictData;
+      if (metadata) {
+        // 加载分片文件
+        return await this.loadChunkedJMDict(metadata);
+      } else {
+        // 回退到加载原始文件
+        return await this.loadOriginalJMDict();
+      }
     } catch (error) {
       console.error('加载JMDict词典失败:', error);
       throw error;
     }
+  }
+
+  /**
+   * 加载分片的JMDict数据
+   */
+  async loadChunkedJMDict(metadata) {
+    const allWords = [];
+    
+    for (let i = 0; i < metadata.total_chunks; i++) {
+      console.log(`加载分片 ${i + 1}/${metadata.total_chunks}...`);
+      
+      const chunkResponse = await fetch(`/static/libs/dict/chunks/jmdict_chunk_${i.toString().padStart(3, '0')}.json`);
+      if (!chunkResponse.ok) {
+        throw new Error(`Failed to load chunk ${i}: ${chunkResponse.status}`);
+      }
+      
+      const chunkData = await chunkResponse.json();
+      allWords.push(...chunkData.words);
+    }
+
+    this.jmdictData = {
+      words: allWords,
+      version: metadata.version || 'unknown',
+      date: metadata.date || 'unknown'
+    };
+    
+    this.isLoaded = true;
+    console.log(`JMDict词典加载完成，共 ${allWords.length} 个词条`);
+    
+    return this.jmdictData;
+  }
+
+  /**
+   * 加载原始的JMDict文件（回退方案）
+   */
+  async loadOriginalJMDict() {
+    console.log('加载原始JMDict文件...');
+    const response = await fetch('/static/libs/dict/jmdict-eng-3.6.1.json');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    this.jmdictData = await response.json();
+    this.isLoaded = true;
+    console.log(`JMDict词典加载完成，共 ${this.jmdictData.words.length} 个词条`);
+    
+    return this.jmdictData;
   }
 
   /**
