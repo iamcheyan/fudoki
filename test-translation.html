@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>翻译功能测试</title>
+</head>
+<body>
+  <h1>翻译功能测试</h1>
+  <div id="status">正在初始化...</div>
+  <button id="testBtn" onclick="testTranslation()" disabled>测试翻译</button>
+  <div id="result"></div>
+
+  <script src="static/libs/dict/dictionary-service.js"></script>
+  <script>
+    async function initTest() {
+      const statusDiv = document.getElementById('status');
+      const testBtn = document.getElementById('testBtn');
+      
+      try {
+        statusDiv.textContent = '正在检查词典服务...';
+        console.log('Dictionary service:', window.dictionaryService);
+        
+        statusDiv.textContent = '正在初始化词典...';
+        await window.dictionaryService.init();
+        
+        statusDiv.textContent = '词典初始化完成！';
+        testBtn.disabled = false;
+        
+        console.log('Dictionary stats:', window.dictionaryService.getStats());
+      } catch (error) {
+        statusDiv.textContent = '初始化失败: ' + error.message;
+        console.error('初始化错误:', error);
+      }
+    }
+    
+    async function testTranslation() {
+      const resultDiv = document.getElementById('result');
+      
+      try {
+        resultDiv.textContent = '正在查询翻译...';
+        
+        const word = '日本';
+        const translation = await window.dictionaryService.getMainTranslation(word);
+        
+        if (translation) {
+          resultDiv.innerHTML = `<strong>${word}</strong> 的翻译: ${translation}`;
+        } else {
+          resultDiv.textContent = '未找到翻译';
+        }
+      } catch (error) {
+        resultDiv.textContent = '翻译查询失败: ' + error.message;
+        console.error('翻译错误:', error);
+      }
+    }
+    
+    // 页面加载后初始化
+    window.addEventListener('load', initTest);
+  </script>
+</body>
+</html>

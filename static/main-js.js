@@ -16,6 +16,7 @@
   const showKanaCheckbox = $('showKana');
   const showRomajiCheckbox = $('showRomaji');
   const showPosCheckbox = $('showPos');
+  const autoReadCheckbox = $('autoRead');
 
   // 本地存储键
   const LS = { 
@@ -26,7 +27,8 @@
     activeId: 'activeId',
     showKana: 'showKana',
     showRomaji: 'showRomaji', 
-    showPos: 'showPos'
+    showPos: 'showPos',
+    autoRead: 'autoRead'
   };
 
   // 点击页面其他地方隐藏详细信息
@@ -688,7 +690,7 @@
         }
         
         return `
-          <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(token).replace(/'/g, "&apos;")}'>
+          <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(token).replace(/'/g, "&apos;")}' data-pos="${posDisplay}">
             <div class="token-content">
               <div class="token-kana display-kana">${reading && reading !== surface ? reading : ''}</div>
               <div class="token-romaji display-romaji">${romaji}</div>
@@ -732,6 +734,18 @@
 
   // 显示/隐藏词汇详细信息
   window.toggleTokenDetails = function(element) {
+    // 检查是否启用了自动朗读功能
+    if (autoReadCheckbox && autoReadCheckbox.checked) {
+      // 如果启用了自动朗读，直接朗读词汇
+      const tokenData = JSON.parse(element.getAttribute('data-token'));
+      const surface = tokenData.surface || '';
+      if (surface) {
+        speak(surface);
+      }
+      return; // 不显示详细信息面板
+    }
+    
+    // 原有的详细信息显示逻辑
     const details = element.querySelector('.token-details');
     if (details) {
       const isVisible = details.style.display !== 'none';
@@ -958,11 +972,13 @@
     const showKana = localStorage.getItem(LS.showKana) !== 'false';
     const showRomaji = localStorage.getItem(LS.showRomaji) !== 'false';
     const showPos = localStorage.getItem(LS.showPos) !== 'false';
+    const autoRead = localStorage.getItem(LS.autoRead) === 'true';
     
     // 设置复选框状态
     if (showKanaCheckbox) showKanaCheckbox.checked = showKana;
     if (showRomajiCheckbox) showRomajiCheckbox.checked = showRomaji;
     if (showPosCheckbox) showPosCheckbox.checked = showPos;
+    if (autoReadCheckbox) autoReadCheckbox.checked = autoRead;
     
     // 应用显示设置
     updateDisplaySettings();
@@ -986,6 +1002,12 @@
       showPosCheckbox.addEventListener('change', () => {
         localStorage.setItem(LS.showPos, showPosCheckbox.checked);
         updateDisplaySettings();
+      });
+    }
+    
+    if (autoReadCheckbox) {
+      autoReadCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.autoRead, autoReadCheckbox.checked);
       });
     }
   }

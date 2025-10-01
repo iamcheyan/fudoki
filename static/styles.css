@@ -1,4 +1,4 @@
-/* 日本文本分析工坊 - 样式文件 */
+/* Fudoki - 样式文件 */
 
 * {
   margin: 0;
@@ -66,6 +66,7 @@ body {
   padding: 4px 8px;
   border-radius: 2px;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
@@ -285,7 +286,7 @@ body {
 /* 行容器 - 简洁线条风格 */
 .line-container {
   display: flex;
-  align-items: self-start;
+  align-items: end;
   flex-wrap: wrap;
   gap: 4px;
   padding: 8px 0;
@@ -301,11 +302,11 @@ body {
 .token-pill {
   position: relative;
   display: inline-flex;
-  align-items: self-start;
+  /* align-items: self-start; */
   padding: 4px 8px;
   background: #ffffff;
   color: #333;
-  border: 1px solid #ddd;
+  border-bottom: 3px solid #ddd;
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -313,6 +314,63 @@ body {
   flex-direction: column;
   min-width: 60px;
   text-align: center;
+}
+
+/* 词性颜色方案 */
+.token-pill[data-pos="名"] {
+  border-color: #4CAF50; /* 绿色 - 名词 */
+}
+
+.token-pill[data-pos="动"] {
+  border-color: #2196F3; /* 蓝色 - 动词 */
+}
+
+.token-pill[data-pos="形"] {
+  border-color: #FF9800; /* 橙色 - 形容词 */
+}
+
+.token-pill[data-pos="副"] {
+  border-color: #9C27B0; /* 紫色 - 副词 */
+}
+
+.token-pill[data-pos="助"] {
+  border-color: #F44336; /* 红色 - 助词 */
+}
+
+.token-pill[data-pos="助动"] {
+  border-color: #E91E63; /* 粉红色 - 助动词 */
+}
+
+.token-pill[data-pos="连体"] {
+  border-color: #00BCD4; /* 青色 - 连体词 */
+}
+
+.token-pill[data-pos="接续"] {
+  border-color: #795548; /* 棕色 - 接续词 */
+}
+
+.token-pill[data-pos="感叹"] {
+  border-color: #FFEB3B; /* 黄色 - 感叹词 */
+}
+
+.token-pill[data-pos="标点"] {
+  border-color: #607D8B; /* 蓝灰色 - 标点符号 */
+}
+
+.token-pill[data-pos="符号"] {
+  border-color: #607D8B; /* 蓝灰色 - 符号 */
+}
+
+.token-pill[data-pos="填充"] {
+  border-color: #9E9E9E; /* 灰色 - 填充词 */
+}
+
+.token-pill[data-pos="其他"] {
+  border-color: #9E9E9E; /* 灰色 - 其他 */
+}
+
+.token-pill[data-pos="未知"] {
+  border-color: #ddd; /* 默认灰色 - 未知词性 */
 }
 
 .token-pill:hover {
@@ -568,6 +626,23 @@ select, input[type="range"] {
   
   .header-content {
     padding: 0 12px;
+    flex-wrap: nowrap;
+  }
+  
+  .nav-menu {
+    gap: 12px;
+    flex-wrap: nowrap;
+  }
+  
+  .nav-item {
+    font-size: 12px;
+    padding: 4px 6px;
+    white-space: nowrap;
+  }
+  
+  #langSelect {
+    font-size: 11px;
+    padding: 2px 4px;
   }
 }
 

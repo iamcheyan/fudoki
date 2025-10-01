@@ -28,6 +28,10 @@ class DictionaryService {
     try {
       console.log('开始加载JMDict词典数据...');
       
+      if (this.isLoaded && this.jmdictData) {
+        return this.jmdictData;
+      }
+
       // 首先尝试加载元数据文件
       let metadata;
       try {
@@ -68,7 +72,17 @@ class DictionaryService {
       }
       
       const chunkData = await chunkResponse.json();
-      allWords.push(...chunkData.words);
+      // 分批追加，避免一次性传入过多参数导致栈溢出
+      if (Array.isArray(chunkData.words)) {
+        const batchSize = 10000;
+        for (let j = 0; j < chunkData.words.length; j += batchSize) {
+          const batch = chunkData.words.slice(j, j + batchSize);
+          Array.prototype.push.apply(allWords, batch);
+          // 让事件循环有机会处理其他任务
+          await new Promise(r => setTimeout(r));
+        }
+      }
+      
     }
 
     this.jmdictData = {
@@ -108,7 +122,11 @@ class DictionaryService {
    */
   async lookup(word) {
     if (!this.isLoaded) {
-      await this.init();
+      // 防止并发重复加载
+      if (!this.loadPromise) {
+        this.loadPromise = this.loadJMDict();
+      }
+      await this.loadPromise;
     }
 
     if (!word || !this.jmdictData) {

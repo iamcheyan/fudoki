@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日本文本分析工坊</title>
+  <title>Fudoki</title>
   <link rel="stylesheet" href="static/styles.css">
   <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
 </head>
@@ -11,11 +11,16 @@
   <!-- 顶部导航 -->
   <header class="header">
     <div class="header-content">
-      <a href="#" class="logo"><img src="static/logo.svg" alt="日本文本分析工坊" class="logo-icon"><span class="logo-text">日本文本分析工坊</span></a>
+      <a href="#" class="logo"><img src="static/logo.svg" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
       <nav class="nav-menu">
-        <a href="#" class="nav-item">文本分析</a>
-        <a href="#" class="nav-item">语音朗读</a>
-        <a href="#" class="nav-item">帮助</a>
+        <a href="#" class="nav-item" id="navAnalyze">文本分析</a>
+        <a href="#" class="nav-item" id="navTTS">语音朗读</a>
+        <a href="#" class="nav-item" id="navHelp">帮助</a>
+        <select id="langSelect" style="border:1px solid #ddd; padding:4px 6px; font-size:12px; border-radius:2px;">
+          <option value="ja">日本語</option>
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+        </select>
       </nav>
     </div>
   </header>
@@ -24,7 +29,7 @@
   <div class="main-container">
     <!-- 左侧边栏 - 文档管理 -->
     <aside class="sidebar-left">
-      <div class="sidebar-title">文档管理</div>
+      <div class="sidebar-title" id="sidebarDocsTitle">文档管理</div>
       <div class="doc-list" id="documentList">
         <!-- 文档列表将通过JavaScript动态生成 -->
       </div>
@@ -47,25 +52,25 @@
       <!-- 结果显示区域 -->
       <section class="content-area" id="content">
         <div class="empty-state">
-          <p>请在上方输入日语文本，点击"分析文本"开始处理</p>
+          <p id="emptyText">请在上方输入日语文本，点击"分析文本"开始处理</p>
         </div>
       </section>
     </main>
 
     <!-- 右侧边栏 - 语音控制 -->
     <aside class="sidebar-right">
-      <div class="sidebar-title">语音设置</div>
+      <div class="sidebar-title" id="voiceTitle">语音设置</div>
       
       <div class="voice-controls">
         <div class="control-group">
-          <label class="control-label">语音选择</label>
+          <label class="control-label" id="voiceSelectLabel">语音选择</label>
           <select id="voiceSelect">
             <option value="">选择语音...</option>
           </select>
         </div>
 
         <div class="control-group">
-          <label class="control-label">语速调节</label>
+          <label class="control-label" id="speedLabel">语速调节</label>
           <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
           <div class="speed-display" id="speedValue">1.0x</div>
         </div>
@@ -73,18 +78,18 @@
         <button class="play-all-btn" id="playAllBtn">播放全文</button>
       </div>
 
-      <div class="sidebar-title" style="margin-top: 20px;">显示设置</div>
+      <div class="sidebar-title" style="margin-top: 20px;" id="displayTitle">显示设置</div>
       
       <div class="display-controls">
         <div class="control-group">
-          <label class="control-label">
+          <label class="control-label" id="showKanaLabel">
             <input type="checkbox" id="showKana" checked>
             显示假名
           </label>
         </div>
         
         <div class="control-group">
-          <label class="control-label">
+          <label class="control-label" id="showRomajiLabel">
             <input type="checkbox" id="showRomaji" checked>
             显示罗马音
           </label>
@@ -92,7 +97,7 @@
         
         
         <div class="control-group">
-          <label class="control-label">
+          <label class="control-label" id="showPosLabel">
             <input type="checkbox" id="showPos" checked>
             显示词性
           </label>
