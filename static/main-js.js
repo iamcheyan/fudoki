@@ -390,24 +390,20 @@
   // 默认文档配置
   const DEFAULT_DOC_ID = 'default-01';
   const DEFAULT_DOC_TITLE = '外来語がつくる新しい日本語';
-  const DEFAULT_CONTENT = `欢迎使用日语文本分析工具！
+  const DEFAULT_CONTENT = `Fudoki（フドキ）は、日本語テキストを簡単に分析できるWebアプリです。
 
-这是一个功能强大的日语学习助手，可以帮助您：
+日本語の文章を入力すると、AIが自動的に分かち書き（Tokenization）や品詞（Part of Speech, POS）を判別し、各単語のカタカナ・ローマ字（Romaji）も表示します。
 
-1. 分析日语文本的语法结构
-2. 显示假名读音和罗马字
-3. 标注词性信息
-4. 语音朗读功能
+さらに、Speech Synthesis APIを使って、ワンクリックでネイティブ風の音声再生も可能！
 
-请在上方文本框中输入日语文本，然后点击"分析文本"按钮开始使用。
+「Play All」ボタンで全文を一気に聴くこともできます。
 
-您可以：
-- 创建多个文档进行管理
-- 切换不同的文档
-- 删除不需要的文档
-- 自动保存您的编辑内容
+UIはシンプルで、ダークモード（Dark Mode）やカスタムスピード（Speed Control）などのSettingsも充実。
 
-开始您的日语学习之旅吧！`;
+日本語学習者やNLPエンジニア、そして好奇心旺盛な皆さんに最適なツールです。
+
+Try Fudoki and enjoy Japanese language analysis!`;
+
 
   // 初始化日语分词器
   let segmenter = null;
