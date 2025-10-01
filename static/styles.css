@@ -630,6 +630,87 @@ body {
   overflow-y: auto;
 }
 
+/* 设置分组样式 */
+.settings-section {
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 15px;
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.settings-section .sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 系统设置样式 */
+.system-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  color: var(--text);
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--elev);
+  border-color: var(--primary);
+}
+
+.theme-icon {
+  fill: var(--text);
+  transition: fill 0.2s ease;
+}
+
+.lang-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-select:hover,
+.lang-select:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+/* 调整原有控件样式 */
+.voice-controls,
+.display-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .voice-controls {
   margin-bottom: 16px;
 }
