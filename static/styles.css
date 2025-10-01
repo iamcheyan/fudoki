@@ -13,7 +13,7 @@
   --muted: #666666;
   --border: #e0e0e0;
   --elev: #fafafa;
-  --primary: #0066cc;
+  --primary: #8B6914;
 }
 
 :root[data-theme="dark"] {
@@ -22,7 +22,7 @@
   --muted: #a2a7b0;
   --border: #2a2f38;
   --elev: #171a20;
-  --primary: #4ea1ff;
+  --primary: #B8860B;
 }
 
 /* 滚动条主题变量 */
@@ -177,8 +177,8 @@ body {
 
 .doc-item.active {
   background: #f0f8ff;
-  color: #0066cc;
-  border-left-color: #0066cc;
+  color: var(--primary);
+  border-left-color: var(--primary);
 }
 
 .doc-item svg {
@@ -240,8 +240,8 @@ body {
 
 .new-doc-btn:hover {
   background: #f0f8ff;
-  border-color: #0066cc;
-  color: #0066cc;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .delete-doc-btn {
@@ -298,8 +298,8 @@ body {
 
 #textInput:focus {
   outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 1px #0066cc;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 .btn {
@@ -327,6 +327,63 @@ body {
 
 .btn-primary:hover {
   background: #0052a3;
+}
+
+/* 链接样式 */
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 按钮样式 */
+.btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-secondary {
+  background: var(--elev);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
+
+/* 输入框样式 */
+input, textarea, select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 /* 结果显示区域 */
@@ -731,7 +788,7 @@ select, input[type="range"] {
 .play-all-btn {
   width: 100%;
   padding: 8px;
-  background: #0066cc;
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 2px;
@@ -884,14 +941,14 @@ select, input[type="range"] {
 }
 
 .main-translation {
-  color: #0066cc;
+  color: var(--primary);
   font-weight: 500;
 }
 
 .expand-translation-btn {
   background: none;
   border: none;
-  color: #0066cc;
+  color: var(--primary);
   cursor: pointer;
   font-size: 11px;
   text-decoration: underline;
@@ -900,7 +957,7 @@ select, input[type="range"] {
 }
 
 .expand-translation-btn:hover {
-  color: #004499;
+  color: #8B6914;
 }
 
 .translation-kana {
@@ -984,7 +1041,7 @@ select, input[type="range"] {
 
 .sense-number {
   font-weight: bold;
-  color: #0066cc;
+  color: var(--primary);
   margin-right: 12px;
   min-width: 20px;
 }
@@ -1007,7 +1064,7 @@ select, input[type="range"] {
 }
 
 .sense-pos {
-  color: #0066cc;
+  color: var(--primary);
 }
 
 .sense-field {
@@ -1074,7 +1131,7 @@ select, input[type="range"] {
 
 .nhk-news-category {
   background: #e6f3ff;
-  color: #0066cc;
+  color: var(--primary);
   padding: 1px 4px;
   border-radius: 2px;
   font-size: 9px;

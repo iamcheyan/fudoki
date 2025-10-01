@@ -61,6 +61,9 @@
       repeatPlay: 'リピート再生',
       systemTitle: 'システム設定',
       themeLabel: 'テーマモード',
+      themeLight: 'ライトモード',
+      themeDark: 'ダークモード',
+      themeAuto: 'システムに従う',
       langLabel: 'インターフェース言語',
       loading: 'テキストを解析中…',
       errorPrefix: '解析に失敗しました: '
@@ -101,6 +104,9 @@
       repeatPlay: 'Repeat Play',
       systemTitle: 'System Settings',
       themeLabel: 'Theme Mode',
+      themeLight: 'Light Mode',
+      themeDark: 'Dark Mode',
+      themeAuto: 'Follow System',
       langLabel: 'Interface Language',
       loading: 'Analyzing text…',
       errorPrefix: 'Analysis failed: '
@@ -141,6 +147,9 @@
       repeatPlay: '重复播放',
       systemTitle: '系统设置',
       themeLabel: '主题模式',
+      themeLight: '浅色模式',
+      themeDark: '深色模式',
+      themeAuto: '跟随系统',
       langLabel: '界面语言',
       loading: '正在分析文本...',
       errorPrefix: '分析失败: '
@@ -264,6 +273,10 @@
     if (textInput) textInput.placeholder = t('textareaPlaceholder');
     if (analyzeBtn) analyzeBtn.textContent = t('analyzeBtn');
 
+    // 工具栏头部标题
+    const toolbarTitle = $('voiceTitle');
+    if (toolbarTitle) toolbarTitle.textContent = t('systemTitle');
+
     const voiceTitle = $('voiceSettingsTitle');
     if (voiceTitle) voiceTitle.textContent = t('voiceTitle');
     const voiceSelectLabel = $('voiceSelectLabel');
@@ -296,6 +309,16 @@
     if (themeLabel) themeLabel.textContent = t('themeLabel');
     const langLabel = $('langLabel');
     if (langLabel) langLabel.textContent = t('langLabel');
+
+    // 更新主题选择选项的文本
+    if (themeSelect) {
+      const lightOption = themeSelect.querySelector('option[value="light"]');
+      const darkOption = themeSelect.querySelector('option[value="dark"]');
+      const autoOption = themeSelect.querySelector('option[value="auto"]');
+      if (lightOption) lightOption.textContent = t('themeLight');
+      if (darkOption) darkOption.textContent = t('themeDark');
+      if (autoOption) autoOption.textContent = t('themeAuto');
+    }
 
     const emptyText = $('emptyText');
     if (emptyText) emptyText.textContent = t('emptyText');
