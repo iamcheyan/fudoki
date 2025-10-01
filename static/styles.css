@@ -62,10 +62,15 @@
 
 body {
   font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
-  background: #faf9f6;
+  background: var(--bg);
   color: var(--text);
   line-height: 1.6;
   font-size: 14px;
+}
+
+/* 暗色模式下的body背景 */
+:root[data-theme="dark"] body {
+  background: var(--bg);
 }
 
 /* 顶部导航栏 - 日式简约 */
@@ -85,21 +90,21 @@ body {
 .logo {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
+.logo-text {
+  color: var(--text);
+}
+
 .logo-icon {
   width: 64px;
   height: auto;
   display: inline-block;
-}
-
-.logo-text {
-  color: #222;
 }
 
 .nav-menu {
@@ -119,7 +124,7 @@ body {
 }
 
 .nav-item:hover {
-  background: rgba(0,0,0,0.04);
+  background: var(--elevated);
   color: var(--text);
 }
 
@@ -130,7 +135,7 @@ body {
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 1px;
-  box-shadow: 0 10px 30px #ddd;
+  box-shadow: 0 10px 30px var(--border);
   min-height: calc(100vh - 60px);
   border-radius: 20px;
   overflow: hidden;
@@ -138,17 +143,17 @@ body {
 
 /* 左侧边栏 - 文档管理 */
 .sidebar-left {
-  background: #faf7ed;
+  background: var(--elevated);
   padding: 16px 12px;
 }
 
 .sidebar-title {
   font-size: 12px;
   font-weight: 600;
-  color: #666;
+  color: var(--muted);
   margin-bottom: 12px;
   padding-bottom: 6px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .doc-list {
@@ -160,7 +165,7 @@ body {
   margin-bottom: 4px;
   cursor: pointer;
   font-size: 13px;
-  color: #666;
+  color: var(--muted);
   border-radius: 4px;
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
@@ -171,12 +176,12 @@ body {
 }
 
 .doc-item:hover {
-  background: #f8f8f8;
-  color: #333;
+  background: var(--elevated);
+  color: var(--text);
 }
 
 .doc-item.active {
-  background: #f0f8ff;
+  background: var(--elevated);
   color: var(--primary);
   border-left-color: var(--primary);
 }
@@ -211,13 +216,13 @@ body {
   cursor: pointer;
   border-radius: 2px;
   font-size: 12px;
-  color: #999;
+  color: var(--muted);
   transition: all 0.2s ease;
 }
 
 .doc-action-btn:hover {
-  background: #e0e0e0;
-  color: #666;
+  background: var(--elevated);
+  color: var(--text);
 }
 
 .doc-actions {
@@ -229,9 +234,9 @@ body {
 .new-doc-btn, .delete-doc-btn {
   width: 100%;
   padding: 8px 12px;
-  background: #ffffff;
-  border: 1px solid #ddd;
-  color: #666;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
   font-size: 12px;
   cursor: pointer;
   border-radius: 4px;
@@ -239,19 +244,19 @@ body {
 }
 
 .new-doc-btn:hover {
-  background: #f0f8ff;
+  background: var(--elevated);
   border-color: var(--primary);
   color: var(--primary);
 }
 
 .delete-doc-btn {
-  background: #fff5f5;
-  border-color: #ffcccc;
+  background: var(--bg);
+  border-color: #cc6666;
   color: #cc6666;
 }
 
 .delete-doc-btn:hover:not(:disabled) {
-  background: #ffe0e0;
+  background: rgba(204, 102, 102, 0.1);
   border-color: #ff9999;
   color: #cc3333;
 }
@@ -263,7 +268,7 @@ body {
 
 /* 主内容区域 */
 .content-main {
-  background: #ffffff;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
 }
@@ -271,10 +276,10 @@ body {
 /* 输入区域 - 紧凑设计 */
 .input-section {
   padding: 16px;
-    border: 1px solid var(--border);
-    background: var(--elev);
-    border-radius: 10px;
-    margin: 10px;
+  border: 1px solid var(--border);
+  background: var(--elevated);
+  border-radius: 10px;
+  margin: 10px;
 }
 
 .input-group {
@@ -315,8 +320,8 @@ body {
 }
 
 .btn:hover {
-  background: rgba(0,0,0,0.05);
-  border-color: #bbb;
+  background: var(--elevated);
+  border-color: var(--border);
 }
 
 .btn-primary {
@@ -326,7 +331,7 @@ body {
 }
 
 .btn-primary:hover {
-  background: #0052a3;
+  background: #6B5B00;
 }
 
 /* 链接样式 */
@@ -360,7 +365,7 @@ a:hover {
 }
 
 .btn-secondary {
-  background: var(--elev);
+  background: var(--elevated);
   color: var(--text);
   border: 1px solid var(--border);
 }
@@ -404,7 +409,7 @@ input:focus, textarea:focus, select:focus {
   position: relative;
 }
 .line-container:hover {
-  background: #fef;
+  background: var(--elevated);
 }
 
 .line-container:last-child {
@@ -487,8 +492,8 @@ input:focus, textarea:focus, select:focus {
 }
 
 .token-pill:hover {
-  background: rgba(0,0,0,0.05);
-  border-color: #bbb;
+  background: var(--elevated);
+  border-color: var(--border);
 }
 
 .token-pill.active,
@@ -541,7 +546,7 @@ input:focus, textarea:focus, select:focus {
 
 .token-romaji {
   font-size: 9px;
-  color: #9aa3ad;
+  color: var(--muted);
   font-style: italic;
   min-height: 11px;
 }
@@ -555,7 +560,7 @@ input:focus, textarea:focus, select:focus {
 .token-pos {
   font-size: 8px;
   color: var(--muted);
-  background: rgba(0,0,0,0.06);
+  background: var(--elevated);
   padding: 1px 3px;
   border-radius: 8px;
   margin-top: 1px;
@@ -563,10 +568,10 @@ input:focus, textarea:focus, select:focus {
 
 .pos-tag {
   font-size: 10px;
-  color: #999;
+  color: var(--muted);
   margin-left: 4px;
   padding: 1px 3px;
-  background: #f5f5f5;
+  background: var(--elevated);
   border-radius: 2px;
 }
 
@@ -579,7 +584,7 @@ input:focus, textarea:focus, select:focus {
 /* 当所有内容都隐藏时，确保卡片仍然可见 */
 .token-pill .token-content:empty::after {
   content: "•";
-  color: #ccc;
+  color: var(--muted);
   font-size: 12px;
 }
 
@@ -595,7 +600,7 @@ input:focus, textarea:focus, select:focus {
   max-width: 300px;
   font-size: 12px;
   line-height: 1.4;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
   border-radius: 6px;
 }
 
