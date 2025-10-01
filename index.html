@@ -11,6 +11,13 @@
   <!-- 顶部导航 -->
   <header class="header">
     <div class="header-content">
+      <!-- 移动端菜单按钮 -->
+      <button class="mobile-menu-btn" id="mobileMenuBtn" title="打开菜单">
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </button>
+      
       <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
       <nav class="nav-menu">
         <a href="https://kotoba.iamcheyan.com/" target="_blank" class="nav-item" >kotoba</a>
@@ -25,16 +32,24 @@
   <!-- 主要内容区域 -->
   <div class="main-container">
     <!-- 左侧边栏 - 文档管理 -->
-    <aside class="sidebar-left">
-      <div class="sidebar-title" id="sidebarDocsTitle">文档管理</div>
-      <div class="doc-list" id="documentList">
-        <!-- 文档列表将通过JavaScript动态生成 -->
+    <aside class="sidebar-left" id="sidebar-left">
+      <!-- 折叠按钮 -->
+      <button class="sidebar-toggle-btn" id="sidebarToggle" title="折叠/展开侧边栏">
+        <svg class="toggle-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+      </button>
+      
+      <div class="sidebar-content">
+        <div class="sidebar-title" id="sidebarDocsTitle">文档管理</div>
+        <div class="doc-list" id="documentList">
+          <!-- 文档列表将通过JavaScript动态生成 -->
+        </div>
+        <div class="doc-actions">
+          <button class="new-doc-btn" id="newDocBtn">+ 新建文档</button>
+          <button class="delete-doc-btn" id="deleteDocBtn" disabled>删除文档</button>
+        </div>
       </div>
-      <div class="doc-actions">
-        <button class="new-doc-btn" id="newDocBtn">+ 新建文档</button>
-        <button class="delete-doc-btn" id="deleteDocBtn" disabled>删除文档</button>
-      </div>
-
     </aside>
 
     <!-- 主内容区域 -->

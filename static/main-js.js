@@ -1601,15 +1601,24 @@ Try Fudoki and enjoy Japanese language analysis!`;
     let dragOffset = { x: 0, y: 0 };
     let isMinimized = false;
     
+    // 获取事件坐标（支持鼠标和触摸）
+    function getEventCoords(e) {
+      if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
+    
     // 拖拽开始
     function startDrag(e) {
       // 如果点击的是最小化按钮，不开始拖拽
       if (e.target.closest('.toolbar-minimize-btn')) return;
       
       isDragging = true;
+      const coords = getEventCoords(e);
       const rect = toolbar.getBoundingClientRect();
-      dragOffset.x = e.clientX - rect.left;
-      dragOffset.y = e.clientY - rect.top;
+      dragOffset.x = coords.x - rect.left;
+      dragOffset.y = coords.y - rect.top;
       
       toolbar.style.transition = 'none';
       document.body.style.userSelect = 'none';
@@ -1621,8 +1630,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
     function drag(e) {
       if (!isDragging) return;
       
-      const x = e.clientX - dragOffset.x;
-      const y = e.clientY - dragOffset.y;
+      const coords = getEventCoords(e);
+      const x = coords.x - dragOffset.x;
+      const y = coords.y - dragOffset.y;
       
       // 限制在视窗范围内
       const maxX = window.innerWidth - toolbar.offsetWidth;
@@ -1701,10 +1711,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
     }
     
-    // 绑定事件
+    // 绑定事件（支持鼠标和触摸）
     toolbarHeader.addEventListener('mousedown', startDrag);
+    toolbarHeader.addEventListener('touchstart', startDrag, { passive: false });
+    
     document.addEventListener('mousemove', drag);
+    document.addEventListener('touchmove', drag, { passive: false });
+    
     document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
     
     if (minimizeBtn) {
       minimizeBtn.addEventListener('click', toggleMinimize);
@@ -1814,11 +1829,81 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
   }
   
+  // 侧边栏折叠功能
+  function initSidebarToggle() {
+    const sidebar = document.getElementById('sidebar-left');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    
+    if (!sidebar || !toggleBtn) return;
+    
+    let isCollapsed = false;
+    
+    // 检测是否为移动端
+    function isMobile() {
+      return window.innerWidth <= 768;
+    }
+    
+    // 切换侧边栏状态
+    function toggleSidebar() {
+      if (isMobile()) {
+        // 移动端：显示/隐藏
+        sidebar.classList.toggle('show');
+      } else {
+        // 桌面端：折叠/展开
+        isCollapsed = !isCollapsed;
+        sidebar.classList.toggle('collapsed', isCollapsed);
+        
+        // 保存状态
+        localStorage.setItem('sidebarCollapsed', isCollapsed);
+      }
+    }
+    
+    // 恢复桌面端折叠状态
+    function restoreSidebarState() {
+      if (!isMobile()) {
+        const savedCollapsed = localStorage.getItem('sidebarCollapsed');
+        if (savedCollapsed === 'true') {
+          isCollapsed = true;
+          sidebar.classList.add('collapsed');
+        }
+      }
+    }
+    
+    // 响应窗口大小变化
+    function handleResize() {
+      if (isMobile()) {
+        // 移动端：移除桌面端的折叠状态
+        sidebar.classList.remove('collapsed');
+      } else {
+        // 桌面端：移除移动端的显示状态，恢复折叠状态
+        sidebar.classList.remove('show');
+        if (isCollapsed) {
+          sidebar.classList.add('collapsed');
+        }
+      }
+    }
+    
+    // 绑定事件
+    toggleBtn.addEventListener('click', toggleSidebar);
+    
+    // 移动端菜单按钮事件
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', toggleSidebar);
+    }
+    
+    window.addEventListener('resize', handleResize);
+    
+    // 初始化
+    restoreSidebarState();
+  }
+
   // 确保DOM加载完成后初始化所有功能
   function initializeApp() {
     initDisplayControls();
     initToolbarDrag();
     initToolbarResize();
+    initSidebarToggle();
   }
 
   // 如果DOM已经加载完成，立即初始化
