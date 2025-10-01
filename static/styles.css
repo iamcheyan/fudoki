@@ -571,7 +571,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  overflow: visible; /* 改为visible以便调整手柄可见 */
+  overflow: hidden;
   z-index: 1000;
   cursor: move;
   user-select: none;
@@ -636,8 +636,6 @@ body {
 /* 设置分组样式 */
 .settings-section {
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 15px;
 }
 
 .settings-section:last-child {
@@ -688,7 +686,7 @@ body {
 .display-controls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .voice-controls {
@@ -739,7 +737,6 @@ select, input[type="range"] {
   border-radius: 2px;
   font-size: 12px;
   cursor: pointer;
-  margin-top: 12px;
   transition: all 0.2s ease;
 }
 
