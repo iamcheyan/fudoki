@@ -901,7 +901,11 @@ input:focus, textarea:focus, select:focus {
 
 /* 最小化状态时的鼠标提示 */
 .sidebar-right.minimized {
-  cursor: move !important;
+  cursor: pointer !important;
+}
+
+.sidebar-right.minimized * {
+  cursor: pointer !important;
 }
 
 .sidebar-right.minimized:hover {
@@ -910,7 +914,7 @@ input:focus, textarea:focus, select:focus {
 
 /* 最小化状态下的工具栏头部不显示 move 光标 */
 .sidebar-right.minimized .toolbar-header {
-  cursor: move !important;
+  cursor: pointer !important;
 }
 
 /* 工具栏拖拽手柄 */
