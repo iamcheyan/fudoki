@@ -1898,12 +1898,112 @@ Try Fudoki and enjoy Japanese language analysis!`;
     restoreSidebarState();
   }
 
+  // 右侧边栏自动收缩功能（仅移动端）
+  function initSidebarAutoCollapse() {
+    const sidebar = document.querySelector('.sidebar-right');
+    if (!sidebar) return;
+    
+    // 检测是否为移动端
+    function isMobile() {
+      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+    
+    // 如果不是移动端，直接返回，不启用自动收缩功能
+    if (!isMobile()) {
+      return;
+    }
+    
+    let inactivityTimer = null;
+    let isAutoCollapsed = false;
+    
+    // 重置计时器
+    function resetTimer() {
+      clearTimeout(inactivityTimer);
+      
+      // 设置3秒后自动收缩
+      inactivityTimer = setTimeout(() => {
+        if (!sidebar.matches(':hover')) {
+          sidebar.classList.add('auto-collapsed');
+          isAutoCollapsed = true;
+        }
+      }, 3000);
+    }
+    
+    // 展开边栏
+    function expandSidebar() {
+      if (isAutoCollapsed) {
+        sidebar.classList.remove('auto-collapsed');
+        isAutoCollapsed = false;
+      }
+    }
+    
+    // 监听边栏内的鼠标和点击事件
+    sidebar.addEventListener('mouseenter', () => {
+      expandSidebar();
+      clearTimeout(inactivityTimer);
+    });
+    
+    sidebar.addEventListener('mouseleave', () => {
+      // 鼠标离开后重新开始计时
+      resetTimer();
+    });
+    
+    sidebar.addEventListener('click', () => {
+      expandSidebar();
+      clearTimeout(inactivityTimer);
+      resetTimer();
+    });
+    
+    // 监听边栏内的鼠标移动事件（仅在边栏区域内）
+    sidebar.addEventListener('mousemove', () => {
+      if (isAutoCollapsed) {
+        expandSidebar();
+        clearTimeout(inactivityTimer);
+      }
+    });
+    
+    // 监听触摸事件（移动端特有）
+    sidebar.addEventListener('touchstart', () => {
+      expandSidebar();
+      clearTimeout(inactivityTimer);
+      resetTimer();
+    });
+    
+    // 监听其他用户活动事件来重置计时器（但不自动展开）
+    const events = ['keypress', 'scroll', 'touchmove'];
+    events.forEach(event => {
+      document.addEventListener(event, () => {
+        if (!isAutoCollapsed) {
+          resetTimer();
+        }
+      }, true);
+    });
+    
+    // 监听窗口大小变化，如果切换到PC端则禁用功能
+    window.addEventListener('resize', () => {
+      if (!isMobile()) {
+        clearTimeout(inactivityTimer);
+        if (isAutoCollapsed) {
+          sidebar.classList.remove('auto-collapsed');
+          isAutoCollapsed = false;
+        }
+      } else {
+        // 如果切换回移动端，重新启动计时器
+        resetTimer();
+      }
+    });
+    
+    // 初始化计时器
+    resetTimer();
+  }
+
   // 确保DOM加载完成后初始化所有功能
   function initializeApp() {
     initDisplayControls();
     initToolbarDrag();
     initToolbarResize();
     initSidebarToggle();
+    initSidebarAutoCollapse();
   }
 
   // 如果DOM已经加载完成，立即初始化

@@ -879,13 +879,25 @@ input:focus, textarea:focus, select:focus {
   z-index: 1000;
   cursor: move;
   user-select: none;
-  transition: box-shadow 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.2s ease, opacity 0.3s ease;
   display: flex;
   flex-direction: column;
 }
 
 .sidebar-right:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+/* 右侧边栏收缩状态 */
+.sidebar-right.auto-collapsed {
+  transform: translateX(160px); /* 调整为180px，保留一部分可见区域 */
+  opacity: 0.8;
+}
+
+/* 收缩状态下的悬停效果 */
+.sidebar-right.auto-collapsed:hover {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 /* 工具栏拖拽手柄 */
