@@ -172,6 +172,9 @@
       details.push(`<div class="detail-item"><strong>读音:</strong> ${token.reading}</div>`);
     }
     
+    // 翻译信息占位符
+    details.push(`<div class="detail-item translation-item"><strong>翻译:</strong> <span class="translation-content">加载中...</span></div>`);
+    
     // 词性信息
     details.push(`<div class="detail-item"><strong>词性:</strong> ${posInfo.main}</div>`);
     if (posInfo.details.length > 0) {
@@ -567,9 +570,132 @@
         
         details.style.display = 'block';
         element.classList.add('active');
+        
+        // 加载翻译信息
+        loadTranslation(element);
       }
     }
   };
+
+  // 加载翻译信息
+  async function loadTranslation(element) {
+    const tokenData = JSON.parse(element.getAttribute('data-token'));
+    const translationContent = element.querySelector('.translation-content');
+    
+    if (!translationContent) return;
+    
+    try {
+      // 确保词典服务已初始化
+      if (!window.dictionaryService.isReady()) {
+        translationContent.textContent = '正在初始化词典...';
+        await window.dictionaryService.init();
+      }
+      
+      // 查询翻译
+      const word = tokenData.lemma || tokenData.surface;
+      const detailedInfo = await window.dictionaryService.getDetailedInfo(word);
+      
+      if (detailedInfo && detailedInfo.senses && detailedInfo.senses.length > 0) {
+        // 显示主要翻译
+        const mainTranslation = detailedInfo.senses[0].gloss;
+        translationContent.innerHTML = `<span class="main-translation">${mainTranslation}</span>`;
+        
+        // 如果有多个词义，添加展开按钮
+        if (detailedInfo.senses.length > 1) {
+          const expandBtn = document.createElement('button');
+          expandBtn.className = 'expand-translation-btn';
+          expandBtn.textContent = `(+${detailedInfo.senses.length - 1}个词义)`;
+          expandBtn.onclick = (e) => {
+            e.stopPropagation();
+            showDetailedTranslation(detailedInfo, translationContent);
+          };
+          translationContent.appendChild(expandBtn);
+        }
+        
+        // 显示假名读音（如果有）
+        if (detailedInfo.kana && detailedInfo.kana.length > 0) {
+          const kanaInfo = detailedInfo.kana.map(k => k.text).join('、');
+          const kanaElement = document.createElement('div');
+          kanaElement.className = 'translation-kana';
+          kanaElement.textContent = `读音: ${kanaInfo}`;
+          translationContent.appendChild(kanaElement);
+        }
+      } else {
+        translationContent.textContent = '未找到翻译';
+      }
+    } catch (error) {
+      console.error('加载翻译失败:', error);
+      translationContent.textContent = '翻译加载失败';
+    }
+  }
+
+  // 显示详细翻译信息
+  async function showDetailedTranslation(detailedInfo, container) {
+    const modal = document.createElement('div');
+    modal.className = 'translation-modal';
+    
+    // 查询中文字典信息
+    let chineseInfo = '';
+    if (window.chineseDictionaryService) {
+      try {
+        const chineseEntries = await window.chineseDictionaryService.lookup(detailedInfo.word);
+        if (chineseEntries.length > 0) {
+          chineseInfo = `
+            <div class="chinese-dictionary-section">
+              <h4>中文字典信息</h4>
+              ${chineseEntries.map(entry => `
+                <div class="chinese-entry">
+                  <div class="chinese-chars">
+                    <span class="traditional">${entry.traditional}</span>
+                    ${entry.traditional !== entry.simplified ? `<span class="simplified">[${entry.simplified}]</span>` : ''}
+                  </div>
+                  <div class="chinese-pinyin">${entry.pinyin}</div>
+                  <div class="chinese-definitions">
+                    ${entry.definitions.map(def => `<div class="chinese-def">• ${def}</div>`).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.warn('中文字典查询失败:', error);
+      }
+    }
+    
+    modal.innerHTML = `
+      <div class="translation-modal-content">
+        <div class="translation-modal-header">
+          <h3>${detailedInfo.word} 的详细翻译</h3>
+          <button class="close-modal-btn" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+        </div>
+        <div class="translation-modal-body">
+          ${detailedInfo.senses.map((sense, index) => `
+            <div class="sense-item">
+              <div class="sense-number">${index + 1}.</div>
+              <div class="sense-content">
+                <div class="sense-gloss">${sense.gloss}</div>
+                ${sense.partOfSpeech.length > 0 ? `<div class="sense-pos">词性: ${sense.partOfSpeech.join(', ')}</div>` : ''}
+                ${sense.field.length > 0 ? `<div class="sense-field">领域: ${sense.field.join(', ')}</div>` : ''}
+                ${sense.misc.length > 0 ? `<div class="sense-misc">备注: ${sense.misc.join(', ')}</div>` : ''}
+                ${sense.chineseSource ? `<div class="sense-chinese">中文: ${sense.chineseSource}</div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+          ${chineseInfo}
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 点击模态框外部关闭
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
 
   // 播放整行文本
   window.playLine = function(lineIndex) {
@@ -723,6 +849,14 @@
 
   // 初始化显示控制
   initDisplayControls();
+
+  // 初始化中文字典服务
+  if (typeof ChineseDictionaryService !== 'undefined') {
+    window.chineseDictionaryService = new ChineseDictionaryService();
+    window.chineseDictionaryService.init().catch(error => {
+      console.warn('中文字典初始化失败:', error);
+    });
+  }
 
   // 初始化时如果有文本则自动分析
   if (textInput.value.trim()) {

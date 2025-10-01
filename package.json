@@ -8,6 +8,7 @@
     "dev": "python -m http.server 8000"
   },
   "dependencies": {
+    "jmdict-simplified-node": "^1.1.2",
     "kuromoji": "^0.1.2",
     "kuroshiro": "^1.2.0",
     "kuroshiro-analyzer-kuromoji": "^1.1.0"
@@ -15,7 +16,12 @@
   "devDependencies": {
     "vite": "^5.0.0"
   },
-  "keywords": ["japanese", "morphological-analysis", "tts", "learning"],
+  "keywords": [
+    "japanese",
+    "morphological-analysis",
+    "tts",
+    "learning"
+  ],
   "author": "Cheyan",
   "license": "MIT"
 }

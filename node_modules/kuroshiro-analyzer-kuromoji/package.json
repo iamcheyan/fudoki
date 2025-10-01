@@ -1,0 +1,78 @@
+{
+    "name": "kuroshiro-analyzer-kuromoji",
+    "version": "1.1.0",
+    "description": "kuromoji morphological analyzer for kuroshiro",
+    "main": "lib/index.js",
+    "module": "src/index.js",
+    "scripts": {
+        "lint": "eslint src test",
+        "lint:fix": "eslint --fix src test --ext .js",
+        "jest": "jest --verbose",
+        "jest:watch": "npm run jest -- --watch",
+        "jest:coverage": "jest --verbose --coverage",
+        "test": "npm run lint && npm run jest",
+        "clean": "rimraf lib dist",
+        "build": "npm run build:cjs && npm run build:umd && npm run build:umd:min",
+        "build:cjs": "cross-env BABEL_ENV=cjs babel src --out-dir lib",
+        "build:umd": "cross-env BABEL_ENV=umd NODE_ENV=development browserify src/index.js -s KuromojiAnalyzer -o dist/kuroshiro-analyzer-kuromoji.js -t [ babelify ]",
+        "build:umd:min": "cross-env BABEL_ENV=umd NODE_ENV=production browserify src/index.js -s KuromojiAnalyzer -g uglifyify -o dist/kuroshiro-analyzer-kuromoji.min.js -t [ babelify ]"
+    },
+    "keywords": [
+        "kuroshiro",
+        "morphology",
+        "analyzer",
+        "kuromoji",
+        "japanese",
+        "language",
+        "kanji",
+        "hiragana",
+        "katakana",
+        "romaji",
+        "kana"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/hexenq/kuroshiro-analyzer-kuromoji.git"
+    },
+    "author": "Hexen Qi",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hexenq/kuroshiro-analyzer-kuromoji/issues"
+    },
+    "homepage": "https://github.com/hexenq/kuroshiro-analyzer-kuromoji",
+    "dependencies": {
+        "kuromoji": "^0.1.1"
+    },
+    "devDependencies": {
+        "babel-cli": "^6.26.0",
+        "babel-core": "^6.26.0",
+        "babel-eslint": "^8.2.3",
+        "babel-jest": "^22.4.4",
+        "babel-plugin-add-module-exports": "^0.2.1",
+        "babel-plugin-transform-runtime": "^6.23.0",
+        "babel-preset-env": "^1.6.1",
+        "babelify": "^8.0.0",
+        "browserify": "^16.2.2",
+        "coveralls": "^3.0.1",
+        "cross-env": "^5.1.5",
+        "eslint": "^4.19.1",
+        "eslint-config-airbnb-base": "^12.1.0",
+        "eslint-plugin-import": "^2.12.0",
+        "jest": "^22.4.4",
+        "uglifyify": "^5.0.0"
+    },
+    "browserify": {
+        "transform": [
+            [
+                "babelify"
+            ]
+        ]
+    },
+    "jest": {
+        "transform": {
+            "^.+\\.jsx?$": "babel-jest"
+        },
+        "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.jsx?$",
+        "testURL": "http://localhost"
+    }
+}

@@ -1,0 +1,72 @@
+{
+  "name": "kuromoji",
+  "description": "JavaScript implementation of Japanese morphological analyzer",
+  "version": "0.1.2",
+  "author": "Takuya Asano <takuya.a@gmail.com>",
+  "browser": {
+    "./src/loader/NodeDictionaryLoader.js": "./src/loader/BrowserDictionaryLoader.js"
+  },
+  "bugs": {
+    "url": "https://github.com/takuyaa/kuromoji.js/issues"
+  },
+  "dependencies": {
+    "async": "^2.0.1",
+    "doublearray": "0.0.2",
+    "zlibjs": "^0.3.1"
+  },
+  "devDependencies": {
+    "browserify": "^16.1.1",
+    "chai": "^4.1.2",
+    "coveralls": "^3.0.0",
+    "del": "^3.0.0",
+    "event-stream": "^3.3.4",
+    "gulp": "^3.8.10",
+    "gulp-bower": "0.0.14",
+    "gulp-bump": "^3.1.0",
+    "gulp-conventional-changelog": "^1.1.0",
+    "gulp-gh-pages": "^0.5.4",
+    "gulp-git": "^2.5.2",
+    "gulp-gzip": "^1.2.0",
+    "gulp-istanbul": "^1.0.0",
+    "gulp-jsdoc3": "^1.0.1",
+    "gulp-jshint": "^2.1.0",
+    "gulp-mocha": "^5.0.0",
+    "gulp-webserver": "^0.9.1",
+    "jshint": "^2.9.5",
+    "mecab-ipadic-seed": "0.0.2",
+    "minimist": "^1.2.0",
+    "mocha-lcov-reporter": "^1.2.0",
+    "run-sequence": "^2.2.1",
+    "vinyl-source-stream": "^2.0.0"
+  },
+  "homepage": "https://github.com/takuyaa/kuromoji.js",
+  "keywords": [
+    "japanese",
+    "morphological analyzer",
+    "nlp",
+    "pos",
+    "pos tagger",
+    "tokenizer"
+  ],
+  "license": "Apache-2.0",
+  "main": "./src/kuromoji.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/takuyaa/kuromoji.js.git"
+  },
+  "scripts": {
+    "build": "gulp build",
+    "build-demo": "gulp build-demo",
+    "build-dict": "gulp build-dict",
+    "clean": "gulp clean",
+    "coverage": "gulp coverage",
+    "deploy": "gulp deploy",
+    "jsdoc": "gulp jsdoc",
+    "lint": "gulp lint",
+    "release": "gulp release",
+    "test": "gulp test",
+    "version": "gulp version",
+    "watch": "gulp watch",
+    "webserver": "gulp webserver"
+  }
+}
