@@ -179,65 +179,104 @@ class NHKRSSScraper:
             
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            # NHK网站特定的内容选择器
-            content_selectors = [
-                '.content--detail-body',  # NHK主要内容区域
+            # 尝试多种方法获取文章内容
+            content_text = ""
+            
+            # 方法1: 尝试获取页面标题
+            title = soup.find('title')
+            if title:
+                content_text += title.get_text(strip=True) + "\n\n"
+            
+            # 方法2: 尝试获取meta描述
+            meta_desc = soup.find('meta', attrs={'name': 'description'})
+            if meta_desc and meta_desc.get('content'):
+                content_text += meta_desc.get('content') + "\n\n"
+            
+            # 方法3: 尝试获取主要内容区域
+            main_content_selectors = [
+                '.content--detail-body',
                 '.content--detail',
                 '.article-body',
-                '.article-content', 
+                '.article-content',
                 '.content-body',
                 'article',
                 '.main-content',
-                '.news-content',  # 新闻内容
-                '.article-text',  # 文章文本
-                '.content-text',   # 内容文本
-                'div[class*="content"]',  # 包含content的div
-                'div[class*="article"]',   # 包含article的div
-                'div[class*="news"]'       # 包含news的div
+                '.news-content'
             ]
             
-            content = None
-            for selector in content_selectors:
-                content_element = soup.select_one(selector)
-                if content_element:
-                    # 检查内容长度，确保不是空内容
-                    text_preview = content_element.get_text(strip=True)[:100]
-                    if len(text_preview) > 20:  # 至少20个字符
-                        content = content_element
+            main_content = None
+            for selector in main_content_selectors:
+                element = soup.select_one(selector)
+                if element:
+                    text = element.get_text(strip=True)
+                    if len(text) > 100:  # 确保有足够的内容
+                        main_content = element
                         break
             
-            if content:
-                # 清理内容，移除脚本、样式和导航元素
-                for element in content(["script", "style", "nav", "header", "footer", "aside"]):
+            if main_content:
+                # 清理主要内容
+                for element in main_content(["script", "style", "nav", "header", "footer", "aside", "form"]):
                     element.decompose()
                 
                 # 移除广告和无关元素
-                for element in content.find_all(['div', 'section'], class_=lambda x: x and any(
-                    keyword in x.lower() for keyword in ['ad', 'advertisement', 'sidebar', 'related', 'social']
+                for element in main_content.find_all(['div', 'section'], class_=lambda x: x and any(
+                    keyword in x.lower() for keyword in ['ad', 'advertisement', 'sidebar', 'related', 'social', 'menu', 'navigation']
                 )):
                     element.decompose()
                 
-                # 获取纯文本内容
-                text_content = content.get_text(separator='\n', strip=True)
+                main_text = main_content.get_text(separator='\n', strip=True)
+                content_text += main_text + "\n\n"
+            
+            # 方法4: 如果主要内容不够，尝试获取所有段落
+            if len(content_text) < 200:
+                paragraphs = soup.find_all('p')
+                valid_paragraphs = []
                 
-                # 清理多余的空行
-                lines = [line.strip() for line in text_content.split('\n') if line.strip()]
+                for p in paragraphs:
+                    text = p.get_text(strip=True)
+                    # 过滤条件：长度足够，不是导航/广告内容，不是链接
+                    if (len(text) > 30 and 
+                        not any(keyword in text.lower() for keyword in [
+                            'copyright', 'nhk', '放送', '受信', '契約', 'リンク', 'ダウンロード',
+                            '放送番組', '同時配信', '見逃し配信', 'ニュース記事', '番組関連情報',
+                            '事業や学校', 'ご利用', '下記のリンク', '確認してください'
+                        ]) and
+                        not text.startswith('http') and
+                        not text.startswith('www') and
+                        not text.startswith('10月') and  # 过滤日期
+                        not text.startswith('9月') and
+                        not text.startswith('大雨情報') and
+                        not text.startswith('ウォール街') and
+                        not text.startswith('コメ増産') and
+                        not text.startswith('「あの時') and
+                        not text.startswith('iPS細胞') and
+                        not text.startswith('40年前') and
+                        not text.startswith('自民党') and
+                        not text.startswith('国連が') and
+                        not text.startswith('世界初')):
+                        valid_paragraphs.append(text)
+                
+                if valid_paragraphs:
+                    content_text += "\n".join(valid_paragraphs)
+            
+            # 清理和格式化内容
+            if content_text:
+                # 移除重复行
+                lines = []
+                seen_lines = set()
+                for line in content_text.split('\n'):
+                    line = line.strip()
+                    if line and line not in seen_lines:
+                        lines.append(line)
+                        seen_lines.add(line)
+                
                 cleaned_content = '\n'.join(lines)
                 
-                # 如果内容太短，尝试获取整个页面的主要内容
+                # 如果内容仍然太短，返回原始RSS描述
                 if len(cleaned_content) < 100:
-                    # 尝试获取所有段落
-                    paragraphs = soup.find_all('p')
-                    if paragraphs:
-                        paragraph_texts = []
-                        for p in paragraphs:
-                            text = p.get_text(strip=True)
-                            if len(text) > 10:  # 过滤太短的段落
-                                paragraph_texts.append(text)
-                        if paragraph_texts:
-                            cleaned_content = '\n'.join(paragraph_texts)
+                    return "文章内容获取失败，请点击'查看原文'按钮访问原始页面"
                 
-                return cleaned_content[:3000]  # 增加长度限制
+                return cleaned_content[:5000]  # 增加长度限制
             else:
                 return "无法获取文章内容"
                 
