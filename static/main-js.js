@@ -634,35 +634,6 @@
     const modal = document.createElement('div');
     modal.className = 'translation-modal';
     
-    // 查询中文字典信息
-    let chineseInfo = '';
-    if (window.chineseDictionaryService) {
-      try {
-        const chineseEntries = await window.chineseDictionaryService.lookup(detailedInfo.word);
-        if (chineseEntries.length > 0) {
-          chineseInfo = `
-            <div class="chinese-dictionary-section">
-              <h4>中文字典信息</h4>
-              ${chineseEntries.map(entry => `
-                <div class="chinese-entry">
-                  <div class="chinese-chars">
-                    <span class="traditional">${entry.traditional}</span>
-                    ${entry.traditional !== entry.simplified ? `<span class="simplified">[${entry.simplified}]</span>` : ''}
-                  </div>
-                  <div class="chinese-pinyin">${entry.pinyin}</div>
-                  <div class="chinese-definitions">
-                    ${entry.definitions.map(def => `<div class="chinese-def">• ${def}</div>`).join('')}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          `;
-        }
-      } catch (error) {
-        console.warn('中文字典查询失败:', error);
-      }
-    }
-    
     modal.innerHTML = `
       <div class="translation-modal-content">
         <div class="translation-modal-header">
@@ -682,7 +653,6 @@
               </div>
             </div>
           `).join('')}
-          ${chineseInfo}
         </div>
       </div>
     `;
@@ -849,14 +819,6 @@
 
   // 初始化显示控制
   initDisplayControls();
-
-  // 初始化中文字典服务
-  if (typeof ChineseDictionaryService !== 'undefined') {
-    window.chineseDictionaryService = new ChineseDictionaryService();
-    window.chineseDictionaryService.init().catch(error => {
-      console.warn('中文字典初始化失败:', error);
-    });
-  }
 
   // 初始化时如果有文本则自动分析
   if (textInput.value.trim()) {

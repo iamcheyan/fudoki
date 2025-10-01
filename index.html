@@ -651,59 +651,92 @@
       font-weight: 500;
     }
 
-    /* 中文字典样式 */
-    .chinese-dictionary-section {
-      margin-top: 20px;
-      padding-top: 15px;
-      border-top: 1px solid #eee;
+    /* NHK新闻样式 */
+    .nhk-controls {
+      margin-top: 8px;
     }
 
-    .chinese-dictionary-section h4 {
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      color: #333;
-      font-weight: 600;
+    .nhk-news-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 2px;
+      background: #fafafa;
     }
 
-    .chinese-entry {
-      margin-bottom: 12px;
+    .nhk-news-item {
       padding: 8px;
-      background: #f8f9fa;
-      border-radius: 4px;
-      border-left: 3px solid #e74c3c;
-    }
-
-    .chinese-chars {
-      margin-bottom: 4px;
-    }
-
-    .chinese-chars .traditional {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .chinese-chars .simplified {
-      font-size: 14px;
-      color: #666;
-      margin-left: 8px;
-    }
-
-    .chinese-pinyin {
-      font-size: 13px;
-      color: #0066cc;
-      font-style: italic;
-      margin-bottom: 6px;
-    }
-
-    .chinese-definitions {
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: all 0.2s ease;
       font-size: 12px;
-      color: #555;
+      line-height: 1.4;
     }
 
-    .chinese-def {
-      margin-bottom: 2px;
-      line-height: 1.3;
+    .nhk-news-item:hover {
+      background: #f8f8f8;
+    }
+
+    .nhk-news-item:last-child {
+      border-bottom: none;
+    }
+
+    .nhk-news-title {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .nhk-news-meta {
+      font-size: 10px;
+      color: #999;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nhk-news-category {
+      background: #e6f3ff;
+      color: #0066cc;
+      padding: 1px 4px;
+      border-radius: 2px;
+      font-size: 9px;
+    }
+
+    .nhk-news-date {
+      color: #999;
+    }
+
+    .nhk-loading {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .nhk-error {
+      text-align: center;
+      padding: 20px;
+      color: #e74c3c;
+      font-size: 12px;
+    }
+
+    .nhk-category-section {
+      margin-bottom: 12px;
+    }
+
+    .nhk-category-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 6px;
+      padding: 4px 8px;
+      background: #f0f0f0;
+      border-radius: 2px;
     }
   </style>
 </head>
@@ -729,6 +762,25 @@
         <!-- 文档列表将通过JavaScript动态生成 -->
       </ul>
       <button class="new-doc-btn" id="newDocBtn">+ 新建文档</button>
+      
+      <div class="sidebar-title" style="margin-top: 20px;">NHK新闻</div>
+      <div class="nhk-controls">
+        <button class="btn" id="loadNHKBtn" style="width: 100%; margin-bottom: 8px;">获取NHK新闻</button>
+        <select id="nhkCategorySelect" style="width: 100%; margin-bottom: 8px;">
+          <option value="">选择分类...</option>
+          <option value="main">主要ニュース</option>
+          <option value="society">社会</option>
+          <option value="culture">文化・エンタメ</option>
+          <option value="science">科学・医療</option>
+          <option value="politics">政治</option>
+          <option value="economy">経済</option>
+          <option value="international">国際</option>
+          <option value="sports">スポーツ</option>
+        </select>
+        <div id="nhkNewsList" class="nhk-news-list">
+          <!-- NHK新闻列表将在这里显示 -->
+        </div>
+      </div>
     </aside>
 
     <!-- 主内容区域 -->
@@ -802,10 +854,133 @@
   <script src="static/libs/kuromoji.js"></script>
   <script src="static/libs/kuroshiro.min.js"></script>
   <script src="static/libs/kuroshiro-analyzer-kuromoji.min.js"></script>
-  <script src="static/libs/dict/cedict-parser.js"></script>
-  <script src="static/libs/dict/chinese-dictionary-service.js"></script>
   <script src="static/libs/dict/dictionary-service.js"></script>
   <script src="static/segmenter.js"></script>
   <script src="static/main-js.js"></script>
+  
+  <!-- NHK新闻功能 -->
+  <script>
+    // NHK新闻功能
+    class NHKNewsManager {
+      constructor() {
+        this.apiBase = 'http://127.0.0.1:5000/api/nhk';
+        this.loadNHKBtn = document.getElementById('loadNHKBtn');
+        this.nhkCategorySelect = document.getElementById('nhkCategorySelect');
+        this.nhkNewsList = document.getElementById('nhkNewsList');
+        this.textInput = document.getElementById('textInput');
+        
+        this.init();
+      }
+      
+      init() {
+        this.loadNHKBtn.addEventListener('click', () => this.loadNHKNews());
+        this.nhkCategorySelect.addEventListener('change', () => this.loadNHKNewsByCategory());
+      }
+      
+      async loadNHKNews() {
+        this.showLoading();
+        
+        try {
+          const response = await fetch(`${this.apiBase}/articles`);
+          const data = await response.json();
+          
+          if (data.success) {
+            this.displayNews(data.data);
+          } else {
+            this.showError('获取新闻失败: ' + data.error);
+          }
+        } catch (error) {
+          this.showError('网络错误: ' + error.message);
+        }
+      }
+      
+      async loadNHKNewsByCategory() {
+        const category = this.nhkCategorySelect.value;
+        if (!category) return;
+        
+        this.showLoading();
+        
+        try {
+          const response = await fetch(`${this.apiBase}/articles/${category}`);
+          const data = await response.json();
+          
+          if (data.success) {
+            this.displayNews({ [data.category]: data.data });
+          } else {
+            this.showError('获取新闻失败: ' + data.error);
+          }
+        } catch (error) {
+          this.showError('网络错误: ' + error.message);
+        }
+      }
+      
+      displayNews(newsData) {
+        let html = '';
+        
+        for (const [category, articles] of Object.entries(newsData)) {
+          if (articles && articles.length > 0) {
+            html += `<div class="nhk-category-section">
+              <div class="nhk-category-title">${category}</div>`;
+            
+            articles.slice(0, 5).forEach(article => {
+              html += `
+                <div class="nhk-news-item" onclick="nhkNewsManager.selectNews('${article.title}', '${article.link}')">
+                  <div class="nhk-news-title">${article.title}</div>
+                  <div class="nhk-news-meta">
+                    <span class="nhk-news-category">${category}</span>
+                    <span class="nhk-news-date">${this.formatDate(article.pub_date)}</span>
+                  </div>
+                </div>`;
+            });
+            
+            html += '</div>';
+          }
+        }
+        
+        this.nhkNewsList.innerHTML = html || '<div class="nhk-error">未找到新闻</div>';
+      }
+      
+      selectNews(title, link) {
+        // 将新闻标题添加到文本输入框
+        const currentText = this.textInput.value;
+        const newText = currentText ? `${currentText}\n\n${title}` : title;
+        this.textInput.value = newText;
+        
+        // 自动触发分析
+        if (window.analyzeText) {
+          window.analyzeText();
+        }
+      }
+      
+      showLoading() {
+        this.nhkNewsList.innerHTML = '<div class="nhk-loading">正在加载NHK新闻...</div>';
+      }
+      
+      showError(message) {
+        this.nhkNewsList.innerHTML = `<div class="nhk-error">${message}</div>`;
+      }
+      
+      formatDate(dateString) {
+        if (!dateString) return '';
+        try {
+          const date = new Date(dateString);
+          return date.toLocaleDateString('ja-JP', { 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch {
+          return dateString;
+        }
+      }
+    }
+    
+    // 初始化NHK新闻管理器
+    let nhkNewsManager;
+    document.addEventListener('DOMContentLoaded', () => {
+      nhkNewsManager = new NHKNewsManager();
+    });
+  </script>
 </body>
 </html>

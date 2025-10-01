@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NHK RSS链接抓取器
-抓取NHK官网的RSS链接并按分类打印
+NHK RSS文章抓取器
+抓取NHK官网的RSS文章标题和链接，并提供API接口
 """
 
 import requests
@@ -11,6 +11,9 @@ import re
 from urllib.parse import urljoin, urlparse
 import json
 from typing import Dict, List, Tuple
+import xml.etree.ElementTree as ET
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 class NHKRSSScraper:
     def __init__(self):
@@ -133,6 +136,68 @@ class NHKRSSScraper:
         
         return rss_categories
     
+    def fetch_rss_articles(self, rss_url: str) -> List[Dict]:
+        """获取RSS feed中的文章列表"""
+        try:
+            response = self.session.get(rss_url, timeout=10)
+            response.raise_for_status()
+            response.encoding = 'utf-8'
+            
+            # 解析XML内容
+            root = ET.fromstring(response.content)
+            articles = []
+            
+            # 处理RSS 2.0格式
+            for item in root.findall('.//item'):
+                title = item.find('title')
+                link = item.find('link')
+                description = item.find('description')
+                pub_date = item.find('pubDate')
+                
+                if title is not None and link is not None:
+                    article = {
+                        'title': title.text.strip() if title.text else '',
+                        'link': link.text.strip() if link.text else '',
+                        'description': description.text.strip() if description is not None and description.text else '',
+                        'pub_date': pub_date.text.strip() if pub_date is not None and pub_date.text else ''
+                    }
+                    articles.append(article)
+            
+            return articles
+            
+        except Exception as e:
+            print(f"获取RSS文章失败 {rss_url}: {e}")
+            return []
+    
+    def get_all_articles(self) -> Dict[str, List[Dict]]:
+        """获取所有分类的NHK文章"""
+        print("正在获取NHK文章...")
+        
+        # 已知的NHK RSS链接
+        rss_feeds = {
+            '主要ニュース': 'https://www3.nhk.or.jp/rss/news/cat0.xml',
+            '社会': 'https://www3.nhk.or.jp/rss/news/cat1.xml',
+            '文化・エンタメ': 'https://www3.nhk.or.jp/rss/news/cat2.xml',
+            '科学・医療': 'https://www3.nhk.or.jp/rss/news/cat3.xml',
+            '政治': 'https://www3.nhk.or.jp/rss/news/cat4.xml',
+            '経済': 'https://www3.nhk.or.jp/rss/news/cat5.xml',
+            '国際': 'https://www3.nhk.or.jp/rss/news/cat6.xml',
+            'スポーツ': 'https://www3.nhk.or.jp/rss/news/cat7.xml'
+        }
+        
+        all_articles = {}
+        
+        for category, rss_url in rss_feeds.items():
+            print(f"正在获取 {category} 文章...")
+            articles = self.fetch_rss_articles(rss_url)
+            if articles:
+                all_articles[category] = articles
+                print(f"✅ {category}: 找到 {len(articles)} 篇文章")
+            else:
+                print(f"❌ {category}: 未找到文章")
+        
+        return all_articles
+    
     def scrape_and_print(self):
         """主要方法：抓取并打印RSS链接"""
         print("=" * 60)
@@ -199,6 +264,77 @@ class NHKRSSScraper:
         
         print(f"✅ RSS链接已保存到 {filename}")
 
+# Flask API应用
+app = Flask(__name__)
+CORS(app)  # 允许跨域请求
+
+# 全局scraper实例
+scraper = NHKRSSScraper()
+
+@app.route('/api/nhk/articles', methods=['GET'])
+def get_nhk_articles():
+    """获取NHK文章API接口"""
+    try:
+        articles = scraper.get_all_articles()
+        return jsonify({
+            'success': True,
+            'data': articles,
+            'total_categories': len(articles),
+            'total_articles': sum(len(articles_list) for articles_list in articles.values())
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/nhk/articles/<category>', methods=['GET'])
+def get_nhk_articles_by_category(category):
+    """获取特定分类的NHK文章"""
+    try:
+        # 分类映射
+        category_mapping = {
+            'main': '主要ニュース',
+            'society': '社会',
+            'culture': '文化・エンタメ',
+            'science': '科学・医療',
+            'politics': '政治',
+            'economy': '経済',
+            'international': '国際',
+            'sports': 'スポーツ'
+        }
+        
+        japanese_category = category_mapping.get(category, category)
+        articles = scraper.get_all_articles()
+        
+        if japanese_category in articles:
+            return jsonify({
+                'success': True,
+                'data': articles[japanese_category],
+                'category': japanese_category,
+                'count': len(articles[japanese_category])
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'分类 {japanese_category} 不存在'
+            }), 404
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/nhk/health', methods=['GET'])
+def health_check():
+    """健康检查接口"""
+    return jsonify({
+        'success': True,
+        'message': 'NHK RSS API is running',
+        'status': 'healthy'
+    })
+
 def main():
     """主函数"""
     scraper = NHKRSSScraper()
@@ -209,5 +345,17 @@ def main():
     # 可选：保存到JSON文件
     # scraper.save_to_json()
 
+def run_api(host='127.0.0.1', port=5000, debug=True):
+    """运行API服务器"""
+    print(f"启动NHK RSS API服务器...")
+    print(f"API地址: http://{host}:{port}")
+    print(f"文章接口: http://{host}:{port}/api/nhk/articles")
+    print(f"健康检查: http://{host}:{port}/api/nhk/health")
+    app.run(host=host, port=port, debug=debug)
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == 'api':
+        run_api()
+    else:
+        main()
