@@ -500,7 +500,7 @@ body {
   color: var(--muted);
   background: rgba(0,0,0,0.06);
   padding: 1px 3px;
-  border-radius: 2px;
+  border-radius: 8px;
   margin-top: 1px;
 }
 

@@ -59,6 +59,9 @@
       showPos: '品詞を表示',
       autoRead: '自動読み上げ',
       repeatPlay: 'リピート再生',
+      systemTitle: 'システム設定',
+      themeLabel: 'テーマモード',
+      langLabel: 'インターフェース言語',
       loading: 'テキストを解析中…',
       errorPrefix: '解析に失敗しました: '
       ,lbl_surface: '表層形'
@@ -96,6 +99,9 @@
       showPos: 'Show POS',
       autoRead: 'Auto Read',
       repeatPlay: 'Repeat Play',
+      systemTitle: 'System Settings',
+      themeLabel: 'Theme Mode',
+      langLabel: 'Interface Language',
       loading: 'Analyzing text…',
       errorPrefix: 'Analysis failed: '
       ,lbl_surface: 'Surface'
@@ -133,6 +139,9 @@
       showPos: '显示词性',
       autoRead: '自动朗读',
       repeatPlay: '重复播放',
+      systemTitle: '系统设置',
+      themeLabel: '主题模式',
+      langLabel: '界面语言',
       loading: '正在分析文本...',
       errorPrefix: '分析失败: '
       ,lbl_surface: '表层形'
@@ -255,7 +264,7 @@
     if (textInput) textInput.placeholder = t('textareaPlaceholder');
     if (analyzeBtn) analyzeBtn.textContent = t('analyzeBtn');
 
-    const voiceTitle = $('voiceTitle');
+    const voiceTitle = $('voiceSettingsTitle');
     if (voiceTitle) voiceTitle.textContent = t('voiceTitle');
     const voiceSelectLabel = $('voiceSelectLabel');
     if (voiceSelectLabel) voiceSelectLabel.textContent = t('voiceSelectLabel');
@@ -279,6 +288,14 @@
     if (autoReadLabel) autoReadLabel.lastChild && (autoReadLabel.lastChild.textContent = ' ' + t('autoRead'));
     const repeatPlayLabel = $('repeatPlayLabel');
     if (repeatPlayLabel) repeatPlayLabel.lastChild && (repeatPlayLabel.lastChild.textContent = ' ' + t('repeatPlay'));
+
+    // 系统设置标签
+    const systemTitle = $('systemTitle');
+    if (systemTitle) systemTitle.textContent = t('systemTitle');
+    const themeLabel = $('themeLabel');
+    if (themeLabel) themeLabel.textContent = t('themeLabel');
+    const langLabel = $('langLabel');
+    if (langLabel) langLabel.textContent = t('langLabel');
 
     const emptyText = $('emptyText');
     if (emptyText) emptyText.textContent = t('emptyText');
