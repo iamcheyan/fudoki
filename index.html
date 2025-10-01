@@ -3,19 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日本文本分析工坊</title>
+  <title>Fudoki</title>
   <link rel="stylesheet" href="static/styles.css">
-  <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+  <link rel="icon" type="image/png" href="static/logo.png">
 </head>
 <body>
   <!-- 顶部导航 -->
   <header class="header">
     <div class="header-content">
-      <a href="#" class="logo"><img src="static/logo.svg" alt="日本文本分析工坊" class="logo-icon"><span class="logo-text" id="logoText">日本文本分析工坊</span></a>
+      <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
       <nav class="nav-menu">
         <a href="#" class="nav-item" id="navAnalyze">文本分析</a>
         <a href="#" class="nav-item" id="navTTS">语音朗读</a>
         <a href="#" class="nav-item" id="navHelp">帮助</a>
+        <a href="https://github.com/iamcheyan/fudoki" target="_blank" class="nav-item theme-icon-btn" id="GitHub" aria-label="GitHub" title="GitHub">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.58.11.8-.25.8-.56v-2.02c-3.26.71-3.95-1.4-3.95-1.4-.53-1.36-1.3-1.72-1.3-1.72-1.06-.72.08-.71.08-.71 1.18.08 1.8 1.21 1.8 1.21 1.04 1.79 2.73 1.27 3.4.97.11-.76.41-1.27.75-1.56-2.6-.3-5.33-1.3-5.33-5.8 0-1.28.46-2.32 1.21-3.14-.12-.3-.52-1.52.11-3.17 0 0 .98-.31 3.2 1.2.94-.26 1.95-.39 2.95-.39s2.01.13 2.95.39c2.22-1.51 3.19-1.2 3.19-1.2.64 1.65.24 2.87.12 3.17.76.82 1.21 1.86 1.21 3.14 0 4.51-2.73 5.5-5.34 5.79.42.36.8 1.08.8 2.18v3.23c0 .31.21.68.81.56A11.5 11.5 0 0 0 12 .5Z"></path></svg>
+        </a>
         <button id="themeToggle" class="nav-item theme-icon-btn" aria-label="切换主题" title="切换主题">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm7.07 3.93a1 1 0 0 1 0 1.41l-.71.71a1 1 0 0 1-1.41-1.41l.71-.71a1 1 0 0 1 1.41 0ZM20 13a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2h-1Zm-2.64 6.36a1 1 0 0 1-1.41 0l-.71-.71a1 1 0 1 1 1.41-1.41l.71.71a1 1 0 0 1 0 1.41ZM13 20a1 1 0 1 1-2 0v-1a1 1 0 1 1 2 0v1ZM6.34 18.95a1 1 0 0 1-1.41 0 1 1 0 0 1 0-1.41l.71-.71a1 1 0 1 1 1.41 1.41l-.71.71ZM4 13a1 1 0 1 1 0-2H3a1 1 0 1 1 0 2h1Zm2.05-7.66a1 1 0 0 1 1.41 0l.71.71A1 1 0 1 1 6.76 7.46l-.71-.71a1 1 0 0 1 0-1.41ZM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"></path></svg>
         </button>
@@ -40,6 +43,11 @@
         <button class="new-doc-btn" id="newDocBtn">+ 新建文档</button>
         <button class="delete-doc-btn" id="deleteDocBtn" disabled>删除文档</button>
       </div>
+
+      <footer class="footer">
+            <a href="https://iamcheyan.com/" target="_blank" rel="noreferrer noopener">Cheyan</a> All Rights Reserved <br/>
+            <a href="https://github.com/iamcheyan/fudoki" target="_blank" rel="noreferrer noopener">GitHub</a>
+      </footer>
     </aside>
 
     <!-- 主内容区域 -->
@@ -78,12 +86,7 @@
           <div class="speed-display" id="speedValue">1.0x</div>
         </div>
 
-        <button class="play-all-btn" id="playAllBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" style="margin-right: 6px;">
-            <path d="M8 5v14l11-7z" fill="currentColor"/>
-          </svg>
-          播放全文
-        </button>
+        <button class="play-all-btn" id="playAllBtn">播放全文</button>
       </div>
 
       <div class="sidebar-title" style="margin-top: 20px;" id="displayTitle">显示设置</div>
@@ -108,20 +111,6 @@
           <label class="control-label" id="showPosLabel">
             <input type="checkbox" id="showPos" checked>
             显示词性
-          </label>
-        </div>
-        
-        <div class="control-group">
-          <label class="control-label" id="autoReadLabel">
-            <input type="checkbox" id="autoRead">
-            自动朗读
-          </label>
-        </div>
-        
-        <div class="control-group">
-          <label class="control-label" id="repeatPlayLabel">
-            <input type="checkbox" id="repeatPlay">
-            重复播放
           </label>
         </div>
       </div>

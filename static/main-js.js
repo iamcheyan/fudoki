@@ -57,6 +57,8 @@
       showKana: 'ふりがなを表示',
       showRomaji: 'ローマ字を表示',
       showPos: '品詞を表示',
+      autoRead: '自動読み上げ',
+      repeatPlay: 'リピート再生',
       loading: 'テキストを解析中…',
       errorPrefix: '解析に失敗しました: '
       ,lbl_surface: '表層形'
@@ -92,6 +94,8 @@
       showKana: 'Show Kana',
       showRomaji: 'Show Romaji',
       showPos: 'Show POS',
+      autoRead: 'Auto Read',
+      repeatPlay: 'Repeat Play',
       loading: 'Analyzing text…',
       errorPrefix: 'Analysis failed: '
       ,lbl_surface: 'Surface'
@@ -127,6 +131,8 @@
       showKana: '显示假名',
       showRomaji: '显示罗马音',
       showPos: '显示词性',
+      autoRead: '自动朗读',
+      repeatPlay: '重复播放',
       loading: '正在分析文本...',
       errorPrefix: '分析失败: '
       ,lbl_surface: '表层形'
@@ -157,14 +163,42 @@
   function positionTokenDetails(element, details) {
     if (!element || !details) return;
     const rect = element.getBoundingClientRect();
-    const detailsHeight = 200; // 预估高度
+    const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    let top = rect.bottom + 5;
-    if (top + detailsHeight > viewportHeight - 20) {
-      top = rect.top - detailsHeight - 5;
+
+    // 先确保元素可测量
+    const prevDisplay = details.style.display;
+    const prevVis = details.style.visibility;
+    details.style.display = 'block';
+    details.style.visibility = 'hidden';
+
+    const width = Math.min(details.offsetWidth || 300, 320);
+    const height = details.offsetHeight || 220;
+
+    // 选择上下位置
+    const spaceBelow = viewportHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    let top;
+    if (spaceBelow >= height || spaceBelow >= spaceAbove) {
+      top = rect.bottom + 8; // 放在下方
+    } else {
+      top = rect.top - height - 8; // 放在上方
     }
-    details.style.left = Math.max(10, Math.min(rect.left, window.innerWidth - 350)) + 'px';
-    details.style.top = Math.max(10, top) + 'px';
+
+    // 水平位置：尽量与元素左对齐并避免越界
+    let left = rect.left;
+    if (left + width + 10 > viewportWidth) {
+      left = viewportWidth - width - 10;
+    }
+    if (left < 10) left = 10;
+
+    // 应用位置
+    details.style.left = `${Math.max(10, Math.min(left, viewportWidth - width - 10))}px`;
+    details.style.top = `${Math.max(10, Math.min(top, viewportHeight - 10))}px`;
+
+    // 还原可见性
+    details.style.visibility = prevVis || 'visible';
+    details.style.display = prevDisplay || 'block';
   }
 
   // 滚动/缩放时，若有弹层，保持跟随
@@ -204,12 +238,13 @@
 
     const logoText = $('logoText');
     if (logoText) logoText.textContent = t('title');
-    const navAnalyze = $('navAnalyze');
-    if (navAnalyze) navAnalyze.textContent = t('navAnalyze');
-    const navTTS = $('navTTS');
-    if (navTTS) navTTS.textContent = t('navTTS');
-    const navHelp = $('navHelp');
-    if (navHelp) navHelp.textContent = t('navHelp');
+    // 导航菜单内容固定，不跟随语言切换
+    // const navAnalyze = $('navAnalyze');
+    // if (navAnalyze) navAnalyze.textContent = t('navAnalyze');
+    // const navTTS = $('navTTS');
+    // if (navTTS) navTTS.textContent = t('navTTS');
+    // const navHelp = $('navHelp');
+    // if (navHelp) navHelp.textContent = t('navHelp');
 
     const sidebarDocsTitle = $('sidebarDocsTitle');
     if (sidebarDocsTitle) sidebarDocsTitle.textContent = t('sidebarDocsTitle');
@@ -226,7 +261,11 @@
     if (voiceSelectLabel) voiceSelectLabel.textContent = t('voiceSelectLabel');
     const speedLabel = $('speedLabel');
     if (speedLabel) speedLabel.textContent = t('speedLabel');
-    if (playAllBtn) playAllBtn.textContent = t('playAll');
+    if (playAllBtn) {
+      // 根据当前播放状态设置播放全文按钮文本
+      const currentlyPlaying = isPlaying && currentUtterance;
+      playAllBtn.textContent = playAllLabel(currentlyPlaying);
+    }
 
     const displayTitle = $('displayTitle');
     if (displayTitle) displayTitle.textContent = t('displayTitle');
@@ -236,6 +275,10 @@
     if (showRomajiLabel) showRomajiLabel.lastChild && (showRomajiLabel.lastChild.textContent = ' ' + t('showRomaji'));
     const showPosLabel = $('showPosLabel');
     if (showPosLabel) showPosLabel.lastChild && (showPosLabel.lastChild.textContent = ' ' + t('showPos'));
+    const autoReadLabel = $('autoReadLabel');
+    if (autoReadLabel) autoReadLabel.lastChild && (autoReadLabel.lastChild.textContent = ' ' + t('autoRead'));
+    const repeatPlayLabel = $('repeatPlayLabel');
+    if (repeatPlayLabel) repeatPlayLabel.lastChild && (repeatPlayLabel.lastChild.textContent = ' ' + t('repeatPlay'));
 
     const emptyText = $('emptyText');
     if (emptyText) emptyText.textContent = t('emptyText');
@@ -931,8 +974,25 @@
     isPlaying = false;
     currentUtterance = null;
     currentPlayingText = null; // 停止时清除重复播放文本
-    clearTokenHighlight(); // 清除词汇高亮
     updatePlayButtonStates();
+  }
+
+  // 高亮当前播放的词块
+  function clearTokenHighlight() {
+    document.querySelectorAll('.token-pill.playing').forEach(el => el.classList.remove('playing'));
+  }
+
+  function highlightToken(text) {
+    if (!text) return;
+    clearTokenHighlight();
+    // 优先匹配表层形
+    const pills = Array.from(document.querySelectorAll('.token-pill'));
+    const target = pills.find(p => {
+      const kanjiEl = p.querySelector('.token-kanji');
+      const surface = kanjiEl ? kanjiEl.textContent.trim() : '';
+      return surface === text.trim();
+    }) || pills.find(p => (p.textContent || '').split('\n')[0].trim() === text.trim());
+    if (target) target.classList.add('playing');
   }
 
   function updatePlayButtonStates() {
@@ -1164,6 +1224,7 @@
       const tokenData = JSON.parse(element.getAttribute('data-token'));
       const surface = tokenData.surface || '';
       if (surface) {
+        highlightToken(surface);
         speak(surface);
       }
       // 继续执行显示详细信息面板的逻辑，不要直接返回
@@ -1174,7 +1235,7 @@
     if (details) {
       const isVisible = details.style.display !== 'none';
       
-      // 隐藏所有其他详细信息
+      // 先关闭所有卡片，保证只有一个打开
       document.querySelectorAll('.token-details').forEach(d => {
         d.style.display = 'none';
       });
@@ -1184,8 +1245,10 @@
       
       if (!isVisible) {
         // 设置位置并显示
-        positionTokenDetails(element, details);
         details.style.display = 'block';
+        details.style.visibility = 'hidden';
+        positionTokenDetails(element, details);
+        details.style.visibility = 'visible';
         element.classList.add('active');
         // 记录当前活动弹层
         activeTokenDetails = { element, details };
