@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <defs>
+    <linearGradient id="ink" x1="16" y1="96" x2="112" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B1623"/>
+      <stop offset="1" stop-color="#2B3A4A"/>
+    </linearGradient>
+  </defs>
+  <!-- 背景留白 -->
+  <rect width="128" height="128" rx="20" fill="#ffffff"/>
+  <!-- 红日 -->
+  <circle cx="84" cy="40" r="16" fill="#E63946"/>
+  <!-- 墨迹波纹（笔触曲线） -->
+  <path d="M20 80c22-18 48-22 74-14" stroke="url(#ink)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M24 96c26-14 54-16 84-6" stroke="#0B1623" opacity=".8" stroke-width="4" stroke-linecap="round"/>
+  <!-- 简化汉字F形意象（Fudoki首字母） -->
+  <path d="M36 30v42m0-28h20m-20 16h16" stroke="#0B1623" stroke-width="4" stroke-linecap="round"/>
+</svg>

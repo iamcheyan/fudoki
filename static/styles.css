@@ -38,6 +38,19 @@ body {
   font-weight: 600;
   color: #333;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+}
+
+.logo-text {
+  color: #222;
 }
 
 .nav-menu {
@@ -88,18 +101,22 @@ body {
 }
 
 .doc-list {
-  list-style: none;
+  margin-bottom: 12px;
 }
 
 .doc-item {
-  padding: 6px 8px;
-  margin-bottom: 2px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   color: #666;
-  border-radius: 2px;
+  border-radius: 4px;
   transition: all 0.2s ease;
-  border-left: 2px solid transparent;
+  border-left: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
 }
 
 .doc-item:hover {
@@ -113,22 +130,84 @@ body {
   border-left-color: #0066cc;
 }
 
-.new-doc-btn {
+.doc-item svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.doc-item-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-item-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  gap: 4px;
+}
+
+.doc-item:hover .doc-item-actions {
+  opacity: 1;
+}
+
+.doc-action-btn {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 12px;
+  color: #999;
+  transition: all 0.2s ease;
+}
+
+.doc-action-btn:hover {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.doc-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.new-doc-btn, .delete-doc-btn {
   width: 100%;
-  padding: 8px;
+  padding: 8px 12px;
   background: #ffffff;
   border: 1px solid #ddd;
   color: #666;
   font-size: 12px;
   cursor: pointer;
-  border-radius: 2px;
-  margin-top: 12px;
+  border-radius: 4px;
   transition: all 0.2s ease;
 }
 
 .new-doc-btn:hover {
-  background: #f5f5f5;
-  border-color: #bbb;
+  background: #f0f8ff;
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.delete-doc-btn {
+  background: #fff5f5;
+  border-color: #ffcccc;
+  color: #cc6666;
+}
+
+.delete-doc-btn:hover:not(:disabled) {
+  background: #ffe0e0;
+  border-color: #ff9999;
+  color: #cc3333;
+}
+
+.delete-doc-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* 主内容区域 */
@@ -206,7 +285,7 @@ body {
 /* 行容器 - 简洁线条风格 */
 .line-container {
   display: flex;
-  align-items: center;
+  align-items: self-start;
   flex-wrap: wrap;
   gap: 4px;
   padding: 8px 0;
@@ -222,7 +301,7 @@ body {
 .token-pill {
   position: relative;
   display: inline-flex;
-  align-items: center;
+  align-items: self-start;
   padding: 4px 8px;
   background: #ffffff;
   color: #333;

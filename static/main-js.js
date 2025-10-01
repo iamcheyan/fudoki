@@ -10,6 +10,7 @@
   const playAllBtn = $('playAllBtn');
   const newDocBtn = $('newDocBtn');
   const documentList = $('documentList');
+  const deleteDocBtn = $('deleteDocBtn');
   
   // 显示控制元素
   const showKanaCheckbox = $('showKana');
@@ -43,12 +44,24 @@
   // 默认文档配置
   const DEFAULT_DOC_ID = 'default-01';
   const DEFAULT_DOC_TITLE = '外来語がつくる新しい日本語';
-  const DEFAULT_DOC_CONTENT = [
-    '外来語がつくる新しい日本語。私は学生ですが、毎日の生活の中で English の言葉や カタカナ の外来語をよく使います。',
-    'たとえば、友達と話すときに「スマホ」や「コンビニ」などの言葉は、もはや普通の日本語になっていると思います。',
-    'さらに、大学の授業では Presentation という言葉がよく使われ、日本語と英語をまぜて話すことも多いです。',
-    'このように、英語やカタカナ語は私たちの生活に深く入っていて、日本語の表現をもっと豊かにしていると感（かん）じます。'
-  ].join('\n');
+  const DEFAULT_CONTENT = `欢迎使用日语文本分析工具！
+
+这是一个功能强大的日语学习助手，可以帮助您：
+
+1. 分析日语文本的语法结构
+2. 显示假名读音和罗马字
+3. 标注词性信息
+4. 语音朗读功能
+
+请在上方文本框中输入日语文本，然后点击"分析文本"按钮开始使用。
+
+您可以：
+- 创建多个文档进行管理
+- 切换不同的文档
+- 删除不需要的文档
+- 自动保存您的编辑内容
+
+开始您的日语学习之旅吧！`;
 
   // 初始化日语分词器
   let segmenter = null;
@@ -262,127 +275,299 @@
     }
   });
 
-  // 文档管理功能
-  function uuid() {
-    return 'xxxxxxxx'.replace(/[x]/g, () => (Math.random() * 16 | 0).toString(16));
-  }
-
-  function loadDocs() {
-    try {
-      return JSON.parse(localStorage.getItem(LS.texts) || '[]');
-    } catch {
-      return [];
+  // 文档管理类
+  class DocumentManager {
+    constructor() {
+      this.storageKey = LS.texts;
+      this.activeIdKey = LS.activeId;
+      this.init();
     }
-  }
 
-  function saveDocs(arr) {
-    localStorage.setItem(LS.texts, JSON.stringify(arr || []));
-  }
+    init() {
+      this.seedDefaultDocument();
+      this.bindEvents();
+      this.render();
+      this.loadActiveDocument();
+    }
 
-  function getActiveId() {
-    return localStorage.getItem(LS.activeId) || '';
-  }
+    // 生成唯一ID
+    generateId() {
+      return 'doc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    }
 
-  function setActiveId(id) {
-    localStorage.setItem(LS.activeId, id || '');
-  }
+    // 获取所有文档
+    getAllDocuments() {
+      try {
+        return JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      } catch {
+        return [];
+      }
+    }
 
-  function titleOf(text) {
-    const f = (text || '').split('\n')[0]?.trim() || '';
-    return f || '无标题';
-  }
+    // 保存所有文档
+    saveAllDocuments(docs) {
+      localStorage.setItem(this.storageKey, JSON.stringify(docs || []));
+    }
 
-  function shortTitle(s, max = 24) {
-    const t = (s || '').trim();
-    if (t.length <= max) return t;
-    return t.slice(0, max - 1) + '…';
-  }
+    // 获取活动文档ID
+    getActiveId() {
+      return localStorage.getItem(this.activeIdKey) || '';
+    }
 
-  function renderDocumentList() {
-    const docs = loadDocs();
-    if (!documentList) return;
-    
-    documentList.innerHTML = '';
-    
-    docs.forEach(d => {
-      const full = titleOf(d.content);
-      const docItem = document.createElement('div');
-      docItem.className = 'sidebar-btn';
-      docItem.style.cursor = 'pointer';
-      docItem.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-        </svg>
-        ${shortTitle(full, 20)}
-      `;
-      docItem.title = full;
-      docItem.onclick = () => {
-        setActiveId(d.id);
-        loadActiveIntoEditor();
-        analyzeText(); // 自动分析新加载的文档
-        // 更新视觉状态
-        document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
-        docItem.classList.add('active');
+    // 设置活动文档ID
+    setActiveId(id) {
+      localStorage.setItem(this.activeIdKey, id || '');
+      this.updateDeleteButtonState();
+    }
+
+    // 获取文档标题
+    getDocumentTitle(content) {
+      if (Array.isArray(content)) {
+        const firstLine = content[0]?.trim() || '';
+        return firstLine || '无标题文档';
+      }
+      const firstLine = (content || '').split('\n')[0]?.trim() || '';
+      return firstLine || '无标题文档';
+    }
+
+    // 截断标题
+    truncateTitle(title, maxLength = 20) {
+      if (title.length <= maxLength) return title;
+      return title.slice(0, maxLength - 1) + '…';
+    }
+
+    // 创建新文档
+    createDocument(content = '') {
+      const docs = this.getAllDocuments();
+      const newDoc = {
+        id: this.generateId(),
+        content: content,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        locked: false
       };
       
-      if (d.id === getActiveId()) {
-        docItem.classList.add('active');
+      docs.push(newDoc);
+      this.saveAllDocuments(docs);
+      this.setActiveId(newDoc.id);
+      this.render();
+      this.loadActiveDocument();
+      
+      return newDoc;
+    }
+
+    // 删除文档
+    deleteDocument(id) {
+      const docs = this.getAllDocuments();
+      const index = docs.findIndex(doc => doc.id === id);
+      
+      if (index === -1) return false;
+      
+      const doc = docs[index];
+      if (doc.locked) {
+        alert('默认文档不能删除');
+        return false;
+      }
+
+      if (!confirm(`确定要删除文档"${this.getDocumentTitle(doc.content)}"吗？`)) {
+        return false;
+      }
+
+      docs.splice(index, 1);
+      this.saveAllDocuments(docs);
+
+      // 如果删除的是当前活动文档，切换到第一个文档
+      if (id === this.getActiveId()) {
+        const firstDoc = docs[0];
+        if (firstDoc) {
+          this.setActiveId(firstDoc.id);
+        } else {
+          this.setActiveId('');
+        }
+        this.loadActiveDocument();
+      }
+
+      this.render();
+      return true;
+    }
+
+    // 切换文档
+    switchToDocument(id) {
+      const docs = this.getAllDocuments();
+      const doc = docs.find(d => d.id === id);
+      
+      if (!doc) return false;
+
+      // 保存当前文档内容
+      this.saveCurrentDocument();
+      
+      // 切换到新文档
+      this.setActiveId(id);
+      this.loadActiveDocument();
+      this.render();
+      
+      // 自动分析新文档
+      if (window.analyzeText) {
+        window.analyzeText();
       }
       
-      documentList.appendChild(docItem);
-    });
+      return true;
+    }
 
-    let active = getActiveId();
-    if (!active && docs[0]) {
-      active = docs[0].id;
-      setActiveId(active);
+    // 保存当前文档
+    saveCurrentDocument() {
+      const activeId = this.getActiveId();
+      if (!activeId) return;
+
+      const docs = this.getAllDocuments();
+      const doc = docs.find(d => d.id === activeId);
+      
+      if (doc) {
+        doc.content = textInput.value;
+        doc.updatedAt = Date.now();
+        this.saveAllDocuments(docs);
+      }
+    }
+
+    // 加载活动文档到编辑器
+    loadActiveDocument() {
+      const docs = this.getAllDocuments();
+      const activeId = this.getActiveId();
+      const doc = docs.find(d => d.id === activeId);
+      
+      if (doc) {
+        if (Array.isArray(doc.content)) {
+          textInput.value = doc.content.join('\n');
+        } else {
+          textInput.value = doc.content || '';
+        }
+      } else {
+        textInput.value = '';
+      }
+    }
+
+    // 渲染文档列表
+    render() {
+      const docs = this.getAllDocuments();
+      const activeId = this.getActiveId();
+      
+      if (!documentList) return;
+      
+      documentList.innerHTML = '';
+      
+      docs.forEach(doc => {
+        const title = this.getDocumentTitle(doc.content);
+        const docItem = document.createElement('div');
+        docItem.className = 'doc-item';
+        docItem.dataset.docId = doc.id;
+        
+        if (doc.id === activeId) {
+          docItem.classList.add('active');
+        }
+        
+        docItem.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+          </svg>
+          <div class="doc-item-title" title="${title}">${this.truncateTitle(title)}</div>
+          <div class="doc-item-actions">
+            ${!doc.locked ? '<button class="doc-action-btn delete-btn" title="删除">×</button>' : ''}
+          </div>
+        `;
+        
+        // 点击文档项切换文档
+        docItem.addEventListener('click', (e) => {
+          if (e.target.classList.contains('delete-btn')) {
+            e.stopPropagation();
+            this.deleteDocument(doc.id);
+          } else {
+            this.switchToDocument(doc.id);
+          }
+        });
+        
+        documentList.appendChild(docItem);
+      });
+
+      // 如果没有活动文档且有文档存在，激活第一个
+      if (!activeId && docs.length > 0) {
+        this.setActiveId(docs[0].id);
+        this.loadActiveDocument();
+        this.render();
+      }
+    }
+
+    // 更新删除按钮状态
+    updateDeleteButtonState() {
+      if (!deleteDocBtn) return;
+      
+      const docs = this.getAllDocuments();
+      const activeId = this.getActiveId();
+      const activeDoc = docs.find(d => d.id === activeId);
+      
+      // 如果没有活动文档、只有一个文档或活动文档被锁定，禁用删除按钮
+      deleteDocBtn.disabled = !activeDoc || docs.length <= 1 || activeDoc.locked;
+    }
+
+    // 初始化默认文档
+    seedDefaultDocument() {
+      const docs = this.getAllDocuments();
+      if (docs.length === 0) {
+        const defaultDoc = {
+          id: DEFAULT_DOC_ID,
+          content: DEFAULT_CONTENT,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          locked: true
+        };
+        this.saveAllDocuments([defaultDoc]);
+        this.setActiveId(defaultDoc.id);
+      }
+    }
+
+    // 绑定事件
+    bindEvents() {
+      // 新建文档按钮
+      if (newDocBtn) {
+        newDocBtn.addEventListener('click', () => {
+          this.createDocument('请在此输入新文档内容...');
+        });
+      }
+
+      // 删除文档按钮
+      if (deleteDocBtn) {
+        deleteDocBtn.addEventListener('click', () => {
+          const activeId = this.getActiveId();
+          if (activeId) {
+            this.deleteDocument(activeId);
+          }
+        });
+      }
+
+      // 自动保存当前文档内容
+      if (textInput) {
+        let saveTimeout;
+        textInput.addEventListener('input', () => {
+          clearTimeout(saveTimeout);
+          saveTimeout = setTimeout(() => {
+            this.saveCurrentDocument();
+          }, 1000); // 1秒后自动保存
+        });
+      }
     }
   }
-
-  // 初始化默认文档
-  (function seedDefault() {
-    let docs = loadDocs();
-    if (docs.length === 0) {
-      const def = {
-        id: DEFAULT_DOC_ID,
-        content: DEFAULT_DOC_CONTENT,
-        createdAt: Date.now(),
-        locked: true
-      };
-      saveDocs([def]);
-      setActiveId(def.id);
-    }
-  })();
-
-  renderDocumentList();
-
-  function loadActiveIntoEditor() {
-    const docs = loadDocs();
-    const id = getActiveId();
-    const cur = docs.find(d => d.id === id);
-    textInput.value = (cur && cur.content) || '';
-  }
-
-  loadActiveIntoEditor();
-
-  function updateDeleteButtonState() {
-    // 删除按钮功能已移除，保留函数以避免错误
-  }
-
-  // 文档选择事件已移至renderDocumentList函数中处理
-
-  // 保存和删除按钮事件已移除，功能集成到文档列表中
-
-  updateDeleteButtonState();
 
   // 语音合成功能
   function speak(text, rateOverride) {
     if (!('speechSynthesis' in window)) return;
-    const s = (text || '').trim();
-    if (!s) return;
+    // 朗读前移除括号（全角/半角）及其中内容
+    const stripped = String(text || '')
+      .replace(/（[^）]*）|\([^)]*\)/g, '')
+      .replace(/[\s\u00A0]+/g, ' ')
+      .trim();
+    if (!stripped) return;
     
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(s);
+    const u = new SpeechSynthesisUtterance(stripped);
     applyVoice(u);
     u.rate = typeof rateOverride === 'number' ? rateOverride : rate;
     u.pitch = 1.0;
@@ -494,6 +679,13 @@
         
         // 获取罗马音
         const romaji = getRomaji(reading || surface);
+        
+        const isPunct = (pos[0] === '記号' || pos[0] === '補助記号');
+        if (isPunct) {
+          return `
+          <span class="punct">${surface}</span>
+        `;
+        }
         
         return `
           <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(token).replace(/'/g, "&apos;")}'>
@@ -672,7 +864,10 @@
     const lineContainer = document.querySelectorAll('.line-container')[lineIndex];
     if (lineContainer) {
       const tokens = lineContainer.querySelectorAll('.token-pill');
-      const lineText = Array.from(tokens).map(token => token.textContent.split('\n')[0]).join('');
+      const lineText = Array.from(tokens).map(token => {
+        const kanjiEl = token.querySelector('.token-kanji');
+        return kanjiEl ? kanjiEl.textContent : '';
+      }).join('');
       speak(lineText);
     }
   };
@@ -819,6 +1014,12 @@
 
   // 初始化显示控制
   initDisplayControls();
+
+  // 初始化文档管理器
+  const documentManager = new DocumentManager();
+
+  // 全局函数，供其他地方调用
+  window.analyzeText = analyzeText;
 
   // 初始化时如果有文本则自动分析
   if (textInput.value.trim()) {

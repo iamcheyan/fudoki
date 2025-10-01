@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>日本文本分析工坊</title>
   <link rel="stylesheet" href="static/styles.css">
+  <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
 </head>
 <body>
   <!-- 顶部导航 -->
   <header class="header">
     <div class="header-content">
-      <a href="#" class="logo">日本文本分析工坊</a>
+      <a href="#" class="logo"><img src="static/logo.svg" alt="日本文本分析工坊" class="logo-icon"><span class="logo-text">日本文本分析工坊</span></a>
       <nav class="nav-menu">
         <a href="#" class="nav-item">文本分析</a>
         <a href="#" class="nav-item">语音朗读</a>
@@ -24,10 +25,13 @@
     <!-- 左侧边栏 - 文档管理 -->
     <aside class="sidebar-left">
       <div class="sidebar-title">文档管理</div>
-      <ul class="doc-list" id="documentList">
+      <div class="doc-list" id="documentList">
         <!-- 文档列表将通过JavaScript动态生成 -->
-      </ul>
-      <button class="new-doc-btn" id="newDocBtn">+ 新建文档</button>
+      </div>
+      <div class="doc-actions">
+        <button class="new-doc-btn" id="newDocBtn">+ 新建文档</button>
+        <button class="delete-doc-btn" id="deleteDocBtn" disabled>删除文档</button>
+      </div>
     </aside>
 
     <!-- 主内容区域 -->
