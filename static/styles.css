@@ -85,6 +85,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
+  position: relative;
 }
 
 .logo {
@@ -107,43 +108,30 @@ body {
   display: inline-block;
 }
 
-/* 移动端菜单按钮 */
+/* 移动端菜单按钮 - 永远显示 */
 .mobile-menu-btn {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--text-color);
-  cursor: pointer;
-  padding: 8px;
+  display: block;
+  position: absolute;
+  left: -48px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 4px;
+  padding: 8px;
+  color: var(--text);
+  cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .mobile-menu-btn:hover {
-  background-color: var(--hover-color);
+  background-color: var(--elevated);
 }
 
 .mobile-menu-btn .menu-icon {
   width: 20px;
   height: 20px;
-}
-
-/* 移动端显示菜单按钮 */
-@media (max-width: 768px) {
-  .mobile-menu-btn {
-    display: block !important;
-    order: -1;
-    margin-right: 12px;
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1000;
-    background: var(--bg) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 4px;
-    padding: 8px;
-  }
 }
 
 .nav-menu {
@@ -178,6 +166,12 @@ body {
   min-height: calc(100vh - 60px);
   border-radius: 20px;
   overflow: hidden;
+  transition: grid-template-columns 0.3s ease;
+}
+
+/* 左侧边栏折叠时的布局 */
+.main-container.sidebar-collapsed {
+  grid-template-columns: 0 1fr;
 }
 
 /* 左侧边栏 - 文档管理 */
@@ -238,15 +232,29 @@ body {
   padding: 16px 12px;
   height: 100%;
   opacity: 1;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.3s ease;
 }
 
 .sidebar-left.collapsed .sidebar-content {
   opacity: 0;
 }
 
+/* PC端sidebar-content折叠状态 */
+.sidebar-left.content-collapsed .sidebar-content {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+/* PC端内容折叠时保持边栏宽度 */
+.sidebar-left.content-collapsed {
+  overflow: hidden;
+}
+
 /* 移动端优化 */
 @media (max-width: 768px) {
+  .mobile-menu-btn {
+    left: 10px;
+  }
   /* 头部导航 */
   .header {
     padding: 12px 0;
@@ -879,25 +887,30 @@ input:focus, textarea:focus, select:focus {
   z-index: 1000;
   cursor: move;
   user-select: none;
-  transition: transform 0.3s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+  transition: right 0.3s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
+  /* 保持默认展开状态 */
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .sidebar-right:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
 }
 
-/* 右侧边栏收缩状态 */
-.sidebar-right.auto-collapsed {
-  transform: translateX(160px); /* 调整为180px，保留一部分可见区域 */
-  opacity: 0.8;
+/* 最小化状态时的鼠标提示 */
+.sidebar-right.minimized {
+  cursor: move !important;
 }
 
-/* 收缩状态下的悬停效果 */
-.sidebar-right.auto-collapsed:hover {
-  transform: translateX(0);
-  opacity: 1;
+.sidebar-right.minimized:hover {
+  box-shadow: 0 12px 40px rgba(139, 105, 20, 0.3);
+}
+
+/* 最小化状态下的工具栏头部不显示 move 光标 */
+.sidebar-right.minimized .toolbar-header {
+  cursor: move !important;
 }
 
 /* 工具栏拖拽手柄 */

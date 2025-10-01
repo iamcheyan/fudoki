@@ -1600,6 +1600,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     let isDragging = false;
     let dragOffset = { x: 0, y: 0 };
     let isMinimized = false;
+    let dragStartPos = { x: 0, y: 0 };
+    let hasMoved = false;
+    let justDragged = false; // 标记是否刚刚完成拖拽
+    let touchStartPos = null; // 触摸开始位置
+    let isTouchScrolling = false; // 是否正在触摸滚动
     
     // 获取事件坐标（支持鼠标和触摸）
     function getEventCoords(e) {
@@ -1615,10 +1620,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (e.target.closest('.toolbar-minimize-btn')) return;
       
       isDragging = true;
+      hasMoved = false;
       const coords = getEventCoords(e);
       const rect = toolbar.getBoundingClientRect();
       dragOffset.x = coords.x - rect.left;
       dragOffset.y = coords.y - rect.top;
+      dragStartPos.x = coords.x;
+      dragStartPos.y = coords.y;
       
       toolbar.style.transition = 'none';
       document.body.style.userSelect = 'none';
@@ -1631,6 +1639,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (!isDragging) return;
       
       const coords = getEventCoords(e);
+      
+      // 检查是否移动了超过5像素（判断是拖拽还是点击）
+      const deltaX = Math.abs(coords.x - dragStartPos.x);
+      const deltaY = Math.abs(coords.y - dragStartPos.y);
+      if (deltaX > 5 || deltaY > 5) {
+        hasMoved = true;
+      }
+      
       const x = coords.x - dragOffset.x;
       const y = coords.y - dragOffset.y;
       
@@ -1649,34 +1665,61 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
     
     // 拖拽结束
-    function endDrag() {
+    function endDrag(e) {
       if (!isDragging) return;
       
       isDragging = false;
-      toolbar.style.transition = '';
       document.body.style.userSelect = '';
+      toolbar.style.transition = '';
       
-      // 保存位置到本地存储
-      const rect = toolbar.getBoundingClientRect();
-      localStorage.setItem('toolbarPosition', JSON.stringify({
-        left: rect.left,
-        top: rect.top
-      }));
+      // 只有在拖拽后才保存位置
+      if (hasMoved) {
+        justDragged = true; // 标记刚刚完成拖拽
+        const rect = toolbar.getBoundingClientRect();
+        localStorage.setItem('toolbarPosition', JSON.stringify({
+          left: rect.left,
+          top: rect.top
+        }));
+        // 短暂延迟后清除标记，防止 click 事件触发
+        setTimeout(() => {
+          justDragged = false;
+        }, 100);
+      }
+      
+      hasMoved = false;
     }
     
-    // 最小化/展开功能
+    // 最小化/展开功能（左右收缩）
     function toggleMinimize() {
       isMinimized = !isMinimized;
       
       if (isMinimized) {
-        toolbarContent.style.display = 'none';
-        toolbar.style.height = 'auto';
-        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></svg>';
+        // 收缩：移动到右侧，只露出一部分
+        const targetRight = -(toolbar.offsetWidth - 30);
+        toolbar.style.right = targetRight + 'px';
+        toolbar.style.left = 'auto';
+        toolbar.classList.add('minimized');
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>';
         minimizeBtn.title = '展开';
       } else {
-        toolbarContent.style.display = 'block';
-        toolbar.style.height = '';
-        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H5v-2h14v2z"/></svg>';
+        // 展开：恢复到原位置
+        const savedPosition = localStorage.getItem('toolbarPosition');
+        if (savedPosition) {
+          try {
+            const position = JSON.parse(savedPosition);
+            toolbar.style.left = position.left + 'px';
+            toolbar.style.top = position.top + 'px';
+            toolbar.style.right = 'auto';
+          } catch (e) {
+            toolbar.style.right = '20px';
+            toolbar.style.left = 'auto';
+          }
+        } else {
+          toolbar.style.right = '20px';
+          toolbar.style.left = 'auto';
+        }
+        toolbar.classList.remove('minimized');
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>';
         minimizeBtn.title = '最小化';
       }
       
@@ -1688,6 +1731,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const savedPosition = localStorage.getItem('toolbarPosition');
       const savedMinimized = localStorage.getItem('toolbarMinimized');
       
+      // 先恢复位置
       if (savedPosition) {
         try {
           const position = JSON.parse(savedPosition);
@@ -1706,14 +1750,33 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }
       }
       
+      // 然后恢复最小化状态
       if (savedMinimized === 'true') {
-        toggleMinimize();
+        // 直接设置最小化状态，不触发动画
+        isMinimized = true;
+        const targetRight = -(toolbar.offsetWidth - 30);
+        toolbar.style.right = targetRight + 'px';
+        toolbar.style.left = 'auto';
+        toolbar.classList.add('minimized');
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>';
+        minimizeBtn.title = '展开';
       }
     }
     
-    // 绑定事件（支持鼠标和触摸）
-    toolbarHeader.addEventListener('mousedown', startDrag);
-    toolbarHeader.addEventListener('touchstart', startDrag, { passive: false });
+    // 仅允许通过 toolbar-header 呼出：移除整个工具栏的自动呼出逻辑
+    // （保留 minimize 按钮点击与 header 拖拽/点击）
+    
+    // 绑定事件（支持鼠标和触摸）- 只在 header 上允许拖拽
+    toolbarHeader.addEventListener('mousedown', (e) => {
+      // 最小化状态下，不允许拖拽，让点击事件处理
+      if (isMinimized) return;
+      startDrag(e);
+    });
+    toolbarHeader.addEventListener('touchstart', (e) => {
+      // 最小化状态下，不允许拖拽，让点击事件处理
+      if (isMinimized) return;
+      startDrag(e);
+    }, { passive: false });
     
     document.addEventListener('mousemove', drag);
     document.addEventListener('touchmove', drag, { passive: false });
@@ -1722,7 +1785,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
     document.addEventListener('touchend', endDrag);
     
     if (minimizeBtn) {
-      minimizeBtn.addEventListener('click', toggleMinimize);
+      minimizeBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // 防止触发 toolbar 的点击事件
+        toggleMinimize();
+      });
     }
     
     // 窗口大小改变时重新约束位置
@@ -1834,8 +1900,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const sidebar = document.getElementById('sidebar-left');
     const toggleBtn = document.getElementById('sidebarToggle');
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mainContainer = document.querySelector('.main-container');
     
-    if (!sidebar || !toggleBtn) return;
+    if (!sidebar || !mainContainer) return;
     
     let isCollapsed = false;
     
@@ -1850,12 +1917,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
         // 移动端：显示/隐藏
         sidebar.classList.toggle('show');
       } else {
-        // 桌面端：折叠/展开
-        isCollapsed = !isCollapsed;
-        sidebar.classList.toggle('collapsed', isCollapsed);
-        
-        // 保存状态
-        localStorage.setItem('sidebarCollapsed', isCollapsed);
+        // PC端：简单的收缩/展开切换
+        if (!isCollapsed) {
+          // 点击收缩：完全折叠边栏并改变布局
+          isCollapsed = true;
+          sidebar.classList.add('collapsed');
+          mainContainer.classList.add('sidebar-collapsed');
+          localStorage.setItem('sidebarCollapsed', true);
+        } else {
+          // 点击展开：完全展开
+          isCollapsed = false;
+          sidebar.classList.remove('collapsed');
+          mainContainer.classList.remove('sidebar-collapsed');
+          localStorage.setItem('sidebarCollapsed', false);
+        }
       }
     }
     
@@ -1863,9 +1938,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     function restoreSidebarState() {
       if (!isMobile()) {
         const savedCollapsed = localStorage.getItem('sidebarCollapsed');
+        
         if (savedCollapsed === 'true') {
           isCollapsed = true;
           sidebar.classList.add('collapsed');
+          mainContainer.classList.add('sidebar-collapsed');
         }
       }
     }
@@ -1875,19 +1952,23 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (isMobile()) {
         // 移动端：移除桌面端的折叠状态
         sidebar.classList.remove('collapsed');
+        mainContainer.classList.remove('sidebar-collapsed');
       } else {
         // 桌面端：移除移动端的显示状态，恢复折叠状态
         sidebar.classList.remove('show');
         if (isCollapsed) {
           sidebar.classList.add('collapsed');
+          mainContainer.classList.add('sidebar-collapsed');
         }
       }
     }
     
-    // 绑定事件
-    toggleBtn.addEventListener('click', toggleSidebar);
+    // 绑定事件 - 只有当按钮存在时才绑定
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', toggleSidebar);
+    }
     
-    // 移动端菜单按钮事件
+    // 移动端菜单按钮事件 - 确保在所有设备上都能工作
     if (mobileMenuBtn) {
       mobileMenuBtn.addEventListener('click', toggleSidebar);
     }
@@ -1908,93 +1989,121 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
     
-    // 如果不是移动端，直接返回，不启用自动收缩功能
+    // PC端：默认收缩状态，鼠标悬停展开
     if (!isMobile()) {
+      // PC端默认收缩状态
+      sidebar.classList.remove('auto-collapsed');
+      
+      // 添加鼠标悬停事件
+      sidebar.addEventListener('mouseenter', () => {
+        sidebar.classList.add('expanded');
+      });
+      
+      sidebar.addEventListener('mouseleave', () => {
+        sidebar.classList.remove('expanded');
+      });
+      
+      // 监听窗口大小变化
+      window.addEventListener('resize', () => {
+        if (isMobile()) {
+          // 切换到移动端时，移除PC端的展开状态，启用移动端逻辑
+          sidebar.classList.remove('expanded');
+          initMobileAutoCollapse();
+        }
+      });
+      
       return;
     }
     
-    let inactivityTimer = null;
-    let isAutoCollapsed = false;
+    // 移动端逻辑
+    initMobileAutoCollapse();
     
-    // 重置计时器
-    function resetTimer() {
-      clearTimeout(inactivityTimer);
+    function initMobileAutoCollapse() {
+      let inactivityTimer = null;
+      let isAutoCollapsed = false;
       
-      // 设置3秒后自动收缩
-      inactivityTimer = setTimeout(() => {
-        if (!sidebar.matches(':hover')) {
-          sidebar.classList.add('auto-collapsed');
-          isAutoCollapsed = true;
-        }
-      }, 3000);
-    }
-    
-    // 展开边栏
-    function expandSidebar() {
-      if (isAutoCollapsed) {
-        sidebar.classList.remove('auto-collapsed');
-        isAutoCollapsed = false;
-      }
-    }
-    
-    // 监听边栏内的鼠标和点击事件
-    sidebar.addEventListener('mouseenter', () => {
-      expandSidebar();
-      clearTimeout(inactivityTimer);
-    });
-    
-    sidebar.addEventListener('mouseleave', () => {
-      // 鼠标离开后重新开始计时
-      resetTimer();
-    });
-    
-    sidebar.addEventListener('click', () => {
-      expandSidebar();
-      clearTimeout(inactivityTimer);
-      resetTimer();
-    });
-    
-    // 监听边栏内的鼠标移动事件（仅在边栏区域内）
-    sidebar.addEventListener('mousemove', () => {
-      if (isAutoCollapsed) {
-        expandSidebar();
+      // 重置计时器
+      function resetTimer() {
         clearTimeout(inactivityTimer);
+        
+        // 设置3秒后自动收缩
+        inactivityTimer = setTimeout(() => {
+          if (!sidebar.matches(':hover')) {
+            sidebar.classList.add('auto-collapsed');
+            isAutoCollapsed = true;
+          }
+        }, 3000);
       }
-    });
-    
-    // 监听触摸事件（移动端特有）
-    sidebar.addEventListener('touchstart', () => {
-      expandSidebar();
-      clearTimeout(inactivityTimer);
-      resetTimer();
-    });
-    
-    // 监听其他用户活动事件来重置计时器（但不自动展开）
-    const events = ['keypress', 'scroll', 'touchmove'];
-    events.forEach(event => {
-      document.addEventListener(event, () => {
-        if (!isAutoCollapsed) {
-          resetTimer();
-        }
-      }, true);
-    });
-    
-    // 监听窗口大小变化，如果切换到PC端则禁用功能
-    window.addEventListener('resize', () => {
-      if (!isMobile()) {
-        clearTimeout(inactivityTimer);
+      
+      // 展开边栏
+      function expandSidebar() {
         if (isAutoCollapsed) {
           sidebar.classList.remove('auto-collapsed');
           isAutoCollapsed = false;
         }
-      } else {
-        // 如果切换回移动端，重新启动计时器
-        resetTimer();
       }
-    });
-    
-    // 初始化计时器
-    resetTimer();
+      
+      // 监听边栏内的鼠标和点击事件
+      sidebar.addEventListener('mouseenter', () => {
+        expandSidebar();
+        clearTimeout(inactivityTimer);
+      });
+      
+      sidebar.addEventListener('mouseleave', () => {
+        // 鼠标离开后重新开始计时
+        resetTimer();
+      });
+      
+      sidebar.addEventListener('click', () => {
+        expandSidebar();
+        clearTimeout(inactivityTimer);
+        resetTimer();
+      });
+      
+      // 监听边栏内的鼠标移动事件（仅在边栏区域内）
+      sidebar.addEventListener('mousemove', () => {
+        if (isAutoCollapsed) {
+          expandSidebar();
+          clearTimeout(inactivityTimer);
+        }
+      });
+      
+      // 监听触摸事件（移动端特有）
+      sidebar.addEventListener('touchstart', () => {
+        expandSidebar();
+        clearTimeout(inactivityTimer);
+        resetTimer();
+      });
+      
+      // 监听其他用户活动事件来重置计时器（但不自动展开）
+      const events = ['keypress', 'scroll', 'touchmove'];
+      events.forEach(event => {
+        document.addEventListener(event, () => {
+          if (!isAutoCollapsed) {
+            resetTimer();
+          }
+        }, true);
+      });
+      
+      // 监听窗口大小变化，如果切换到PC端则禁用功能
+      window.addEventListener('resize', () => {
+        if (!isMobile()) {
+          clearTimeout(inactivityTimer);
+          if (isAutoCollapsed) {
+            sidebar.classList.remove('auto-collapsed');
+            isAutoCollapsed = false;
+          }
+          // 切换到PC端时启用PC端逻辑
+          initSidebarAutoCollapse();
+        } else {
+          // 如果切换回移动端，重新启动计时器
+          resetTimer();
+        }
+      });
+      
+      // 初始化计时器
+      resetTimer();
+    }
   }
 
   // 确保DOM加载完成后初始化所有功能
@@ -2003,7 +2112,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initToolbarDrag();
     initToolbarResize();
     initSidebarToggle();
-    initSidebarAutoCollapse();
+    // initSidebarAutoCollapse(); // 已禁用自动收缩功能
   }
 
   // 如果DOM已经加载完成，立即初始化
