@@ -344,7 +344,6 @@ body {
   flex-wrap: wrap;
   gap: 4px;
   padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
   position: relative;
 }
 .line-container:hover {
@@ -567,16 +566,18 @@ body {
   top: 80px; /* 头部高度 + 间距 */
   right: 20px;
   width: 220px;
-  max-height: 500px;
+  height: 500px; /* 改为height，由JavaScript动态调整 */
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  overflow: hidden;
+  overflow: visible; /* 改为visible以便调整手柄可见 */
   z-index: 1000;
   cursor: move;
   user-select: none;
   transition: box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-right:hover {
@@ -628,8 +629,8 @@ body {
 /* 工具栏内容区域 */
 .toolbar-content {
   padding: 16px;
-  max-height: 420px;
   overflow-y: auto;
+  flex: 1; /* 自动填充剩余空间 */
 }
 
 /* 设置分组样式 */
@@ -1294,9 +1295,6 @@ select:focus, textarea:focus, input[type="text"]:focus {
 .doc-item { background: transparent; border: 1px solid transparent; }
 .doc-item:hover { background: var(--control-elev); }
 
-/* 行容器分隔线颜色 */
-.line-container { border-bottom: 1px solid var(--control-border); }
-
 /* 滑块控件 */
 input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; }
 input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--control-border); border-radius: 999px; }
@@ -1382,8 +1380,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 }
 
 /* 调整工具栏内容区域，为手柄留出空间 */
-#sidebar-right .toolbar-content {
-  padding: 15px;
+.sidebar-right .toolbar-content {
+  padding: 16px;
   overflow-y: auto;
-  max-height: calc(100% - 52px); /* 40px header + 12px handle */
+  flex: 1; /* 自动填充剩余空间 */
+  min-height: 0; /* 允许flex子元素收缩 */
 }
