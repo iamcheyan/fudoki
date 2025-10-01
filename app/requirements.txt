@@ -1,5 +1,0 @@
-requests>=2.25.1
-beautifulsoup4>=4.9.3
-lxml>=4.6.3
-flask>=2.0.1
-flask-cors>=3.0.10

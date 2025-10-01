@@ -795,3 +795,25 @@ select, input[type="range"] {
   padding-top: 16px;
   border-top: 1px solid #e0e0e0;
 }
+
+.article-debug {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+  margin: 12px 0;
+  font-size: 12px;
+}
+
+.article-debug code {
+  display: block;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  padding: 8px;
+  margin-top: 4px;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 11px;
+  color: #333;
+}

@@ -4,8 +4,9 @@
   "description": "纯JS版本的日语学习工具，支持分词和语音朗读",
   "main": "index.html",
   "scripts": {
-    "start": "python -m http.server 8000",
-    "dev": "python -m http.server 8000"
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000",
+    "serve": "python3 -m http.server 8000"
   },
   "dependencies": {
     "jmdict-simplified-node": "^1.1.2",
