@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单测试</title>
+</head>
+<body>
+    <h1>分词器简单测试</h1>
+    <div id="output"></div>
+
+    <script src="/static/libs/kuromoji.js"></script>
+    <script>
+        setTimeout(() => {
+            const output = document.getElementById('output');
+            output.innerHTML = `
+                <p>kuromoji类型: ${typeof window.kuromoji}</p>
+                <p>kuromoji存在: ${window.kuromoji ? '是' : '否'}</p>
+            `;
+            
+            if (window.kuromoji) {
+                try {
+                    const tokenizer = window.kuromoji.tokenizer();
+                    const tokens = tokenizer.tokenize('私は学生です');
+                    output.innerHTML += `<p>分词成功: ${JSON.stringify(tokens)}</p>`;
+                } catch (e) {
+                    output.innerHTML += `<p>分词失败: ${e.message}</p>`;
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

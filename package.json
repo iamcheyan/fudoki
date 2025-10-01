@@ -1,0 +1,21 @@
+{
+  "name": "fudoki-js",
+  "version": "1.0.0",
+  "description": "纯JS版本的日语学习工具，支持分词和语音朗读",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000"
+  },
+  "dependencies": {
+    "kuromoji": "^0.1.2",
+    "kuroshiro": "^1.2.0",
+    "kuroshiro-analyzer-kuromoji": "^1.1.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": ["japanese", "morphological-analysis", "tts", "learning"],
+  "author": "Cheyan",
+  "license": "MIT"
+}
