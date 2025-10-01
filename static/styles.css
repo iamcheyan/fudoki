@@ -643,7 +643,7 @@ input:focus, textarea:focus, select:focus {
 
 /* 工具栏拖拽手柄 */
 .toolbar-header {
-  background: linear-gradient(135deg, var(--primary), #0052a3);
+  background: linear-gradient(135deg, var(--primary), #463201);
   color: white;
   padding: 12px 16px;
   cursor: move;
