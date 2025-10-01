@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 Fudoki - 日语文本分析工具</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      /* 浮动粒子背景 */
+      .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+        50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* 顶部导航栏 */
+      .navbar {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-brand h1 {
+        color: white;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .nav-subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        margin-left: 10px;
+      }
+
+      .nav-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .nav-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      /* 主要内容区域 - 修改为两栏布局，增加中间内容区域宽度 */
+      .main-content {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 30px;
+        flex: 1;
+      }
+
+      /* 侧边栏 */
+      .sidebar {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        height: fit-content;
+      }
+
+      .sidebar h3 {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sidebar-btn {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+      }
+
+      .sidebar-btn.active {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+
+      .sidebar-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      /* 侧边栏分区 */
+      .sidebar-section {
+        margin-bottom: 30px;
+      }
+
+      .sidebar-section:last-child {
+        margin-bottom: 0;
+      }
+
+      /* 中央内容区域 */
+      .content-area {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+
+      /* 输入区域 */
+      .input-section {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 15px;
+        align-items: flex-end;
+      }
+
+      #textInput {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        padding: 20px;
+        font-size: 16px;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 120px;
+        transition: all 0.3s ease;
+      }
+
+      #textInput:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.6);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      }
+
+      .analyze-btn {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        border: none;
+        border-radius: 15px;
+        padding: 20px 30px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+      }
+
+      .analyze-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(72, 187, 120, 0.6);
+      }
+
+      /* 结果区域 */
+      .results-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .section-header h2 {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .results-content {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: 300px;
+        overflow-y: auto;
+      }
+
+      /* 语音控制 */
+      .voice-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .voice-controls label {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      .voice-select {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        padding: 10px;
+        color: white;
+        font-size: 0.9rem;
+      }
+
+      .voice-controls-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .speed-range {
+        flex: 1;
+        accent-color: #667eea;
+      }
+
+      #speedValue {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 500;
+        min-width: 40px;
+      }
+
+      /* 通知系统 */
+      .notifications {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .notification {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid #48bb78;
+        animation: slideIn 0.3s ease;
+        max-width: 300px;
+      }
+
+      .notification.warning {
+        border-left-color: #ed8936;
+      }
+
+      .notification.error {
+        border-left-color: #e53e3e;
+      }
+
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+
+      /* 按行显示的样式 */
+      .line-container {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+        margin: 8px 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .line-container:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+      }
+
+      .token-pill {
+        position: relative;
+        display: inline-block;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .token-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      }
+
+      .token-pill.active {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        box-shadow: 0 4px 20px rgba(72, 187, 120, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .pos-tag {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 8px;
+        margin-left: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .token-details {
+        position: fixed;
+        background: rgba(255, 255, 255, 0.98);
+        color: #2d3748;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 8px;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(30px);
+        z-index: 9999;
+        min-width: 280px;
+        max-width: 350px;
+        font-size: 12px;
+        line-height: 1.4;
+        transform: translateY(5px);
+      }
+
+      .detail-item {
+        margin-bottom: 8px;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      .detail-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+
+      .detail-item strong {
+        color: #4a5568;
+        font-weight: 600;
+        margin-right: 8px;
+      }
+
+      .play-token-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+      }
+
+      .play-token-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5);
+      }
+
+      .furigana {
+        position: absolute;
+        top: -18px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        color: #a0aec0;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      .play-line-btn {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        transition: all 0.3s ease;
+        margin-left: auto;
+        box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+      }
+
+      .play-line-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 16px rgba(72, 187, 120, 0.4);
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 1200px) {
+        .main-content {
+          grid-template-columns: 280px 1fr;
+          gap: 20px;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .main-content {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        
+        .sidebar {
+          order: 2;
+        }
+        
+        .content-area {
+          order: 1;
+        }
+      }
+    </style>
+</head>
+<body>
+    <!-- 背景粒子效果 -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <div class="container">
+      <!-- 顶部导航栏 -->
+      <nav class="navbar">
+        <div class="nav-brand">
+          <h1>🌸 Fudoki</h1>
+          <span class="nav-subtitle">日语文本分析工具</span>
+        </div>
+        <div class="nav-actions">
+          <button id="playAllBtn" class="nav-btn" title="播放全部文本">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <div class="main-content">
+        <!-- 左侧边栏 - 合并文档管理和语音控制 -->
+        <aside class="sidebar">
+          <!-- 文档管理区域 -->
+          <div class="sidebar-section">
+            <h3>📝 文档管理</h3>
+            <div class="document-list" id="documentList">
+              <!-- 文档列表将在这里动态生成 -->
+            </div>
+            <button id="newDocBtn" class="sidebar-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+              </svg>
+              新建文档
+            </button>
+          </div>
+
+          <!-- 语音控制区域 -->
+          <div class="sidebar-section">
+            <h3>🔊 语音设置</h3>
+            <div class="voice-controls">
+              <label for="voiceSelect">选择语音:</label>
+              <select id="voiceSelect" class="voice-select">
+                <option value="">默认语音</option>
+              </select>
+              <div class="voice-controls-row">
+                <label for="speedRange">语速:</label>
+                <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1" class="speed-range">
+                <span id="speedValue">1.0x</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- 中央内容区域 - 现在占据更大宽度 -->
+        <main class="content-area">
+          <div class="input-section">
+            <div class="input-group">
+              <textarea 
+                id="textInput" 
+                placeholder="在此输入日语文本进行分析..."
+                rows="4"
+              ></textarea>
+              <button id="analyzeBtn" class="analyze-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+                </svg>
+                分析文本
+              </button>
+            </div>
+          </div>
+
+          <div class="results-section">
+            <div class="section-header">
+              <h2>📊 分析结果</h2>
+            </div>
+            <div id="content" class="results-content">
+              <div style="text-align: center; color: #a0aec0; padding: 2rem;">
+                <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.5;" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7,13H17V11H7"/>
+                </svg>
+                <p>在上方输入日语文本，点击"分析文本"开始处理</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- 通知容器 -->
+    <div id="notifications" class="notifications"></div>
+
+    <!-- JavaScript 库 -->
+    <script src="/static/libs/static/libs/kuromoji.js"></script>
+    <script src="/static/libs/static/libs/kuroshiro.min.js"></script>
+    <script src="/static/libs/static/libs/kuroshiro-analyzer-kuromoji.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 应用脚本 -->
+    <script src="/static/segmenter.js"></script>
+    <script src="/static/main-js.js"></script>
+
+    <script>
+      // Tailwind 配置
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof tailwind !== 'undefined') {
+          tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                  primary: '#667eea',
+                  secondary: '#764ba2'
+                }
+              }
+            }
+          };
+        }
+        
+        // 创建浮动粒子效果
+        createParticles();
+      });
+      
+      function createParticles() {
+        const particlesContainer = document.querySelector('.particles');
+        const particleCount = 50;
+        
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.top = Math.random() * 100 + '%';
+          particle.style.animationDelay = Math.random() * 6 + 's';
+          particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+          particlesContainer.appendChild(particle);
+        }
+      }
+    </script>
+</body>
+</html>
