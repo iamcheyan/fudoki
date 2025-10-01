@@ -1543,6 +1543,150 @@
   // 初始化显示控制
   initDisplayControls();
 
+  // 工具栏拖拽功能
+  function initToolbarDrag() {
+    const toolbar = document.querySelector('.sidebar-right');
+    const toolbarHeader = document.querySelector('.toolbar-header');
+    const minimizeBtn = document.querySelector('.toolbar-minimize-btn');
+    const toolbarContent = document.querySelector('.toolbar-content');
+    
+    if (!toolbar || !toolbarHeader) return;
+    
+    let isDragging = false;
+    let dragOffset = { x: 0, y: 0 };
+    let isMinimized = false;
+    
+    // 拖拽开始
+    function startDrag(e) {
+      // 如果点击的是最小化按钮，不开始拖拽
+      if (e.target.closest('.toolbar-minimize-btn')) return;
+      
+      isDragging = true;
+      const rect = toolbar.getBoundingClientRect();
+      dragOffset.x = e.clientX - rect.left;
+      dragOffset.y = e.clientY - rect.top;
+      
+      toolbar.style.transition = 'none';
+      document.body.style.userSelect = 'none';
+      
+      e.preventDefault();
+    }
+    
+    // 拖拽中
+    function drag(e) {
+      if (!isDragging) return;
+      
+      const x = e.clientX - dragOffset.x;
+      const y = e.clientY - dragOffset.y;
+      
+      // 限制在视窗范围内
+      const maxX = window.innerWidth - toolbar.offsetWidth;
+      const maxY = window.innerHeight - toolbar.offsetHeight;
+      
+      const constrainedX = Math.max(0, Math.min(x, maxX));
+      const constrainedY = Math.max(0, Math.min(y, maxY));
+      
+      toolbar.style.left = constrainedX + 'px';
+      toolbar.style.top = constrainedY + 'px';
+      toolbar.style.right = 'auto';
+      
+      e.preventDefault();
+    }
+    
+    // 拖拽结束
+    function endDrag() {
+      if (!isDragging) return;
+      
+      isDragging = false;
+      toolbar.style.transition = '';
+      document.body.style.userSelect = '';
+      
+      // 保存位置到本地存储
+      const rect = toolbar.getBoundingClientRect();
+      localStorage.setItem('toolbarPosition', JSON.stringify({
+        left: rect.left,
+        top: rect.top
+      }));
+    }
+    
+    // 最小化/展开功能
+    function toggleMinimize() {
+      isMinimized = !isMinimized;
+      
+      if (isMinimized) {
+        toolbarContent.style.display = 'none';
+        toolbar.style.height = 'auto';
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></svg>';
+        minimizeBtn.title = '展开';
+      } else {
+        toolbarContent.style.display = 'block';
+        toolbar.style.height = '';
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H5v-2h14v2z"/></svg>';
+        minimizeBtn.title = '最小化';
+      }
+      
+      localStorage.setItem('toolbarMinimized', isMinimized);
+    }
+    
+    // 恢复保存的位置和状态
+    function restoreToolbarState() {
+      const savedPosition = localStorage.getItem('toolbarPosition');
+      const savedMinimized = localStorage.getItem('toolbarMinimized');
+      
+      if (savedPosition) {
+        try {
+          const position = JSON.parse(savedPosition);
+          // 确保位置在视窗范围内
+          const maxX = window.innerWidth - toolbar.offsetWidth;
+          const maxY = window.innerHeight - toolbar.offsetHeight;
+          
+          const x = Math.max(0, Math.min(position.left, maxX));
+          const y = Math.max(0, Math.min(position.top, maxY));
+          
+          toolbar.style.left = x + 'px';
+          toolbar.style.top = y + 'px';
+          toolbar.style.right = 'auto';
+        } catch (e) {
+          console.warn('Failed to restore toolbar position:', e);
+        }
+      }
+      
+      if (savedMinimized === 'true') {
+        toggleMinimize();
+      }
+    }
+    
+    // 绑定事件
+    toolbarHeader.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', endDrag);
+    
+    if (minimizeBtn) {
+      minimizeBtn.addEventListener('click', toggleMinimize);
+    }
+    
+    // 窗口大小改变时重新约束位置
+    window.addEventListener('resize', () => {
+      if (toolbar.style.left && toolbar.style.top) {
+        const rect = toolbar.getBoundingClientRect();
+        const maxX = window.innerWidth - toolbar.offsetWidth;
+        const maxY = window.innerHeight - toolbar.offsetHeight;
+        
+        const x = Math.max(0, Math.min(rect.left, maxX));
+        const y = Math.max(0, Math.min(rect.top, maxY));
+        
+        toolbar.style.left = x + 'px';
+        toolbar.style.top = y + 'px';
+      }
+    });
+    
+    // 初始化时恢复状态
+    setTimeout(restoreToolbarState, 100);
+  }
+  
+  // 初始化工具栏拖拽
+  initToolbarDrag();
+
   // 初始语言应用（双重保障）
   applyI18n();
   setTimeout(applyI18n, 0);

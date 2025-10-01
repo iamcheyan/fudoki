@@ -345,6 +345,9 @@ body {
   border-bottom: 1px solid #f0f0f0;
   position: relative;
 }
+.line-container:hover {
+  background: #fef;
+}
 
 .line-container:last-child {
   border-bottom: none;
@@ -556,17 +559,75 @@ body {
   font-size: 11px;
 }
 
-/* 右侧边栏 - 语音控制 */
+/* 右侧边栏 - 语音控制工具栏 */
 .sidebar-right {
   position: fixed;
-  top: 60px; /* 头部高度 */
-  right: 0;
-  width: 180px;
-  height: calc(100vh - 60px);
+  top: 80px; /* 头部高度 + 间距 */
+  right: 20px;
+  width: 220px;
+  max-height: 500px;
   background: var(--bg);
-  padding: 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 1000;
+  cursor: move;
+  user-select: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.sidebar-right:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+/* 工具栏拖拽手柄 */
+.toolbar-header {
+  background: linear-gradient(135deg, var(--primary), #0052a3);
+  color: white;
+  padding: 12px 16px;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-drag-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+.toolbar-minimize-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.toolbar-minimize-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 工具栏内容区域 */
+.toolbar-content {
+  padding: 16px;
+  max-height: 420px;
   overflow-y: auto;
-  z-index: 100;
 }
 
 .voice-controls {
@@ -708,8 +769,25 @@ select, input[type="range"] {
     gap: 0;
   }
   
-  .sidebar-left, .sidebar-right {
+  .sidebar-left {
     display: none;
+  }
+  
+  /* 移动端工具栏调整 */
+  .sidebar-right {
+    width: 200px;
+    max-height: 400px;
+    top: 60px;
+    right: 10px;
+  }
+  
+  .toolbar-header {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  
+  .toolbar-content {
+    padding: 12px;
   }
   
   .header-content {

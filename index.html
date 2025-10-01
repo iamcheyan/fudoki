@@ -70,48 +70,64 @@
 
     <!-- 右侧边栏 - 语音控制 -->
     <aside class="sidebar-right">
-      <div class="sidebar-title" id="voiceTitle">语音设置</div>
-      
-      <div class="voice-controls">
-        <div class="control-group">
-          <label class="control-label" id="voiceSelectLabel">语音选择</label>
-          <select id="voiceSelect">
-            <option value="">选择语音...</option>
-          </select>
+      <!-- 工具栏标题栏 -->
+      <div class="toolbar-header">
+        <div class="toolbar-title">
+          <svg class="toolbar-drag-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+          </svg>
+          <span id="voiceTitle">语音工具栏</span>
         </div>
-
-        <div class="control-group">
-          <label class="control-label" id="speedLabel">语速调节</label>
-          <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
-          <div class="speed-display" id="speedValue">1.0x</div>
-        </div>
-
-        <button class="play-all-btn" id="playAllBtn">播放全文</button>
+        <button class="toolbar-minimize-btn" id="toolbarMinimize" title="最小化">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 13H5v-2h14v2z"/>
+          </svg>
+        </button>
       </div>
-
-      <div class="sidebar-title" style="margin-top: 20px;" id="displayTitle">显示设置</div>
       
-      <div class="display-controls">
-        <div class="control-group">
-          <label class="control-label" id="showKanaLabel">
-            <input type="checkbox" id="showKana" checked>
-            显示假名
-          </label>
+      <!-- 工具栏内容 -->
+      <div class="toolbar-content">
+        <div class="voice-controls">
+          <div class="control-group">
+            <label class="control-label" id="voiceSelectLabel">语音选择</label>
+            <select id="voiceSelect">
+              <option value="">选择语音...</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" id="speedLabel">语速调节</label>
+            <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
+            <div class="speed-display" id="speedValue">1.0x</div>
+          </div>
+
+          <button class="play-all-btn" id="playAllBtn">播放全文</button>
         </div>
+
+        <div class="sidebar-title" style="margin-top: 20px;" id="displayTitle">显示设置</div>
         
-        <div class="control-group">
-          <label class="control-label" id="showRomajiLabel">
-            <input type="checkbox" id="showRomaji" checked>
-            显示罗马音
-          </label>
-        </div>
-        
-        
-        <div class="control-group">
-          <label class="control-label" id="showPosLabel">
-            <input type="checkbox" id="showPos" checked>
-            显示词性
-          </label>
+        <div class="display-controls">
+          <div class="control-group">
+            <label class="control-label" id="showKanaLabel">
+              <input type="checkbox" id="showKana" checked>
+              显示假名
+            </label>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" id="showRomajiLabel">
+              <input type="checkbox" id="showRomaji" checked>
+              显示罗马音
+            </label>
+          </div>
+          
+          
+          <div class="control-group">
+            <label class="control-label" id="showPosLabel">
+              <input type="checkbox" id="showPos" checked>
+              显示词性
+            </label>
+          </div>
         </div>
       </div>
     </aside>
