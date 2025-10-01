@@ -1,0 +1,735 @@
+/* 日本文本分析工坊 - 样式文件 */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  background: #ffffff;
+  color: #333333;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* 顶部导航栏 - 日式简约 */
+.header {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  text-decoration: none;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.nav-item {
+  color: #666;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* 主要布局 - 紧凑型三栏 */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 200px 1fr 180px;
+  gap: 1px;
+  background: #e0e0e0;
+  min-height: calc(100vh - 60px);
+}
+
+/* 左侧边栏 - 文档管理 */
+.sidebar-left {
+  background: #ffffff;
+  padding: 16px 12px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.doc-list {
+  list-style: none;
+}
+
+.doc-item {
+  padding: 6px 8px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  border-left: 2px solid transparent;
+}
+
+.doc-item:hover {
+  background: #f8f8f8;
+  color: #333;
+}
+
+.doc-item.active {
+  background: #f0f8ff;
+  color: #0066cc;
+  border-left-color: #0066cc;
+}
+
+.new-doc-btn {
+  width: 100%;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  color: #666;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 2px;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+}
+
+.new-doc-btn:hover {
+  background: #f5f5f5;
+  border-color: #bbb;
+}
+
+/* 主内容区域 */
+.content-main {
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 输入区域 - 紧凑设计 */
+.input-section {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.input-group {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+#textInput {
+  flex: 1;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  border-radius: 2px;
+  background: #ffffff;
+}
+
+#textInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 1px #0066cc;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: #ffffff;
+  color: #333;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: #f5f5f5;
+  border-color: #bbb;
+}
+
+.btn-primary {
+  background: #0066cc;
+  color: white;
+  border-color: #0066cc;
+}
+
+.btn-primary:hover {
+  background: #0052a3;
+}
+
+/* 结果显示区域 */
+.content-area {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* 行容器 - 简洁线条风格 */
+.line-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+}
+
+.line-container:last-child {
+  border-bottom: none;
+}
+
+/* 词汇标签 - 日式简约 */
+.token-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ddd;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 2px;
+  flex-direction: column;
+  min-width: 60px;
+  text-align: center;
+}
+
+.token-pill:hover {
+  background: #f8f8f8;
+  border-color: #bbb;
+}
+
+.token-pill.active {
+  background: #e6f3ff;
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.token-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.token-kana {
+  font-size: 10px;
+  color: #666;
+  min-height: 12px;
+}
+
+.token-romaji {
+  font-size: 9px;
+  color: #999;
+  font-style: italic;
+  min-height: 11px;
+}
+
+.token-kanji {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.token-pos {
+  font-size: 8px;
+  color: #999;
+  background: #f5f5f5;
+  padding: 1px 3px;
+  border-radius: 2px;
+  margin-top: 1px;
+}
+
+.pos-tag {
+  font-size: 10px;
+  color: #999;
+  margin-left: 4px;
+  padding: 1px 3px;
+  background: #f5f5f5;
+  border-radius: 2px;
+}
+
+/* 隐藏空内容的元素 */
+.token-kana:empty,
+.token-romaji:empty {
+  display: none !important;
+}
+
+/* 当所有内容都隐藏时，确保卡片仍然可见 */
+.token-pill .token-content:empty::after {
+  content: "•";
+  color: #ccc;
+  font-size: 12px;
+}
+
+/* 详细信息面板 */
+.token-details {
+  position: fixed;
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 12px;
+  z-index: 9999;
+  min-width: 240px;
+  max-width: 300px;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.detail-item {
+  margin-bottom: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.detail-item strong {
+  color: #666;
+  font-weight: 600;
+  margin-right: 6px;
+  font-size: 11px;
+}
+
+/* 右侧边栏 - 语音控制 */
+.sidebar-right {
+  background: #ffffff;
+  padding: 16px 12px;
+  border-left: 1px solid #e0e0e0;
+}
+
+.voice-controls {
+  margin-bottom: 16px;
+}
+
+.control-group {
+  margin-bottom: 12px;
+}
+
+.control-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.control-label input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+select, input[type="range"] {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.speed-display {
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.play-all-btn {
+  width: 100%;
+  padding: 8px;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 2px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+}
+
+.play-all-btn:hover {
+  background: #0052a3;
+}
+
+.display-controls {
+  margin-top: 8px;
+}
+
+.display-controls .control-group {
+  margin-bottom: 8px;
+}
+
+.display-controls .control-label {
+  font-weight: normal;
+  font-size: 12px;
+}
+
+/* 播放按钮 */
+.play-line-btn {
+  background: none;
+  border: 1px solid #ddd;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
+  margin-left: auto;
+  border-radius: 2px;
+}
+
+.play-line-btn:hover {
+  background: #f5f5f5;
+  border-color: #bbb;
+}
+
+.play-token-btn {
+  background: none;
+  border: 1px solid #ddd;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
+  margin-top: 6px;
+  border-radius: 2px;
+}
+
+.play-token-btn:hover {
+  background: #f5f5f5;
+}
+
+/* 加载和错误状态 */
+.loading {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f0f0f0;
+  border-top: 2px solid #0066cc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-state, .error-state {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 13px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-container {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .sidebar-left, .sidebar-right {
+    display: none;
+  }
+  
+  .header-content {
+    padding: 0 12px;
+  }
+}
+
+/* 翻译功能样式 */
+.translation-item {
+  background: #f8f9fa;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 6px 0;
+}
+
+.translation-content {
+  display: block;
+  margin-top: 4px;
+}
+
+.main-translation {
+  color: #0066cc;
+  font-weight: 500;
+}
+
+.expand-translation-btn {
+  background: none;
+  border: none;
+  color: #0066cc;
+  cursor: pointer;
+  font-size: 11px;
+  text-decoration: underline;
+  margin-left: 8px;
+  padding: 0;
+}
+
+.expand-translation-btn:hover {
+  color: #004499;
+}
+
+.translation-kana {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* 翻译模态框样式 */
+.translation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.translation-modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.translation-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.translation-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-modal-btn:hover {
+  color: #666;
+}
+
+.translation-modal-body {
+  padding: 20px;
+}
+
+.sense-item {
+  display: flex;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sense-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sense-number {
+  font-weight: bold;
+  color: #0066cc;
+  margin-right: 12px;
+  min-width: 20px;
+}
+
+.sense-content {
+  flex: 1;
+}
+
+.sense-gloss {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.sense-pos, .sense-field, .sense-misc, .sense-chinese {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.sense-pos {
+  color: #0066cc;
+}
+
+.sense-field {
+  color: #ff6b35;
+}
+
+.sense-misc {
+  color: #666;
+  font-style: italic;
+}
+
+.sense-chinese {
+  color: #e74c3c;
+  font-weight: 500;
+}
+
+/* NHK新闻样式 */
+.nhk-controls {
+  margin-top: 8px;
+}
+
+.nhk-news-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  background: #fafafa;
+}
+
+.nhk-news-item {
+  padding: 8px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.nhk-news-item:hover {
+  background: #f8f8f8;
+}
+
+.nhk-news-item:last-child {
+  border-bottom: none;
+}
+
+.nhk-news-title {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.nhk-news-meta {
+  font-size: 10px;
+  color: #999;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nhk-news-category {
+  background: #e6f3ff;
+  color: #0066cc;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 9px;
+}
+
+.nhk-news-date {
+  color: #999;
+}
+
+.nhk-loading {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-size: 12px;
+}
+
+.nhk-error {
+  text-align: center;
+  padding: 20px;
+  color: #e74c3c;
+  font-size: 12px;
+}
+
+.nhk-category-section {
+  margin-bottom: 12px;
+}
+
+.nhk-category-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  background: #f0f0f0;
+  border-radius: 2px;
+}

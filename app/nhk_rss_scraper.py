@@ -12,6 +12,7 @@ from urllib.parse import urljoin, urlparse
 import json
 from typing import Dict, List, Tuple
 import xml.etree.ElementTree as ET
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
@@ -345,8 +346,12 @@ def main():
     # 可选：保存到JSON文件
     # scraper.save_to_json()
 
-def run_api(host='127.0.0.1', port=5000, debug=True):
+def run_api(host='127.0.0.1', port=None, debug=False):
     """运行API服务器"""
+    # 从环境变量获取端口，如果没有则使用默认值
+    if port is None:
+        port = int(os.environ.get('FLASK_PORT', 5000))
+    
     print(f"启动NHK RSS API服务器...")
     print(f"API地址: http://{host}:{port}")
     print(f"文章接口: http://{host}:{port}/api/nhk/articles")
