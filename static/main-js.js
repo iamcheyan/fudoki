@@ -362,6 +362,16 @@
       if (autoOption) autoOption.textContent = t('themeAuto');
     }
 
+    // 更新侧边栏主题选择选项的文本
+    if (sidebarThemeSelect) {
+      const sidebarLightOption = sidebarThemeSelect.querySelector('option[value="light"]');
+      const sidebarDarkOption = sidebarThemeSelect.querySelector('option[value="dark"]');
+      const sidebarAutoOption = sidebarThemeSelect.querySelector('option[value="auto"]');
+      if (sidebarLightOption) sidebarLightOption.textContent = t('themeLight');
+      if (sidebarDarkOption) sidebarDarkOption.textContent = t('themeDark');
+      if (sidebarAutoOption) sidebarAutoOption.textContent = t('themeAuto');
+    }
+
     const emptyText = $('emptyText');
     if (emptyText) emptyText.textContent = t('emptyText');
 
