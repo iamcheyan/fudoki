@@ -6,6 +6,24 @@
   box-sizing: border-box;
 }
 
+/* 桌面端样式 */
+@media (min-width: 769px) {
+  /* 隐藏移动端设置按钮 */
+  .mobile-settings-btn {
+    display: none !important;
+  }
+  
+  /* 隐藏设置弹窗 */
+  .settings-modal {
+    display: none !important;
+  }
+  
+  /* 显示桌面端sidebar-right */
+  .sidebar-right {
+    display: flex !important;
+  }
+}
+
 /* 主题变量 */
 :root {
   --bg: #ffffff;
@@ -134,6 +152,58 @@ body {
   height: 20px;
 }
 
+/* 移动端播放按钮 */
+.mobile-play-btn {
+  display: none; /* 默认隐藏，只在移动端显示 */
+  position: absolute;
+  right: -96px; /* 位于设置按钮左侧 */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-play-btn:hover {
+  background-color: var(--elevated);
+}
+
+.mobile-play-btn .play-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* 移动端设置按钮 */
+.mobile-settings-btn {
+  display: none; /* 默认隐藏，只在移动端显示 */
+  position: absolute;
+  right: -48px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-settings-btn:hover {
+  background-color: var(--elevated);
+}
+
+.mobile-settings-btn .settings-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .nav-menu {
   display: flex;
   gap: 24px;
@@ -255,6 +325,108 @@ body {
   .mobile-menu-btn {
     left: 10px;
   }
+  
+  /* 移动端播放按钮显示 */
+  .mobile-play-btn {
+    display: block;
+    right: 58px; /* 位于设置按钮左侧 */
+  }
+  
+  /* 移动端设置按钮显示 */
+  .mobile-settings-btn {
+    display: block;
+    right: 10px;
+  }
+  
+  /* 设置弹窗样式 */
+  .settings-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .settings-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+  }
+  
+  .settings-modal-content {
+    background: var(--bg);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+  }
+  
+  .settings-modal.show .settings-modal-content {
+    transform: scale(1);
+  }
+  
+  .settings-modal-header {
+    background: linear-gradient(135deg, var(--primary), #463201);
+    color: white;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .settings-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  
+  .settings-modal-title .settings-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .settings-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .settings-modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .settings-modal .toolbar-content {
+    padding: 20px;
+    max-height: calc(80vh - 80px);
+    overflow-y: auto;
+  }
+  
+  /* 隐藏桌面端的sidebar-right在移动端 */
+   .sidebar-right {
+     display: none !important;
+   }
+
+   .logo-icon {
+    width: 38px;
+    height: auto;
+   }
   /* 头部导航 */
   .header {
     padding: 12px 0;
@@ -336,11 +508,23 @@ body {
   
   /* 右侧工具栏移动端适配 */
   .sidebar-right {
-    top: 60px;
-    right: 12px;
-    left: 12px;
-    width: auto;
-    max-height: 60vh;
+    position: fixed;
+    top: 80px;
+    right: 10px; /* 改为默认显示，而不是隐藏 */
+    left: auto;
+    width: 280px;
+    max-height: 70vh;
+    z-index: 999;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px 0 0 12px;
+    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
+    transition: right 0.3s ease;
+    overflow-y: auto;
+  }
+  
+  .sidebar-right.show {
+    right: 0;
   }
   
   .toolbar-header {
@@ -998,10 +1182,10 @@ input:focus, textarea:focus, select:focus {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--bg);
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1012,6 +1196,7 @@ input:focus, textarea:focus, select:focus {
 .lang-select:focus {
   border-color: var(--primary);
   outline: none;
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 /* 调整原有控件样式 */
@@ -1196,6 +1381,7 @@ select, input[type="range"] {
     padding: 0 12px 0 60px;
     flex-wrap: nowrap;
     position: relative;
+    justify-content: unset;
   }
   
   .nav-menu {

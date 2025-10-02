@@ -18,6 +18,20 @@
         </svg>
       </button>
       
+      <!-- 移动端播放按钮 -->
+      <button class="mobile-play-btn" id="mobilePlayBtn" title="播放全文">
+        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </button>
+      
+      <!-- 移动端设置按钮 -->
+      <button class="mobile-settings-btn" id="mobileSettingsBtn" title="打开设置">
+        <svg class="settings-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+        </svg>
+      </button>
+      
       <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
       <nav class="nav-menu">
         <a href="https://kotoba.iamcheyan.com/" target="_blank" class="nav-item" >kotoba</a>
@@ -63,119 +77,228 @@
       </section>
     </main>
 
-    <!-- 右侧边栏 - 语音控制 -->
-    <aside class="sidebar-right" id="sidebar-right">
-      <!-- 工具栏标题栏 -->
-      <div class="toolbar-header">
-        <div class="toolbar-title">
-          <svg class="toolbar-drag-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-          </svg>
-          <span id="voiceTitle">系统设置</span>
+    <!-- 设置弹窗 -->
+    <div class="settings-modal" id="settingsModal">
+      <div class="settings-modal-content">
+        <!-- 弹窗标题栏 -->
+        <div class="settings-modal-header">
+          <div class="settings-modal-title">
+            <svg class="settings-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+            </svg>
+            <span id="voiceTitle">系统设置</span>
+          </div>
+          <button class="settings-modal-close" id="settingsModalClose" title="关闭">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
         </div>
-        <button class="toolbar-minimize-btn" id="toolbarMinimize" title="最小化">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-          </svg>
-        </button>
-      </div>
       
       <!-- 工具栏内容 -->
-      <div class="toolbar-content">
-        <!-- 语音设置 -->
-        <div class="settings-section">
-          <div class="sidebar-title" id="voiceSettingsTitle">语音设置</div>
-          <div class="voice-controls">
-            <div class="control-group">
-              <label class="control-label" id="voiceSelectLabel">语音选择</label>
-              <select id="voiceSelect">
-                <option value="">选择语音...</option>
-              </select>
-            </div>
+       <div class="toolbar-content">
+         <!-- 语音设置 -->
+         <div class="settings-section">
+           <div class="sidebar-title" id="voiceSettingsTitle">语音设置</div>
+           <div class="voice-controls">
+             <div class="control-group">
+               <label class="control-label" id="voiceSelectLabel">语音选择</label>
+               <select id="voiceSelect">
+                 <option value="">选择语音...</option>
+               </select>
+             </div>
 
-            <div class="control-group">
-              <label class="control-label" id="speedLabel">语速调节</label>
-              <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
-              <div class="speed-display" id="speedValue">1.0x</div>
-            </div>
+             <div class="control-group">
+               <label class="control-label" id="speedLabel">语速调节</label>
+               <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
+               <div class="speed-display" id="speedValue">1.0x</div>
+             </div>
 
-            <button class="play-all-btn" id="playAllBtn">播放全文</button>
-          </div>
-        </div>
+             <button class="play-all-btn" id="playAllBtn">播放全文</button>
+           </div>
+         </div>
 
-        <!-- 显示设置 -->
-        <div class="settings-section">
-          <div class="sidebar-title" id="displayTitle">显示设置</div>
-          <div class="display-controls">
-            <div class="control-group">
-              <label class="control-label" id="showKanaLabel">
-                <input type="checkbox" id="showKana" checked>
-                显示假名
-              </label>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="showRomajiLabel">
-                <input type="checkbox" id="showRomaji" checked>
-                显示罗马音
-              </label>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="showPosLabel">
-                <input type="checkbox" id="showPos" checked>
-                显示词性
-              </label>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="autoReadLabel">
-                <input type="checkbox" id="autoRead">
-                自动朗读
-              </label>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="repeatPlayLabel">
-                <input type="checkbox" id="repeatPlay">
-                重复播放
-              </label>
-            </div>
-          </div>
-        </div>
+         <!-- 显示设置 -->
+         <div class="settings-section">
+           <div class="sidebar-title" id="displayTitle">显示设置</div>
+           <div class="display-controls">
+             <div class="control-group">
+               <label class="control-label" id="showKanaLabel">
+                 <input type="checkbox" id="showKana" checked>
+                 显示假名
+               </label>
+             </div>
+             
+             <div class="control-group">
+               <label class="control-label" id="showRomajiLabel">
+                 <input type="checkbox" id="showRomaji" checked>
+                 显示罗马音
+               </label>
+             </div>
+             
+             <div class="control-group">
+               <label class="control-label" id="showPosLabel">
+                 <input type="checkbox" id="showPos" checked>
+                 显示词性
+               </label>
+             </div>
+             
+             <div class="control-group">
+               <label class="control-label" id="autoReadLabel">
+                 <input type="checkbox" id="autoRead">
+                 自动朗读
+               </label>
+             </div>
+             
+             <div class="control-group">
+               <label class="control-label" id="repeatPlayLabel">
+                 <input type="checkbox" id="repeatPlay">
+                 重复播放
+               </label>
+             </div>
+           </div>
+         </div>
 
-        <!-- 系统设置 -->
-        <div class="settings-section">
-          <div class="sidebar-title" id="systemTitle">系统设置</div>
-          <div class="system-controls">
-            <div class="control-group">
-              <label class="control-label" id="themeLabel">主题模式</label>
-              <select id="themeSelect" class="theme-select">
-                <option value="light">浅色模式</option>
-                <option value="dark">深色模式</option>
-                <option value="auto">跟随系统</option>
-              </select>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="langLabel">界面语言</label>
-              <select id="langSelect" class="lang-select">
-                <option value="ja">日本語</option>
-                <option value="en">English</option>
-                <option value="zh">中文</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 高度调整手柄 -->
-      <div class="toolbar-resize-handle" id="toolbarResizeHandle" title="拖拽调整高度">
-        <div class="resize-handle-line"></div>
-        <div class="resize-handle-line"></div>
-        <div class="resize-handle-line"></div>
-      </div>
-    </aside>
+         <!-- 系统设置 -->
+         <div class="settings-section">
+           <div class="sidebar-title" id="systemTitle">系统设置</div>
+           <div class="system-controls">
+             <div class="control-group">
+               <label class="control-label" id="themeLabel">主题模式</label>
+               <select id="themeSelect" class="theme-select">
+                 <option value="light">浅色模式</option>
+                 <option value="dark">深色模式</option>
+                 <option value="auto">跟随系统</option>
+               </select>
+             </div>
+             
+             <div class="control-group">
+               <label class="control-label" id="langLabel">界面语言</label>
+               <select id="langSelect" class="lang-select">
+                 <option value="ja">日本語</option>
+                 <option value="en">English</option>
+                 <option value="zh">中文</option>
+               </select>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
+
+   <!-- 右侧边栏 - 语音控制 (保留桌面端使用) -->
+   <aside class="sidebar-right" id="sidebar-right">
+     <!-- 工具栏标题栏 -->
+     <div class="toolbar-header">
+       <div class="toolbar-title">
+         <svg class="toolbar-drag-icon" viewBox="0 0 24 24" fill="currentColor">
+           <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+         </svg>
+         <span id="voiceTitle">系统设置</span>
+       </div>
+       <button class="toolbar-minimize-btn" id="toolbarMinimize" title="最小化">
+         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+           <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+         </svg>
+       </button>
+     </div>
+     
+     <!-- 工具栏内容 -->
+     <div class="toolbar-content">
+       <!-- 语音设置 -->
+       <div class="settings-section">
+         <div class="sidebar-title" id="voiceSettingsTitle">语音设置</div>
+         <div class="voice-controls">
+           <div class="control-group">
+             <label class="control-label" id="voiceSelectLabel">语音选择</label>
+             <select id="voiceSelect">
+               <option value="">选择语音...</option>
+             </select>
+           </div>
+
+           <div class="control-group">
+             <label class="control-label" id="speedLabel">语速调节</label>
+             <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
+             <div class="speed-display" id="speedValue">1.0x</div>
+           </div>
+
+           <button class="play-all-btn" id="playAllBtn">播放全文</button>
+         </div>
+       </div>
+
+       <!-- 显示设置 -->
+       <div class="settings-section">
+         <div class="sidebar-title" id="displayTitle">显示设置</div>
+         <div class="display-controls">
+           <div class="control-group">
+             <label class="control-label" id="showKanaLabel">
+               <input type="checkbox" id="showKana" checked>
+               显示假名
+             </label>
+           </div>
+           
+           <div class="control-group">
+             <label class="control-label" id="showRomajiLabel">
+               <input type="checkbox" id="showRomaji" checked>
+               显示罗马音
+             </label>
+           </div>
+           
+           <div class="control-group">
+             <label class="control-label" id="showPosLabel">
+               <input type="checkbox" id="showPos" checked>
+               显示词性
+             </label>
+           </div>
+           
+           <div class="control-group">
+             <label class="control-label" id="autoReadLabel">
+               <input type="checkbox" id="autoRead">
+               自动朗读
+             </label>
+           </div>
+           
+           <div class="control-group">
+             <label class="control-label" id="repeatPlayLabel">
+               <input type="checkbox" id="repeatPlay">
+               重复播放
+             </label>
+           </div>
+         </div>
+       </div>
+
+       <!-- 系统设置 -->
+       <div class="settings-section">
+         <div class="sidebar-title" id="systemTitle">系统设置</div>
+         <div class="system-controls">
+           <div class="control-group">
+             <label class="control-label" id="themeLabel">主题模式</label>
+             <select id="themeSelect" class="theme-select">
+               <option value="light">浅色模式</option>
+               <option value="dark">深色模式</option>
+               <option value="auto">跟随系统</option>
+             </select>
+           </div>
+           
+           <div class="control-group">
+             <label class="control-label" id="langLabel">界面语言</label>
+             <select id="langSelect" class="lang-select">
+               <option value="ja">日本語</option>
+               <option value="en">English</option>
+               <option value="zh">中文</option>
+             </select>
+           </div>
+         </div>
+       </div>
+     </div>
+     
+     <!-- 高度调整手柄 -->
+     <div class="toolbar-resize-handle" id="toolbarResizeHandle" title="拖拽调整高度">
+       <div class="resize-handle-line"></div>
+       <div class="resize-handle-line"></div>
+       <div class="resize-handle-line"></div>
+     </div>
+   </aside>
 
     
   </div>

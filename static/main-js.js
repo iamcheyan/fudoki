@@ -1056,6 +1056,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
     document.querySelectorAll('.play-token-btn').forEach(btn => {
       updateButtonIcon(btn, isPlaying);
     });
+    
+    // 更新移动端播放按钮图标
+    const mobilePlayBtn = document.getElementById('mobilePlayBtn');
+    if (mobilePlayBtn) {
+      updateMobilePlayButtonIcon(mobilePlayBtn, isPlaying);
+    }
   }
 
   function updateButtonIcon(button, playing) {
@@ -1102,6 +1108,24 @@ Try Fudoki and enjoy Japanese language analysis!`;
       button.innerHTML = '';
       button.appendChild(svgElement);
       button.appendChild(document.createTextNode(buttonText));
+    }
+  }
+
+  // 更新移动端播放按钮图标
+  function updateMobilePlayButtonIcon(button, playing) {
+    if (!button) return;
+    
+    const svg = button.querySelector('svg');
+    if (!svg) return;
+    
+    if (playing) {
+      // 暂停图标 (两个竖条)
+      svg.innerHTML = '<rect x="6" y="6" width="4" height="12" fill="currentColor"/><rect x="14" y="6" width="4" height="12" fill="currentColor"/>';
+      button.title = '暂停播放';
+    } else {
+      // 播放图标 (三角形)
+      svg.innerHTML = '<path d="M8 5v14l11-7z" fill="currentColor"/>';
+      button.title = '播放全文';
     }
   }
 
@@ -1979,132 +2003,96 @@ Try Fudoki and enjoy Japanese language analysis!`;
     restoreSidebarState();
   }
 
-  // 右侧边栏自动收缩功能（仅移动端）
-  function initSidebarAutoCollapse() {
-    const sidebar = document.querySelector('.sidebar-right');
-    if (!sidebar) return;
+  // 右侧边栏移动端控制功能
+  function initMobileSidebarRight() {
+    const sidebarRight = document.getElementById('sidebar-right');
+    const mobileSettingsBtn = document.getElementById('mobileSettingsBtn');
+    const mobilePlayBtn = document.getElementById('mobilePlayBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const settingsModalClose = document.getElementById('settingsModalClose');
+    
+    if (!mobileSettingsBtn || !settingsModal || !settingsModalClose) return;
     
     // 检测是否为移动端
     function isMobile() {
-      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      return window.innerWidth <= 768;
     }
     
-    // PC端：默认收缩状态，鼠标悬停展开
-    if (!isMobile()) {
-      // PC端默认收缩状态
-      sidebar.classList.remove('auto-collapsed');
-      
-      // 添加鼠标悬停事件
-      sidebar.addEventListener('mouseenter', () => {
-        sidebar.classList.add('expanded');
-      });
-      
-      sidebar.addEventListener('mouseleave', () => {
-        sidebar.classList.remove('expanded');
-      });
-      
-      // 监听窗口大小变化
-      window.addEventListener('resize', () => {
-        if (isMobile()) {
-          // 切换到移动端时，移除PC端的展开状态，启用移动端逻辑
-          sidebar.classList.remove('expanded');
-          initMobileAutoCollapse();
-        }
-      });
-      
-      return;
+    // 显示设置弹窗
+    function showSettingsModal() {
+      if (isMobile()) {
+        settingsModal.classList.add('show');
+        document.body.style.overflow = 'hidden'; // 防止背景滚动
+      }
     }
     
-    // 移动端逻辑
-    initMobileAutoCollapse();
+    // 隐藏设置弹窗
+    function hideSettingsModal() {
+      settingsModal.classList.remove('show');
+      document.body.style.overflow = ''; // 恢复滚动
+    }
     
-    function initMobileAutoCollapse() {
-      let inactivityTimer = null;
-      let isAutoCollapsed = false;
-      
-      // 重置计时器
-      function resetTimer() {
-        clearTimeout(inactivityTimer);
-        
-        // 设置3秒后自动收缩
-        inactivityTimer = setTimeout(() => {
-          if (!sidebar.matches(':hover')) {
-            sidebar.classList.add('auto-collapsed');
-            isAutoCollapsed = true;
-          }
-        }, 3000);
+    // 移动端播放全文功能
+    function mobilePlayAll() {
+      if (isPlaying) {
+        stopSpeaking();
+        return;
       }
       
-      // 展开边栏
-      function expandSidebar() {
-        if (isAutoCollapsed) {
-          sidebar.classList.remove('auto-collapsed');
-          isAutoCollapsed = false;
+      const text = textInput.value.trim();
+      if (text) {
+        speak(text);
+      } else {
+        showNotification('请先输入文本', 'warning');
+      }
+    }
+    
+    // 切换右侧边栏显示状态（保留原有逻辑用于兼容）
+    function toggleSidebarRight() {
+      if (isMobile()) {
+        showSettingsModal();
+      } else if (sidebarRight) {
+        sidebarRight.classList.toggle('show');
+      }
+    }
+    
+    // 响应窗口大小变化
+    function handleResize() {
+      if (!isMobile()) {
+        // 桌面端：隐藏弹窗，移除移动端的显示状态
+        hideSettingsModal();
+        if (sidebarRight) {
+          sidebarRight.classList.remove('show');
         }
       }
-      
-      // 监听边栏内的鼠标和点击事件
-      sidebar.addEventListener('mouseenter', () => {
-        expandSidebar();
-        clearTimeout(inactivityTimer);
-      });
-      
-      sidebar.addEventListener('mouseleave', () => {
-        // 鼠标离开后重新开始计时
-        resetTimer();
-      });
-      
-      sidebar.addEventListener('click', () => {
-        expandSidebar();
-        clearTimeout(inactivityTimer);
-        resetTimer();
-      });
-      
-      // 监听边栏内的鼠标移动事件（仅在边栏区域内）
-      sidebar.addEventListener('mousemove', () => {
-        if (isAutoCollapsed) {
-          expandSidebar();
-          clearTimeout(inactivityTimer);
-        }
-      });
-      
-      // 监听触摸事件（移动端特有）
-      sidebar.addEventListener('touchstart', () => {
-        expandSidebar();
-        clearTimeout(inactivityTimer);
-        resetTimer();
-      });
-      
-      // 监听其他用户活动事件来重置计时器（但不自动展开）
-      const events = ['keypress', 'scroll', 'touchmove'];
-      events.forEach(event => {
-        document.addEventListener(event, () => {
-          if (!isAutoCollapsed) {
-            resetTimer();
-          }
-        }, true);
-      });
-      
-      // 监听窗口大小变化，如果切换到PC端则禁用功能
-      window.addEventListener('resize', () => {
-        if (!isMobile()) {
-          clearTimeout(inactivityTimer);
-          if (isAutoCollapsed) {
-            sidebar.classList.remove('auto-collapsed');
-            isAutoCollapsed = false;
-          }
-          // 切换到PC端时启用PC端逻辑
-          initSidebarAutoCollapse();
-        } else {
-          // 如果切换回移动端，重新启动计时器
-          resetTimer();
-        }
-      });
-      
-      // 初始化计时器
-      resetTimer();
     }
+    
+    // 绑定事件
+    mobileSettingsBtn.addEventListener('click', toggleSidebarRight);
+    if (mobilePlayBtn) {
+      mobilePlayBtn.addEventListener('click', mobilePlayAll);
+    }
+    settingsModalClose.addEventListener('click', hideSettingsModal);
+    window.addEventListener('resize', handleResize);
+    
+    // 点击弹窗背景关闭弹窗
+    settingsModal.addEventListener('click', function(e) {
+      if (e.target === settingsModal) {
+        hideSettingsModal();
+      }
+    });
+    
+    // 点击外部区域关闭右侧边栏（仅移动端，保留原有逻辑）
+    document.addEventListener('click', function(e) {
+      if (isMobile() && sidebarRight && sidebarRight.classList.contains('show')) {
+        if (!sidebarRight.contains(e.target) && !mobileSettingsBtn.contains(e.target)) {
+          sidebarRight.classList.remove('show');
+        }
+      }
+    });
   }
+  
+  // 右侧边栏自动收缩功能已完全移除
 
   // 确保DOM加载完成后初始化所有功能
   function initializeApp() {
@@ -2112,6 +2100,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initToolbarDrag();
     initToolbarResize();
     initSidebarToggle();
+    initMobileSidebarRight();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
   }
 
