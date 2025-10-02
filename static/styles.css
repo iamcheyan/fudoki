@@ -709,7 +709,7 @@ body {
 
 /* 输入区域 - 紧凑设计 */
 .input-section {
-  padding: 16px;
+  padding: 10px;
   border: 1px solid var(--border);
   background: var(--elevated);
   border-radius: 10px;
@@ -724,12 +724,12 @@ body {
 
 #textInput {
   flex: 1;
-  border: 1px solid var(--border);
-  padding: 8px 12px;
+  border: none;
+  padding: 5px 10px;
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
-  min-height: 80px;
+  min-height: 72px;
   border-radius: 2px;
   background: var(--bg);
   color: var(--text);
@@ -828,7 +828,7 @@ input:focus, textarea:focus, select:focus {
 /* 结果显示区域 */
 .content-area {
   flex: 1;
-  padding: 16px;
+  padding: 0 16px 16px 16px;
   overflow-y: auto;
   background: var(--bg);
 }
@@ -928,6 +928,7 @@ input:focus, textarea:focus, select:focus {
 .token-pill:hover {
   background: rgb(230, 230, 230);
   border-color: var(--border);
+  box-shadow: 0 4px 12px rgba(189, 189, 189, 0.3);
 }
 
 .token-pill.active,
@@ -1815,7 +1816,7 @@ select:focus, textarea:focus, input[type="text"]:focus {
 }
 /* 修正：按钮悬停恢复为主题高亮底色 */
 .btn:hover, .new-doc-btn:hover, .play-line-btn:hover, .play-token-btn:hover {
-  background: var(--control-elev);
+  /* background: var(--control-elev); */
   border-color: var(--control-border);
 }
 

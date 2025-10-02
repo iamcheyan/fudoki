@@ -13,6 +13,14 @@
   const langSelect = $('langSelect');
   const themeSelect = document.getElementById('themeSelect');
   
+  // 右侧边栏元素
+  const sidebarVoiceSelect = $('sidebarVoiceSelect');
+  const sidebarSpeedSlider = $('sidebarSpeedRange');
+  const sidebarSpeedValue = $('sidebarSpeedValue');
+  const sidebarPlayAllBtn = $('sidebarPlayAllBtn');
+  const sidebarLangSelect = $('sidebarLangSelect');
+  const sidebarThemeSelect = $('sidebarThemeSelect');
+  
   // 显示控制元素
   const showKanaCheckbox = $('showKana');
   const showRomajiCheckbox = $('showRomaji');
@@ -310,6 +318,40 @@
     const langLabel = $('langLabel');
     if (langLabel) langLabel.textContent = t('langLabel');
 
+    // 右侧边栏标签更新
+    const sidebarVoiceSettingsTitle = $('sidebarVoiceSettingsTitle');
+    if (sidebarVoiceSettingsTitle) sidebarVoiceSettingsTitle.textContent = t('voiceTitle');
+    const sidebarDisplayTitle = $('sidebarDisplayTitle');
+    if (sidebarDisplayTitle) sidebarDisplayTitle.textContent = t('displayTitle');
+    const sidebarSystemTitle = $('sidebarSystemTitle');
+    if (sidebarSystemTitle) sidebarSystemTitle.textContent = t('systemTitle');
+    const sidebarVoiceSelectLabel = $('sidebarVoiceSelectLabel');
+    if (sidebarVoiceSelectLabel) sidebarVoiceSelectLabel.textContent = t('voiceSelectLabel');
+    const sidebarSpeedLabel = $('sidebarSpeedLabel');
+    if (sidebarSpeedLabel) sidebarSpeedLabel.textContent = t('speedLabel');
+    
+    const sidebarShowKanaLabel = $('sidebarShowKanaLabel');
+    if (sidebarShowKanaLabel) sidebarShowKanaLabel.lastChild && (sidebarShowKanaLabel.lastChild.textContent = ' ' + t('showKana'));
+    const sidebarShowRomajiLabel = $('sidebarShowRomajiLabel');
+    if (sidebarShowRomajiLabel) sidebarShowRomajiLabel.lastChild && (sidebarShowRomajiLabel.lastChild.textContent = ' ' + t('showRomaji'));
+    const sidebarShowPosLabel = $('sidebarShowPosLabel');
+    if (sidebarShowPosLabel) sidebarShowPosLabel.lastChild && (sidebarShowPosLabel.lastChild.textContent = ' ' + t('showPos'));
+    const sidebarAutoReadLabel = $('sidebarAutoReadLabel');
+    if (sidebarAutoReadLabel) sidebarAutoReadLabel.lastChild && (sidebarAutoReadLabel.lastChild.textContent = ' ' + t('autoRead'));
+    const sidebarRepeatPlayLabel = $('sidebarRepeatPlayLabel');
+    if (sidebarRepeatPlayLabel) sidebarRepeatPlayLabel.lastChild && (sidebarRepeatPlayLabel.lastChild.textContent = ' ' + t('repeatPlay'));
+    
+    const sidebarThemeLabel = $('sidebarThemeLabel');
+    if (sidebarThemeLabel) sidebarThemeLabel.textContent = t('themeLabel');
+    const sidebarLangLabel = $('sidebarLangLabel');
+    if (sidebarLangLabel) sidebarLangLabel.textContent = t('langLabel');
+
+    // 更新右侧边栏的播放全文按钮
+    if (sidebarPlayAllBtn) {
+      const currentlyPlaying = isPlaying && currentUtterance;
+      sidebarPlayAllBtn.textContent = playAllLabel(currentlyPlaying);
+    }
+
     // 更新主题选择选项的文本
     if (themeSelect) {
       const lightOption = themeSelect.querySelector('option[value="light"]');
@@ -331,10 +373,50 @@
     applyTheme(savedTheme);
   }
 
+  // 刷新已打开的词汇详情卡片文本
+  function refreshOpenCardTexts() {
+    // 查找所有当前显示的词汇详情卡片
+    const openDetails = document.querySelectorAll('.token-details[style*="display: block"], .token-details[style*="display:block"]');
+    
+    openDetails.forEach(details => {
+      const tokenPill = details.closest('.token-pill');
+      if (tokenPill) {
+        try {
+          // 获取词汇数据
+          const tokenData = JSON.parse(tokenPill.getAttribute('data-token'));
+          const posData = tokenPill.getAttribute('data-pos');
+          
+          // 重新解析词性信息
+          const posInfo = parsePos(tokenData.pos_detail_1, tokenData.pos_detail_2, tokenData.pos_detail_3);
+          
+          // 重新格式化详情内容
+          const newContent = formatDetailInfo(tokenData, posInfo);
+          details.innerHTML = newContent;
+          
+          // 重新加载翻译信息
+          loadTranslation(tokenPill);
+        } catch (e) {
+          console.warn('Failed to refresh token details:', e);
+        }
+      }
+    });
+  }
+
   if (langSelect) {
     langSelect.addEventListener('change', () => {
       currentLang = langSelect.value || 'ja';
       try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
+      if (sidebarLangSelect) sidebarLangSelect.value = currentLang;
+      applyI18n();
+      refreshOpenCardTexts();
+    });
+  }
+
+  if (sidebarLangSelect) {
+    sidebarLangSelect.addEventListener('change', () => {
+      currentLang = sidebarLangSelect.value || 'ja';
+      try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
+      if (langSelect) langSelect.value = currentLang;
       applyI18n();
       refreshOpenCardTexts();
     });
@@ -347,6 +429,9 @@
     document.documentElement.setAttribute('data-theme', t === THEME.DARK ? 'dark' : 'light');
     if (themeSelect) {
       themeSelect.value = t === THEME.DARK ? 'dark' : 'light';
+    }
+    if (sidebarThemeSelect) {
+      sidebarThemeSelect.value = t === THEME.DARK ? 'dark' : 'light';
     }
   }
   let savedTheme = localStorage.getItem(LS.theme) || THEME.LIGHT;
@@ -362,6 +447,7 @@
         savedTheme = selectedValue === 'dark' ? THEME.DARK : THEME.LIGHT;
       }
       try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
+      if (sidebarThemeSelect) sidebarThemeSelect.value = selectedValue;
       applyTheme(savedTheme);
     });
     
@@ -372,6 +458,22 @@
         try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
         applyTheme(savedTheme);
       }
+    });
+  }
+
+  if (sidebarThemeSelect) {
+    sidebarThemeSelect.addEventListener('change', () => {
+      const selectedValue = sidebarThemeSelect.value;
+      if (selectedValue === 'auto') {
+        // 跟随系统主题
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? THEME.DARK : THEME.LIGHT;
+        savedTheme = systemTheme;
+      } else {
+        savedTheme = selectedValue === 'dark' ? THEME.DARK : THEME.LIGHT;
+      }
+      try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
+      if (themeSelect) themeSelect.value = selectedValue;
+      applyTheme(savedTheme);
     });
   }
 
@@ -529,7 +631,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
       details.push(`<div class="detail-item"><strong>${t('lbl_base') || '基本形'}:</strong> ${token.lemma}</div>`);
     }
     if (token.reading && token.reading !== token.surface) {
-      details.push(`<div class="detail-item"><strong>${t('lbl_reading') || '读音'}:</strong> ${token.reading}</div>`);
+      // 特殊处理：助词"は"单字时显示读音为"わ"
+      let displayReading = token.reading;
+      if (token.surface === 'は' && token.pos && Array.isArray(token.pos) && token.pos[0] === '助詞') {
+        displayReading = 'わ';
+      }
+      details.push(`<div class="detail-item"><strong>${t('lbl_reading') || '读音'}:</strong> ${displayReading}</div>`);
     }
     
     // 翻译信息占位符
@@ -558,8 +665,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
   speedSlider.addEventListener('input', () => {
     rate = Math.min(2, Math.max(0.5, parseFloat(speedSlider.value) || 1));
     speedValue.textContent = `${rate.toFixed(1)}x`;
+    if (sidebarSpeedSlider) sidebarSpeedSlider.value = rate;
+    if (sidebarSpeedValue) sidebarSpeedValue.textContent = `${rate.toFixed(1)}x`;
     localStorage.setItem(LS.rate, String(rate));
   });
+
+  if (sidebarSpeedSlider) {
+    sidebarSpeedSlider.addEventListener('input', () => {
+      rate = Math.min(2, Math.max(0.5, parseFloat(sidebarSpeedSlider.value) || 1));
+      speedValue.textContent = `${rate.toFixed(1)}x`;
+      if (sidebarSpeedValue) sidebarSpeedValue.textContent = `${rate.toFixed(1)}x`;
+      speedSlider.value = rate;
+      localStorage.setItem(LS.rate, String(rate));
+    });
+  }
 
   // 语音列表管理
   function listVoicesFiltered() {
@@ -580,6 +699,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function refreshVoices() {
     voices = listVoicesFiltered();
     voiceSelect.innerHTML = '';
+    if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
     
     if (!voices.length) {
       const opt = document.createElement('option');
@@ -587,6 +707,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
       opt.disabled = true;
       opt.selected = true;
       voiceSelect.appendChild(opt);
+      
+      if (sidebarVoiceSelect) {
+        const sidebarOpt = opt.cloneNode(true);
+        sidebarVoiceSelect.appendChild(sidebarOpt);
+      }
+      
       currentVoice = null;
       return;
     }
@@ -596,6 +722,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
       opt.value = v.voiceURI || v.name || String(i);
       opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (默认)' : ''}`;
       voiceSelect.appendChild(opt);
+      
+      if (sidebarVoiceSelect) {
+        const sidebarOpt = opt.cloneNode(true);
+        sidebarVoiceSelect.appendChild(sidebarOpt);
+      }
     });
 
     const pref = localStorage.getItem(LS.voiceURI);
@@ -605,6 +736,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (chosen) {
       currentVoice = chosen;
       voiceSelect.value = chosen.voiceURI || chosen.name;
+      if (sidebarVoiceSelect) sidebarVoiceSelect.value = chosen.voiceURI || chosen.name;
     }
   }
 
@@ -619,8 +751,21 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (v) {
       currentVoice = v;
       localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
+      if (sidebarVoiceSelect) sidebarVoiceSelect.value = uri;
     }
   });
+
+  if (sidebarVoiceSelect) {
+    sidebarVoiceSelect.addEventListener('change', () => {
+      const uri = sidebarVoiceSelect.value;
+      const v = voices.find(v => (v.voiceURI || v.name) === uri);
+      if (v) {
+        currentVoice = v;
+        localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
+        voiceSelect.value = uri;
+      }
+    });
+  }
 
   // 自定义确认对话框
   function showDeleteConfirm(message, onConfirm, onCancel) {
@@ -1308,14 +1453,23 @@ Try Fudoki and enjoy Japanese language analysis!`;
         return `
           <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(token).replace(/'/g, "&apos;")}' data-pos="${posDisplay}">
             <div class="token-content">
-              <div class="token-kana display-kana">${reading && reading !== surface ? reading : ''}</div>
+              <div class="token-kana display-kana">${(() => {
+                if (reading && reading !== surface) {
+                  // 特殊处理：助词"は"单字时显示读音为"わ"
+                  if (surface === 'は' && pos[0] === '助詞') {
+                    return 'わ';
+                  }
+                  return reading;
+                }
+                return '';
+              })()}</div>
               <div class="token-romaji display-romaji">${romaji}</div>
               <div class="token-kanji display-kanji">${surface}</div>
               <div class="token-pos display-pos">${posDisplay}</div>
             </div>
             <div class="token-details" style="display: none;">
               ${detailInfo}
-              <button class="play-token-btn" onclick="playToken('${surface}', event)" title="播放">
+              <button class="play-token-btn" onclick="playToken('${surface}', event, ${JSON.stringify(token).replace(/'/g, '&apos;')})" title="播放">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
@@ -1341,7 +1495,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   // 播放单个词汇
-  window.playToken = function(text, event) {
+  window.playToken = function(text, event, tokenData) {
     if (event) {
       event.stopPropagation();
     }
@@ -1351,9 +1505,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return;
     }
     
-    // 高亮当前播放的词汇
+    // 如果提供了tokenData，优先使用reading字段进行朗读
+    let textToSpeak = text;
+    if (tokenData && tokenData.reading) {
+      textToSpeak = tokenData.reading;
+    }
+    
+    // 特殊处理：助词"は"单字时读作"wa"
+    if (text === 'は' && tokenData && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
+      textToSpeak = 'わ';
+    }
+    
+    // 高亮当前播放的词汇（仍然使用surface形式）
     highlightToken(text);
-    speak(text);
+    speak(textToSpeak);
   };
 
   // 显示/隐藏词汇详细信息
@@ -1365,7 +1530,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const surface = tokenData.surface || '';
       if (surface) {
         highlightToken(surface);
-        speak(surface);
+        // 使用reading字段进行朗读，如果没有则使用surface
+        let textToSpeak = tokenData.reading || surface;
+        
+        // 特殊处理：助词"は"单字时读作"wa"
+        if (surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
+          textToSpeak = 'わ';
+        }
+        
+        speak(textToSpeak);
       }
       // 继续执行显示详细信息面板的逻辑，不要直接返回
     }
@@ -1512,27 +1685,75 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (lineContainer) {
       const tokens = lineContainer.querySelectorAll('.token-pill');
       const lineText = Array.from(tokens).map(token => {
-        const kanjiEl = token.querySelector('.token-kanji');
-        return kanjiEl ? kanjiEl.textContent : '';
+        // 获取token数据
+        const tokenDataAttr = token.getAttribute('data-token');
+        if (tokenDataAttr) {
+          try {
+            const tokenData = JSON.parse(tokenDataAttr);
+            // 优先使用reading字段，如果没有则使用surface
+            return tokenData.reading || tokenData.surface || '';
+          } catch (e) {
+            // 如果解析失败，使用原来的方法
+            const kanjiEl = token.querySelector('.token-kanji');
+            return kanjiEl ? kanjiEl.textContent : '';
+          }
+        } else {
+          // 如果没有token数据，使用原来的方法
+          const kanjiEl = token.querySelector('.token-kanji');
+          return kanjiEl ? kanjiEl.textContent : '';
+        }
       }).join('');
       speak(lineText);
     }
   };
 
   // 播放全部文本
-  playAllBtn.addEventListener('click', () => {
+  function playAllText() {
     if (isPlaying) {
       stopSpeaking();
       return;
     }
     
+    // 检查是否有分析结果，如果有则使用reading字段
+    const content = document.getElementById('content');
+    if (content && content.innerHTML.trim()) {
+      // 从分析结果中提取reading字段
+      const tokens = content.querySelectorAll('.token-pill');
+      if (tokens.length > 0) {
+        const readingText = Array.from(tokens).map(token => {
+          const tokenDataAttr = token.getAttribute('data-token');
+          if (tokenDataAttr) {
+            try {
+              const tokenData = JSON.parse(tokenDataAttr);
+              return tokenData.reading || tokenData.surface || '';
+            } catch (e) {
+              const kanjiEl = token.querySelector('.token-kanji');
+              return kanjiEl ? kanjiEl.textContent : '';
+            }
+          } else {
+            const kanjiEl = token.querySelector('.token-kanji');
+            return kanjiEl ? kanjiEl.textContent : '';
+          }
+        }).join('');
+        speak(readingText);
+        return;
+      }
+    }
+    
+    // 如果没有分析结果，使用原始文本
     const text = textInput.value.trim();
     if (text) {
       speak(text);
     } else {
       showNotification('请先输入文本', 'warning');
     }
-  });
+  }
+
+  playAllBtn.addEventListener('click', playAllText);
+
+  if (sidebarPlayAllBtn) {
+    sidebarPlayAllBtn.addEventListener('click', playAllText);
+  }
 
   // 分析按钮事件
   analyzeBtn.addEventListener('click', analyzeText);
@@ -1827,7 +2048,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 上下收缩功能
     let isCollapsed = false;
     
+    // 检测是否为移动端
+    function isMobile() {
+      return window.innerWidth <= 768;
+    }
+    
     function toggleCollapse() {
+      // 移动端禁用折叠功能
+      if (isMobile()) {
+        return;
+      }
+      
       isCollapsed = !isCollapsed;
       
       if (isCollapsed) {
@@ -1861,6 +2092,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 恢复收缩状态
     function restoreCollapseState() {
+      // 移动端不恢复折叠状态
+      if (isMobile()) {
+        return;
+      }
+      
       const savedCollapsed = localStorage.getItem('toolbarCollapsed');
       if (savedCollapsed === 'true') {
         isCollapsed = true;
@@ -1895,6 +2131,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
         
         toolbar.style.left = x + 'px';
         toolbar.style.top = y + 'px';
+      }
+      
+      // 窗口大小变化时，如果从桌面端切换到移动端，确保工具栏展开
+      if (isMobile() && isCollapsed) {
+        isCollapsed = false;
+        toolbar.style.height = '';
+        toolbarContent.style.display = 'flex';
+        toolbar.classList.remove('collapsed');
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 11h12v2H6z"/></svg>';
+        minimizeBtn.title = '收缩';
       }
     });
     
