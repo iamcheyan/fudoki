@@ -1808,7 +1808,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
           try {
             const tokenData = JSON.parse(tokenDataAttr);
             // 优先使用reading字段，如果没有则使用surface
-            return tokenData.reading || tokenData.surface || '';
+            let textToSpeak = tokenData.reading || tokenData.surface || '';
+            
+            // 特殊处理：助词"は"单字时读作"wa"
+            if (tokenData.surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
+              textToSpeak = 'わ';
+            }
+            
+            return textToSpeak;
           } catch (e) {
             // 如果解析失败，使用原来的方法
             const kanjiEl = token.querySelector('.token-kanji');
@@ -1843,7 +1850,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
             try {
               const tokenData = JSON.parse(tokenDataAttr);
               // 优先使用reading，如果没有则使用surface，保留标点符号
-              return tokenData.reading || tokenData.surface || '';
+              let textToSpeak = tokenData.reading || tokenData.surface || '';
+              
+              // 特殊处理：助词"は"单字时读作"wa"
+              if (tokenData.surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
+                textToSpeak = 'わ';
+              }
+              
+              return textToSpeak;
             } catch (e) {
               const kanjiEl = token.querySelector('.token-kanji');
               return kanjiEl ? kanjiEl.textContent : '';
