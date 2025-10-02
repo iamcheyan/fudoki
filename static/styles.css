@@ -121,7 +121,7 @@ body {
 }
 
 .logo-icon {
-  width: 64px;
+  width: 36px;
   height: auto;
   display: inline-block;
 }
@@ -926,7 +926,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .token-pill:hover {
-  background: var(--elevated);
+  background: rgb(230, 230, 230);
   border-color: var(--border);
 }
 
@@ -1083,29 +1083,25 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
 }
 
-/* 最小化状态时的鼠标提示 */
-.sidebar-right.minimized {
-  cursor: pointer !important;
+/* 上下收缩状态样式 */
+.sidebar-right.collapsed {
+  height: auto !important;
+  min-height: auto;
 }
 
-.sidebar-right.minimized * {
-  cursor: pointer !important;
+.sidebar-right.collapsed .toolbar-content {
+  display: none !important;
 }
 
-.sidebar-right.minimized:hover {
-  box-shadow: 0 12px 40px rgba(139, 105, 20, 0.3);
-}
-
-/* 最小化状态下的工具栏头部不显示 move 光标 */
-.sidebar-right.minimized .toolbar-header {
-  cursor: pointer !important;
+.sidebar-right.collapsed .toolbar-resize-handle {
+  display: none !important;
 }
 
 /* 工具栏拖拽手柄 */
 .toolbar-header {
   background: linear-gradient(135deg, var(--primary), #463201);
   color: white;
-  padding: 12px 16px;
+  padding: 5px 10px;
   cursor: move;
   display: flex;
   align-items: center;
@@ -1941,4 +1937,102 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   overflow-y: auto;
   flex: 1; /* 自动填充剩余空间 */
   min-height: 0; /* 允许flex子元素收缩 */
+}
+
+/* 删除确认提示样式 */
+.delete-confirm {
+  position: relative;
+  margin-top: 12px;
+  padding: 16px;
+  background: var(--elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.2s ease-out;
+}
+
+.delete-confirm-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.delete-confirm-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.delete-confirm-icon {
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.delete-confirm-cancel {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-confirm-cancel:hover {
+  background: var(--elev);
+  border-color: var(--primary);
+}
+
+.delete-confirm-ok {
+  background: var(--danger);
+  color: white;
+  border: 1px solid var(--danger);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-confirm-ok:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 暗色主题下的删除确认提示 */
+[data-theme="dark"] .delete-confirm {
+  background: var(--elev);
+  border-color: var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .delete-confirm-cancel {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .delete-confirm-cancel:hover {
+  background: var(--elev);
+  border-color: var(--primary);
 }

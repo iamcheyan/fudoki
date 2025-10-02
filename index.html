@@ -67,6 +67,22 @@
           <textarea id="textInput" placeholder="在此输入日语文本进行分析..."></textarea>
           <button class="btn btn-primary" id="analyzeBtn">分析文本</button>
         </div>
+        
+        <!-- 删除确认提示 -->
+        <div class="delete-confirm" id="deleteConfirm" style="display: none;">
+          <div class="delete-confirm-content">
+            <div class="delete-confirm-message">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="delete-confirm-icon">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              <span id="deleteConfirmText">确定要删除文档吗？</span>
+            </div>
+            <div class="delete-confirm-actions">
+              <button class="btn delete-confirm-cancel" id="deleteConfirmCancel">取消</button>
+              <button class="btn btn-danger delete-confirm-ok" id="deleteConfirmOk">删除</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- 结果显示区域 -->

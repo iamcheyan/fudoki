@@ -622,6 +622,38 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
   });
 
+  // 自定义确认对话框
+  function showDeleteConfirm(message, onConfirm, onCancel) {
+    const deleteConfirm = document.getElementById('deleteConfirm');
+    const deleteConfirmText = document.getElementById('deleteConfirmText');
+    const deleteConfirmOk = document.getElementById('deleteConfirmOk');
+    const deleteConfirmCancel = document.getElementById('deleteConfirmCancel');
+    
+    if (!deleteConfirm) return false;
+    
+    deleteConfirmText.textContent = message;
+    deleteConfirm.style.display = 'block';
+    
+    // 清除之前的事件监听器
+    const newOkBtn = deleteConfirmOk.cloneNode(true);
+    const newCancelBtn = deleteConfirmCancel.cloneNode(true);
+    deleteConfirmOk.parentNode.replaceChild(newOkBtn, deleteConfirmOk);
+    deleteConfirmCancel.parentNode.replaceChild(newCancelBtn, deleteConfirmCancel);
+    
+    // 添加新的事件监听器
+    newOkBtn.addEventListener('click', () => {
+      deleteConfirm.style.display = 'none';
+      if (onConfirm) onConfirm();
+    });
+    
+    newCancelBtn.addEventListener('click', () => {
+      deleteConfirm.style.display = 'none';
+      if (onCancel) onCancel();
+    });
+    
+    return true;
+  }
+
   // 文档管理类
   class DocumentManager {
     constructor() {
@@ -704,7 +736,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
 
     // 删除文档
-    deleteDocument(id) {
+    deleteDocument(id, skipConfirm = false) {
       const docs = this.getAllDocuments();
       const index = docs.findIndex(doc => doc.id === id);
       
@@ -712,29 +744,57 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       const doc = docs[index];
       if (doc.locked) {
-        alert('默认文档不能删除');
-        return false;
-      }
-
-      if (!confirm(`确定要删除文档"${this.getDocumentTitle(doc.content)}"吗？`)) {
-        return false;
-      }
-
-      docs.splice(index, 1);
-      this.saveAllDocuments(docs);
-
-      // 如果删除的是当前活动文档，切换到第一个文档
-      if (id === this.getActiveId()) {
-        const firstDoc = docs[0];
-        if (firstDoc) {
-          this.setActiveId(firstDoc.id);
-        } else {
-          this.setActiveId('');
+        if (!skipConfirm) {
+          alert('默认文档不能删除');
         }
-        this.loadActiveDocument();
+        return false;
       }
 
-      this.render();
+      if (!skipConfirm && !showDeleteConfirm(`确定要删除文档"${this.getDocumentTitle(doc.content)}"吗？`, 
+        () => {
+          // 确认删除
+          docs.splice(index, 1);
+          this.saveAllDocuments(docs);
+
+          // 如果删除的是当前活动文档，切换到第一个文档
+          if (id === this.getActiveId()) {
+            const firstDoc = docs[0];
+            if (firstDoc) {
+              this.setActiveId(firstDoc.id);
+            } else {
+              this.setActiveId('');
+            }
+            this.loadActiveDocument();
+          }
+
+          this.render();
+        },
+        () => {
+          // 取消删除
+          return false;
+        }
+      )) {
+        return false;
+      }
+
+      // 如果是skipConfirm模式，直接删除
+      if (skipConfirm) {
+        docs.splice(index, 1);
+        this.saveAllDocuments(docs);
+
+        // 如果删除的是当前活动文档，切换到第一个文档
+        if (id === this.getActiveId()) {
+          const firstDoc = docs[0];
+          if (firstDoc) {
+            this.setActiveId(firstDoc.id);
+          } else {
+            this.setActiveId('');
+          }
+          this.loadActiveDocument();
+        }
+
+        this.render();
+      }
       return true;
     }
 
@@ -770,6 +830,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const doc = docs.find(d => d.id === activeId);
       
       if (doc) {
+        const currentContent = textInput.value.trim();
+        
+        // 检查是否为默认内容，如果是则删除文档而不是保存
+        if (currentContent === '新しいドキュメントの内容をここに入力してください') {
+          this.deleteDocument(activeId, true); // 跳过确认对话框
+          return;
+        }
+        
         doc.content = textInput.value;
         doc.updatedAt = Date.now();
         this.saveAllDocuments(docs);
@@ -1623,7 +1691,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     let isDragging = false;
     let dragOffset = { x: 0, y: 0 };
-    let isMinimized = false;
+    // isMinimized变量已移除
     let dragStartPos = { x: 0, y: 0 };
     let hasMoved = false;
     let justDragged = false; // 标记是否刚刚完成拖拽
@@ -1713,49 +1781,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
       hasMoved = false;
     }
     
-    // 最小化/展开功能（左右收缩）
-    function toggleMinimize() {
-      isMinimized = !isMinimized;
-      
-      if (isMinimized) {
-        // 收缩：移动到右侧，只露出一部分
-        const targetRight = -(toolbar.offsetWidth - 30);
-        toolbar.style.right = targetRight + 'px';
-        toolbar.style.left = 'auto';
-        toolbar.classList.add('minimized');
-        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>';
-        minimizeBtn.title = '展开';
-      } else {
-        // 展开：恢复到原位置
-        const savedPosition = localStorage.getItem('toolbarPosition');
-        if (savedPosition) {
-          try {
-            const position = JSON.parse(savedPosition);
-            toolbar.style.left = position.left + 'px';
-            toolbar.style.top = position.top + 'px';
-            toolbar.style.right = 'auto';
-          } catch (e) {
-            toolbar.style.right = '20px';
-            toolbar.style.left = 'auto';
-          }
-        } else {
-          toolbar.style.right = '20px';
-          toolbar.style.left = 'auto';
-        }
-        toolbar.classList.remove('minimized');
-        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>';
-        minimizeBtn.title = '最小化';
-      }
-      
-      localStorage.setItem('toolbarMinimized', isMinimized);
-    }
+    // 左右收缩功能已移除，sidebar-right只能上下调整高度
     
     // 恢复保存的位置和状态
     function restoreToolbarState() {
       const savedPosition = localStorage.getItem('toolbarPosition');
-      const savedMinimized = localStorage.getItem('toolbarMinimized');
       
-      // 先恢复位置
+      // 恢复位置
       if (savedPosition) {
         try {
           const position = JSON.parse(savedPosition);
@@ -1773,18 +1805,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
           console.warn('Failed to restore toolbar position:', e);
         }
       }
-      
-      // 然后恢复最小化状态
-      if (savedMinimized === 'true') {
-        // 直接设置最小化状态，不触发动画
-        isMinimized = true;
-        const targetRight = -(toolbar.offsetWidth - 30);
-        toolbar.style.right = targetRight + 'px';
-        toolbar.style.left = 'auto';
-        toolbar.classList.add('minimized');
-        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>';
-        minimizeBtn.title = '展开';
-      }
     }
     
     // 仅允许通过 toolbar-header 呼出：移除整个工具栏的自动呼出逻辑
@@ -1792,13 +1812,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 绑定事件（支持鼠标和触摸）- 只在 header 上允许拖拽
     toolbarHeader.addEventListener('mousedown', (e) => {
-      // 最小化状态下，不允许拖拽，让点击事件处理
-      if (isMinimized) return;
       startDrag(e);
     });
     toolbarHeader.addEventListener('touchstart', (e) => {
-      // 最小化状态下，不允许拖拽，让点击事件处理
-      if (isMinimized) return;
       startDrag(e);
     }, { passive: false });
     
@@ -1808,12 +1824,64 @@ Try Fudoki and enjoy Japanese language analysis!`;
     document.addEventListener('mouseup', endDrag);
     document.addEventListener('touchend', endDrag);
     
+    // 上下收缩功能
+    let isCollapsed = false;
+    
+    function toggleCollapse() {
+      isCollapsed = !isCollapsed;
+      
+      if (isCollapsed) {
+        // 收缩：只显示头部，隐藏内容
+        toolbar.style.height = 'auto';
+        toolbarContent.style.display = 'none';
+        toolbar.classList.add('collapsed');
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
+        minimizeBtn.title = '展开';
+      } else {
+        // 展开：恢复完整高度
+        const savedHeight = localStorage.getItem('toolbarHeight');
+        if (savedHeight) {
+          const height = parseInt(savedHeight, 10);
+          if (height >= 200 && height <= window.innerHeight - 100) {
+            toolbar.style.height = height + 'px';
+          } else {
+            toolbar.style.height = '500px';
+          }
+        } else {
+          toolbar.style.height = '500px';
+        }
+        toolbarContent.style.display = 'flex';
+        toolbar.classList.remove('collapsed');
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 11h12v2H6z"/></svg>';
+        minimizeBtn.title = '收缩';
+      }
+      
+      localStorage.setItem('toolbarCollapsed', isCollapsed);
+    }
+    
+    // 恢复收缩状态
+    function restoreCollapseState() {
+      const savedCollapsed = localStorage.getItem('toolbarCollapsed');
+      if (savedCollapsed === 'true') {
+        isCollapsed = true;
+        toolbar.style.height = 'auto';
+        toolbarContent.style.display = 'none';
+        toolbar.classList.add('collapsed');
+        minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
+        minimizeBtn.title = '展开';
+      }
+    }
+    
+    // 绑定最小化按钮事件
     if (minimizeBtn) {
       minimizeBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // 防止触发 toolbar 的点击事件
-        toggleMinimize();
+        e.stopPropagation();
+        toggleCollapse();
       });
     }
+    
+    // 恢复状态
+    restoreCollapseState();
     
     // 窗口大小改变时重新约束位置
     window.addEventListener('resize', () => {
