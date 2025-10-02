@@ -1352,7 +1352,7 @@ select, input[type="range"] {
     top: 60px;
     left: -280px;
     width: 280px;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 100px);
     background: var(--bg);
     border-right: 1px solid var(--border);
     z-index: 1000;
@@ -1395,10 +1395,7 @@ select, input[type="range"] {
     white-space: nowrap;
   }
   
-  #langSelect {
-    font-size: 11px;
-    padding: 2px 4px;
-  }
+
   
   /* 移动端内容区域优化 */
   .content-area {
