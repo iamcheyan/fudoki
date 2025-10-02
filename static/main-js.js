@@ -178,7 +178,17 @@
   };
 
   let storedLang = localStorage.getItem(LS.lang);
-  let currentLang = (storedLang === 'ja' || storedLang === 'en' || storedLang === 'zh') ? storedLang : 'ja';
+  
+  // 如果没有存储的语言设置，根据浏览器语言自动检测
+  function detectBrowserLanguage() {
+    const browserLang = navigator.language || navigator.userLanguage || '';
+    if (browserLang.startsWith('zh')) return 'zh';
+    if (browserLang.startsWith('ja')) return 'ja';
+    if (browserLang.startsWith('en')) return 'en';
+    return 'zh'; // 默认使用中文
+  }
+  
+  let currentLang = (storedLang === 'ja' || storedLang === 'en' || storedLang === 'zh') ? storedLang : detectBrowserLanguage();
   if (storedLang !== currentLang) {
     try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
   }
@@ -378,6 +388,12 @@
     if (langSelect) {
       langSelect.value = currentLang;
       Array.from(langSelect.options || []).forEach(opt => opt.selected = (opt.value === currentLang));
+    }
+    
+    // 同步更新侧边栏语言选择器
+    if (sidebarLangSelect) {
+      sidebarLangSelect.value = currentLang;
+      Array.from(sidebarLangSelect.options || []).forEach(opt => opt.selected = (opt.value === currentLang));
     }
     // 语言变化时刷新主题图标与aria标签
     applyTheme(savedTheme);
