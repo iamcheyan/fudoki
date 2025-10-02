@@ -697,47 +697,69 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   function refreshVoices() {
-    voices = listVoicesFiltered();
-    voiceSelect.innerHTML = '';
-    if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
-    
-    if (!voices.length) {
-      const opt = document.createElement('option');
-      opt.textContent = '日语语音不可用';
-      opt.disabled = true;
-      opt.selected = true;
-      voiceSelect.appendChild(opt);
+    // Safari兼容性：确保语音列表已加载
+    const loadVoices = () => {
+      voices = listVoicesFiltered();
       
-      if (sidebarVoiceSelect) {
-        const sidebarOpt = opt.cloneNode(true);
-        sidebarVoiceSelect.appendChild(sidebarOpt);
+      if (!voices.length) {
+        // Safari可能需要更多时间加载语音
+        setTimeout(() => {
+          voices = listVoicesFiltered();
+          if (voices.length > 0) {
+            populateVoiceSelects();
+          }
+        }, 100);
+        
+        // 显示语音不可用选项
+        voiceSelect.innerHTML = '';
+        if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
+        
+        const opt = document.createElement('option');
+        opt.textContent = '日语语音不可用';
+        opt.disabled = true;
+        opt.selected = true;
+        voiceSelect.appendChild(opt);
+        
+        if (sidebarVoiceSelect) {
+          const sidebarOpt = opt.cloneNode(true);
+          sidebarVoiceSelect.appendChild(sidebarOpt);
+        }
+        
+        currentVoice = null;
+        return;
       }
       
-      currentVoice = null;
-      return;
-    }
-
-    voices.forEach((v, i) => {
-      const opt = document.createElement('option');
-      opt.value = v.voiceURI || v.name || String(i);
-      opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (默认)' : ''}`;
-      voiceSelect.appendChild(opt);
-      
-      if (sidebarVoiceSelect) {
-        const sidebarOpt = opt.cloneNode(true);
-        sidebarVoiceSelect.appendChild(sidebarOpt);
-      }
-    });
-
-    const pref = localStorage.getItem(LS.voiceURI);
-    const kyoko = voices.find(v => /kyoko/i.test(v.name || '') && (v.lang || '').toLowerCase().startsWith('ja'));
-    const chosen = voices.find(v => (v.voiceURI || v.name) === pref) || kyoko || voices.find(v => (v.lang || '').toLowerCase().startsWith('ja')) || voices[0];
+      populateVoiceSelects();
+    };
     
-    if (chosen) {
-      currentVoice = chosen;
-      voiceSelect.value = chosen.voiceURI || chosen.name;
-      if (sidebarVoiceSelect) sidebarVoiceSelect.value = chosen.voiceURI || chosen.name;
-    }
+    const populateVoiceSelects = () => {
+      voiceSelect.innerHTML = '';
+      if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
+      
+      voices.forEach((v, i) => {
+        const opt = document.createElement('option');
+        opt.value = v.voiceURI || v.name || String(i);
+        opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (默认)' : ''}`;
+        voiceSelect.appendChild(opt);
+        
+        if (sidebarVoiceSelect) {
+          const sidebarOpt = opt.cloneNode(true);
+          sidebarVoiceSelect.appendChild(sidebarOpt);
+        }
+      });
+
+      const pref = localStorage.getItem(LS.voiceURI);
+      const kyoko = voices.find(v => /kyoko/i.test(v.name || '') && (v.lang || '').toLowerCase().startsWith('ja'));
+      const chosen = voices.find(v => (v.voiceURI || v.name) === pref) || kyoko || voices.find(v => (v.lang || '').toLowerCase().startsWith('ja')) || voices[0];
+      
+      if (chosen) {
+        currentVoice = chosen;
+        voiceSelect.value = chosen.voiceURI || chosen.name;
+        if (sidebarVoiceSelect) sidebarVoiceSelect.value = chosen.voiceURI || chosen.name;
+      }
+    };
+    
+    loadVoices();
   }
 
   if ('speechSynthesis' in window) {
@@ -1136,52 +1158,73 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 存储当前播放的文本用于重复播放
     currentPlayingText = stripped;
     
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(stripped);
-    currentUtterance = u;
-    applyVoice(u);
-    u.rate = typeof rateOverride === 'number' ? rateOverride : rate;
-    u.pitch = 1.0;
-    
-    // 添加事件监听器
-    u.onstart = () => {
-      isPlaying = true;
-      updatePlayButtonStates();
-    };
-    
-    u.onend = () => {
-      isPlaying = false;
-      currentUtterance = null;
-      updatePlayButtonStates();
-      
-      // 检查是否需要重复播放
-      if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
-        // 延迟一小段时间后重复播放，避免立即重复
-        setTimeout(() => {
+    // Safari兼容性修复：确保语音合成服务处于正确状态
+    try {
+      window.speechSynthesis.cancel();
+      // Safari需要短暂延迟来确保cancel操作完成
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(stripped);
+        currentUtterance = u;
+        applyVoice(u);
+        u.rate = typeof rateOverride === 'number' ? rateOverride : rate;
+        u.pitch = 1.0;
+        
+        // 添加事件监听器
+        u.onstart = () => {
+          isPlaying = true;
+          updatePlayButtonStates();
+        };
+        
+        u.onend = () => {
+          isPlaying = false;
+          currentUtterance = null;
+          updatePlayButtonStates();
+          
+          // 检查是否需要重复播放
           if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
-            speak(currentPlayingText, rateOverride);
+            // 延迟一小段时间后重复播放，避免立即重复
+            setTimeout(() => {
+              if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
+                speak(currentPlayingText, rateOverride);
+              }
+            }, 500);
+          } else {
+            // 如果不重复播放，清除当前播放文本和高亮
+            currentPlayingText = null;
+            clearTokenHighlight();
           }
-        }, 500);
-      } else {
-        // 如果不重复播放，清除当前播放文本和高亮
-        currentPlayingText = null;
-        clearTokenHighlight();
-      }
-    };
-    
-    u.onerror = () => {
+        };
+        
+        u.onerror = (event) => {
+          console.warn('Speech synthesis error:', event);
+          isPlaying = false;
+          currentUtterance = null;
+          currentPlayingText = null;
+          clearTokenHighlight(); // 出错时也清除高亮
+          updatePlayButtonStates();
+        };
+        
+        // Safari兼容性：确保语音合成服务已准备就绪
+        try {
+          window.speechSynthesis.resume();
+        } catch (e) {
+          console.warn('Speech synthesis resume failed:', e);
+        }
+        
+        // Safari兼容性：添加额外的检查
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        
+        window.speechSynthesis.speak(u);
+      }, 50); // Safari需要短暂延迟
+    } catch (e) {
+      console.error('Speech synthesis failed:', e);
       isPlaying = false;
       currentUtterance = null;
       currentPlayingText = null;
-      clearTokenHighlight(); // 出错时也清除高亮
       updatePlayButtonStates();
-    };
-    
-    try {
-      window.speechSynthesis.resume();
-    } catch (e) {}
-    
-    window.speechSynthesis.speak(u);
+    }
   }
 
   // 高亮词汇函数
