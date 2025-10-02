@@ -789,33 +789,67 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
   }
 
-  // 自定义确认对话框
-  function showDeleteConfirm(message, onConfirm, onCancel) {
-    const deleteConfirm = document.getElementById('deleteConfirm');
-    const deleteConfirmText = document.getElementById('deleteConfirmText');
-    const deleteConfirmOk = document.getElementById('deleteConfirmOk');
-    const deleteConfirmCancel = document.getElementById('deleteConfirmCancel');
+  // 自定义确认对话框 - 支持动态定位
+  function showDeleteConfirm(message, onConfirm, onCancel, targetElement) {
+    // 移除之前的确认对话框
+    const existingConfirm = document.querySelector('.delete-confirm');
+    if (existingConfirm) {
+      existingConfirm.remove();
+    }
     
-    if (!deleteConfirm) return false;
+    // 创建新的确认对话框
+    const deleteConfirm = document.createElement('div');
+    deleteConfirm.className = 'delete-confirm';
+    deleteConfirm.innerHTML = `
+      <div class="delete-confirm-content">
+        <div class="delete-confirm-message">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="delete-confirm-icon">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+          </svg>
+          <span class="delete-confirm-text">${message}</span>
+        </div>
+        <div class="delete-confirm-actions">
+          <button class="btn delete-confirm-cancel">取消</button>
+          <button class="btn btn-danger delete-confirm-ok">删除</button>
+        </div>
+      </div>
+    `;
     
-    deleteConfirmText.textContent = message;
-    deleteConfirm.style.display = 'block';
+    // 插入到目标元素后面
+    if (targetElement && targetElement.parentNode) {
+      targetElement.parentNode.insertBefore(deleteConfirm, targetElement.nextSibling);
+    } else {
+      // 如果没有目标元素，插入到文档列表中
+      const documentList = document.getElementById('documentList');
+      if (documentList) {
+        documentList.appendChild(deleteConfirm);
+      } else {
+        return false;
+      }
+    }
     
-    // 清除之前的事件监听器
-    const newOkBtn = deleteConfirmOk.cloneNode(true);
-    const newCancelBtn = deleteConfirmCancel.cloneNode(true);
-    deleteConfirmOk.parentNode.replaceChild(newOkBtn, deleteConfirmOk);
-    deleteConfirmCancel.parentNode.replaceChild(newCancelBtn, deleteConfirmCancel);
+    // 获取按钮元素
+    const deleteConfirmOk = deleteConfirm.querySelector('.delete-confirm-ok');
+    const deleteConfirmCancel = deleteConfirm.querySelector('.delete-confirm-cancel');
     
-    // 添加新的事件监听器
-    newOkBtn.addEventListener('click', () => {
-      deleteConfirm.style.display = 'none';
+    // 添加事件监听器
+    deleteConfirmOk.addEventListener('click', () => {
+      deleteConfirm.remove();
       if (onConfirm) onConfirm();
     });
     
-    newCancelBtn.addEventListener('click', () => {
-      deleteConfirm.style.display = 'none';
+    deleteConfirmCancel.addEventListener('click', () => {
+      deleteConfirm.remove();
       if (onCancel) onCancel();
+    });
+    
+    // 点击对话框外部关闭
+    document.addEventListener('click', function closeOnOutsideClick(e) {
+      if (!deleteConfirm.contains(e.target)) {
+        deleteConfirm.remove();
+        document.removeEventListener('click', closeOnOutsideClick);
+        if (onCancel) onCancel();
+      }
     });
     
     return true;
@@ -903,7 +937,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
 
     // 删除文档
-    deleteDocument(id, skipConfirm = false) {
+    deleteDocument(id, skipConfirm = false, targetElement = null) {
       const docs = this.getAllDocuments();
       const index = docs.findIndex(doc => doc.id === id);
       
@@ -939,7 +973,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         () => {
           // 取消删除
           return false;
-        }
+        },
+        targetElement // 传递目标元素用于定位确认对话框
       )) {
         return false;
       }
@@ -999,12 +1034,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (doc) {
         const currentContent = textInput.value.trim();
         
-        // 检查是否为默认内容，如果是则删除文档而不是保存
-        if (currentContent === '新しいドキュメントの内容をここに入力してください') {
-          this.deleteDocument(activeId, true); // 跳过确认对话框
-          return;
-        }
-        
+        // 如果内容为空，不删除文档，只是保存空内容
         doc.content = textInput.value;
         doc.updatedAt = Date.now();
         this.saveAllDocuments(docs);
@@ -1061,7 +1091,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         docItem.addEventListener('click', (e) => {
           if (e.target.classList.contains('delete-btn')) {
             e.stopPropagation();
-            this.deleteDocument(doc.id);
+            this.deleteDocument(doc.id, false, docItem); // 传递docItem作为目标元素
           } else {
             this.switchToDocument(doc.id);
           }
@@ -1111,7 +1141,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       // 新建文档按钮
       if (newDocBtn) {
         newDocBtn.addEventListener('click', () => {
-          this.createDocument('新しいドキュメントの内容をここに入力してください');
+          this.createDocument(''); // 创建空文档而不是带有默认内容
         });
       }
 
@@ -1120,7 +1150,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
         deleteDocBtn.addEventListener('click', () => {
           const activeId = this.getActiveId();
           if (activeId) {
-            this.deleteDocument(activeId);
+            // 找到当前活动的文档项作为目标元素
+            const activeDocItem = document.querySelector(`.doc-item[data-doc-id="${activeId}"]`);
+            this.deleteDocument(activeId, false, activeDocItem);
           }
         });
       }
@@ -1139,92 +1171,150 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   // 语音合成功能
-  function speak(text, rateOverride) {
+  // 分段播放实现自然停顿
+  function speakWithPauses(text, rateOverride) {
     if (!('speechSynthesis' in window)) return;
     
-    // 如果正在播放，停止当前播放
+    // 停止当前播放
     if (isPlaying) {
       stopSpeaking();
       return;
     }
     
-    // 朗读前移除括号（全角/半角）及其中内容
+    // 清理文本
     const stripped = String(text || '')
       .replace(/（[^）]*）|\([^)]*\)/g, '')
       .replace(/[\s\u00A0]+/g, ' ')
       .trim();
     if (!stripped) return;
     
+    // 按标点符号分段
+    const segments = splitTextByPunctuation(stripped);
+    
     // 存储当前播放的文本用于重复播放
     currentPlayingText = stripped;
     
-    // Safari兼容性修复：确保语音合成服务处于正确状态
-    try {
-      window.speechSynthesis.cancel();
-      // Safari需要短暂延迟来确保cancel操作完成
-      setTimeout(() => {
-        const u = new SpeechSynthesisUtterance(stripped);
-        currentUtterance = u;
-        applyVoice(u);
-        u.rate = typeof rateOverride === 'number' ? rateOverride : rate;
-        u.pitch = 1.0;
-        
-        // 添加事件监听器
-        u.onstart = () => {
-          isPlaying = true;
-          updatePlayButtonStates();
-        };
-        
-        u.onend = () => {
-          isPlaying = false;
-          currentUtterance = null;
-          updatePlayButtonStates();
-          
-          // 检查是否需要重复播放
+    // 分段播放
+    playSegments(segments, 0, rateOverride);
+  }
+  
+  // 按标点符号分段文本
+  function splitTextByPunctuation(text) {
+    console.log('分段前文本:', text);
+    
+    // 检查是否包含句号、感叹号、问号
+    const hasPunctuation = /[。！？]/.test(text);
+    
+    if (!hasPunctuation) {
+      // 如果没有标点符号，按长度分段（每50个字符一段）
+      const maxLength = 50;
+      const result = [];
+      
+      for (let i = 0; i < text.length; i += maxLength) {
+        const segment = text.slice(i, i + maxLength).trim();
+        if (segment) {
+          result.push({
+            text: segment,
+            pause: 300 // 短停顿
+          });
+        }
+      }
+      
+      console.log('没有标点符号，按长度分段:', result);
+      return result;
+    }
+    
+    // 在句号、感叹号、问号后分段
+    const segments = text.split(/([。！？])/);
+    console.log('分割结果:', segments);
+    
+    const result = [];
+    
+    for (let i = 0; i < segments.length; i += 2) {
+      const content = segments[i]?.trim();
+      const punctuation = segments[i + 1];
+      
+      if (content) {
+        const fullText = content + (punctuation || '');
+        result.push({
+          text: fullText,
+          pause: punctuation ? 800 : 0 // 句号后停顿800ms
+        });
+        console.log(`添加段落: "${fullText}", 停顿: ${punctuation ? 800 : 0}ms`);
+      }
+    }
+    
+    console.log('最终分段结果:', result);
+    return result;
+  }
+  
+  // 分段播放
+  function playSegments(segments, index, rateOverride) {
+    if (index >= segments.length) {
+      // 播放完成
+      isPlaying = false;
+      currentUtterance = null;
+      updatePlayButtonStates();
+      
+      // 检查是否需要重复播放
+      if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
+        setTimeout(() => {
           if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
-            // 延迟一小段时间后重复播放，避免立即重复
-            setTimeout(() => {
-              if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
-                speak(currentPlayingText, rateOverride);
-              }
-            }, 500);
-          } else {
-            // 如果不重复播放，清除当前播放文本和高亮
-            currentPlayingText = null;
-            clearTokenHighlight();
+            speakWithPauses(currentPlayingText, rateOverride);
           }
-        };
-        
-        u.onerror = (event) => {
-          console.warn('Speech synthesis error:', event);
-          isPlaying = false;
-          currentUtterance = null;
-          currentPlayingText = null;
-          clearTokenHighlight(); // 出错时也清除高亮
-          updatePlayButtonStates();
-        };
-        
-        // Safari兼容性：确保语音合成服务已准备就绪
-        try {
-          window.speechSynthesis.resume();
-        } catch (e) {
-          console.warn('Speech synthesis resume failed:', e);
-        }
-        
-        // Safari兼容性：添加额外的检查
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
-        
-        window.speechSynthesis.speak(u);
-      }, 50); // Safari需要短暂延迟
+        }, 500);
+      } else {
+        currentPlayingText = null;
+        clearTokenHighlight();
+      }
+      return;
+    }
+    
+    const segment = segments[index];
+    console.log(`播放第${index + 1}段:`, segment.text);
+    
+    // 创建语音合成对象
+    const utterance = new SpeechSynthesisUtterance(segment.text);
+    currentUtterance = utterance;
+    applyVoice(utterance);
+    utterance.rate = typeof rateOverride === 'number' ? rateOverride : rate;
+    utterance.pitch = 1.0;
+    
+    utterance.onstart = () => {
+      isPlaying = true;
+      updatePlayButtonStates();
+    };
+    
+    utterance.onend = () => {
+      // 添加停顿
+      setTimeout(() => {
+        playSegments(segments, index + 1, rateOverride);
+      }, segment.pause);
+    };
+    
+    utterance.onerror = (event) => {
+      console.warn('Speech synthesis error:', event);
+      isPlaying = false;
+      currentUtterance = null;
+      currentPlayingText = null;
+      clearTokenHighlight();
+      updatePlayButtonStates();
+    };
+    
+    // 开始播放
+    try {
+      window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.error('Speech synthesis failed:', e);
       isPlaying = false;
       currentUtterance = null;
-      currentPlayingText = null;
       updatePlayButtonStates();
     }
+  }
+
+  function speak(text, rateOverride) {
+    // 使用新的分段播放功能
+    speakWithPauses(text, rateOverride);
   }
 
   // 高亮词汇函数
@@ -1281,23 +1371,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     updatePlayButtonStates();
   }
 
-  // 高亮当前播放的词块
-  function clearTokenHighlight() {
-    document.querySelectorAll('.token-pill.playing').forEach(el => el.classList.remove('playing'));
-  }
 
-  function highlightToken(text) {
-    if (!text) return;
-    clearTokenHighlight();
-    // 优先匹配表层形
-    const pills = Array.from(document.querySelectorAll('.token-pill'));
-    const target = pills.find(p => {
-      const kanjiEl = p.querySelector('.token-kanji');
-      const surface = kanjiEl ? kanjiEl.textContent.trim() : '';
-      return surface === text.trim();
-    }) || pills.find(p => (p.textContent || '').split('\n')[0].trim() === text.trim());
-    if (target) target.classList.add('playing');
-  }
 
   function updatePlayButtonStates() {
     // 更新播放全文按钮
@@ -1768,6 +1842,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           if (tokenDataAttr) {
             try {
               const tokenData = JSON.parse(tokenDataAttr);
+              // 优先使用reading，如果没有则使用surface，保留标点符号
               return tokenData.reading || tokenData.surface || '';
             } catch (e) {
               const kanjiEl = token.querySelector('.token-kanji');
@@ -1778,6 +1853,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
             return kanjiEl ? kanjiEl.textContent : '';
           }
         }).join('');
+        
+        // 如果提取的文本没有标点符号，使用原始文本
+        if (!/[。！？]/.test(readingText)) {
+          console.log('提取的文本没有标点符号，使用原始文本');
+          const text = textInput.value.trim();
+          if (text) {
+            speak(text);
+            return;
+          }
+        }
         speak(readingText);
         return;
       }

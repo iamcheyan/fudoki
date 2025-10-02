@@ -1940,40 +1940,47 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   min-height: 0; /* 允许flex子元素收缩 */
 }
 
-/* 删除确认提示样式 */
+/* 删除确认提示样式 - 更小更紧凑的设计 */
 .delete-confirm {
-  position: relative;
-  margin-top: 12px;
-  padding: 16px;
+  position: fixed;
+  margin: 8px 0;
+  padding: 10px 12px;
   background: var(--elev);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: slideDown 0.2s ease-out;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.15s ease-out;
+  font-size: 13px;
+  z-index: 999;
+  width: 230px;
+  line-height: 1.5;
 }
 
 .delete-confirm-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .delete-confirm-message {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.3;
 }
 
 .delete-confirm-icon {
   color: var(--danger);
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 }
 
 .delete-confirm-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
 }
 
@@ -1981,11 +1988,12 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 50px;
 }
 
 .delete-confirm-cancel:hover {
@@ -1994,25 +2002,27 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 }
 
 .delete-confirm-ok {
-  background: var(--danger);
+  background: #dc2626;
   color: white;
+  border-color: #dc2626;
   border: 1px solid var(--danger);
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 50px;
 }
 
 .delete-confirm-ok:hover {
-  background: #dc2626;
+  background: #8c1515;
   border-color: #dc2626;
 }
 
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -2024,7 +2034,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 [data-theme="dark"] .delete-confirm {
   background: var(--elev);
   border-color: var(--border);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="dark"] .delete-confirm-cancel {
