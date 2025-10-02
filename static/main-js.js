@@ -27,6 +27,13 @@
   const showPosCheckbox = $('showPos');
   const autoReadCheckbox = $('autoRead');
   const repeatPlayCheckbox = $('repeatPlay');
+  
+  // 侧边栏显示控制元素
+  const sidebarShowKanaCheckbox = $('sidebarShowKana');
+  const sidebarShowRomajiCheckbox = $('sidebarShowRomaji');
+  const sidebarShowPosCheckbox = $('sidebarShowPos');
+  const sidebarAutoReadCheckbox = $('sidebarAutoRead');
+  const sidebarRepeatPlayCheckbox = $('sidebarRepeatPlay');
 
   // 本地存储键
   const LS = { 
@@ -2002,20 +2009,29 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const autoRead = localStorage.getItem(LS.autoRead) === 'true';
     const repeatPlay = localStorage.getItem(LS.repeatPlay) === 'true';
     
-    // 设置复选框状态
+    // 设置复选框状态 - 主弹窗
     if (showKanaCheckbox) showKanaCheckbox.checked = showKana;
     if (showRomajiCheckbox) showRomajiCheckbox.checked = showRomaji;
     if (showPosCheckbox) showPosCheckbox.checked = showPos;
     if (autoReadCheckbox) autoReadCheckbox.checked = autoRead;
     if (repeatPlayCheckbox) repeatPlayCheckbox.checked = repeatPlay;
     
+    // 设置复选框状态 - 侧边栏
+    if (sidebarShowKanaCheckbox) sidebarShowKanaCheckbox.checked = showKana;
+    if (sidebarShowRomajiCheckbox) sidebarShowRomajiCheckbox.checked = showRomaji;
+    if (sidebarShowPosCheckbox) sidebarShowPosCheckbox.checked = showPos;
+    if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = autoRead;
+    if (sidebarRepeatPlayCheckbox) sidebarRepeatPlayCheckbox.checked = repeatPlay;
+    
     // 应用显示设置
     updateDisplaySettings();
     
-    // 添加事件监听器
+    // 添加事件监听器 - 主弹窗
     if (showKanaCheckbox) {
       showKanaCheckbox.addEventListener('change', () => {
         localStorage.setItem(LS.showKana, showKanaCheckbox.checked);
+        // 同步侧边栏状态
+        if (sidebarShowKanaCheckbox) sidebarShowKanaCheckbox.checked = showKanaCheckbox.checked;
         updateDisplaySettings();
       });
     }
@@ -2023,6 +2039,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (showRomajiCheckbox) {
       showRomajiCheckbox.addEventListener('change', () => {
         localStorage.setItem(LS.showRomaji, showRomajiCheckbox.checked);
+        // 同步侧边栏状态
+        if (sidebarShowRomajiCheckbox) sidebarShowRomajiCheckbox.checked = showRomajiCheckbox.checked;
         updateDisplaySettings();
       });
     }
@@ -2030,6 +2048,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (showPosCheckbox) {
       showPosCheckbox.addEventListener('change', () => {
         localStorage.setItem(LS.showPos, showPosCheckbox.checked);
+        // 同步侧边栏状态
+        if (sidebarShowPosCheckbox) sidebarShowPosCheckbox.checked = showPosCheckbox.checked;
         updateDisplaySettings();
       });
     }
@@ -2037,20 +2057,72 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (autoReadCheckbox) {
       autoReadCheckbox.addEventListener('change', () => {
         localStorage.setItem(LS.autoRead, autoReadCheckbox.checked);
+        // 同步侧边栏状态
+        if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = autoReadCheckbox.checked;
       });
     }
     
     if (repeatPlayCheckbox) {
       repeatPlayCheckbox.addEventListener('change', () => {
         localStorage.setItem(LS.repeatPlay, repeatPlayCheckbox.checked);
+        // 同步侧边栏状态
+        if (sidebarRepeatPlayCheckbox) sidebarRepeatPlayCheckbox.checked = repeatPlayCheckbox.checked;
+      });
+    }
+    
+    // 添加事件监听器 - 侧边栏
+    if (sidebarShowKanaCheckbox) {
+      sidebarShowKanaCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.showKana, sidebarShowKanaCheckbox.checked);
+        // 同步主弹窗状态
+        if (showKanaCheckbox) showKanaCheckbox.checked = sidebarShowKanaCheckbox.checked;
+        updateDisplaySettings();
+      });
+    }
+    
+    if (sidebarShowRomajiCheckbox) {
+      sidebarShowRomajiCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.showRomaji, sidebarShowRomajiCheckbox.checked);
+        // 同步主弹窗状态
+        if (showRomajiCheckbox) showRomajiCheckbox.checked = sidebarShowRomajiCheckbox.checked;
+        updateDisplaySettings();
+      });
+    }
+    
+    if (sidebarShowPosCheckbox) {
+      sidebarShowPosCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.showPos, sidebarShowPosCheckbox.checked);
+        // 同步主弹窗状态
+        if (showPosCheckbox) showPosCheckbox.checked = sidebarShowPosCheckbox.checked;
+        updateDisplaySettings();
+      });
+    }
+    
+    if (sidebarAutoReadCheckbox) {
+      sidebarAutoReadCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.autoRead, sidebarAutoReadCheckbox.checked);
+        // 同步主弹窗状态
+        if (autoReadCheckbox) autoReadCheckbox.checked = sidebarAutoReadCheckbox.checked;
+      });
+    }
+    
+    if (sidebarRepeatPlayCheckbox) {
+      sidebarRepeatPlayCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.repeatPlay, sidebarRepeatPlayCheckbox.checked);
+        // 同步主弹窗状态
+        if (repeatPlayCheckbox) repeatPlayCheckbox.checked = sidebarRepeatPlayCheckbox.checked;
       });
     }
   }
 
   function updateDisplaySettings() {
-    const showKana = showKanaCheckbox ? showKanaCheckbox.checked : true;
-    const showRomaji = showRomajiCheckbox ? showRomajiCheckbox.checked : true;
-    const showPos = showPosCheckbox ? showPosCheckbox.checked : true;
+    // 获取当前状态，优先从主弹窗获取，如果不存在则从侧边栏获取
+    const showKana = showKanaCheckbox ? showKanaCheckbox.checked : 
+                     (sidebarShowKanaCheckbox ? sidebarShowKanaCheckbox.checked : true);
+    const showRomaji = showRomajiCheckbox ? showRomajiCheckbox.checked : 
+                       (sidebarShowRomajiCheckbox ? sidebarShowRomajiCheckbox.checked : true);
+    const showPos = showPosCheckbox ? showPosCheckbox.checked : 
+                    (sidebarShowPosCheckbox ? sidebarShowPosCheckbox.checked : true);
     
     // 创建或更新CSS规则
     let styleElement = document.getElementById('display-control-styles');
@@ -2576,8 +2648,113 @@ Try Fudoki and enjoy Japanese language analysis!`;
   
   // 右侧边栏自动收缩功能已完全移除
 
+  // 创建共享工具栏内容HTML
+  function createToolbarContentHTML(context) {
+    const prefix = context === 'sidebar' ? 'sidebar' : '';
+    const idPrefix = prefix ? prefix + '' : '';
+    
+    return `
+      <!-- 语音设置 -->
+      <div class="settings-section">
+        <div class="sidebar-title" id="${idPrefix}VoiceSettingsTitle">语音设置</div>
+        <div class="voice-controls">
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}VoiceSelectLabel">语音选择</label>
+            <select id="${idPrefix}VoiceSelect">
+              <option value="">选择语音...</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}SpeedLabel">语速调节</label>
+            <input type="range" id="${idPrefix}SpeedRange" min="0.5" max="2" step="0.1" value="1">
+            <div class="speed-display" id="${idPrefix}SpeedValue">1.0x</div>
+          </div>
+
+          <button class="play-all-btn" id="${idPrefix}PlayAllBtn">播放全文</button>
+        </div>
+      </div>
+
+      <!-- 显示设置 -->
+      <div class="settings-section">
+        <div class="sidebar-title" id="${idPrefix}DisplayTitle">显示设置</div>
+        <div class="display-controls">
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}ShowKanaLabel">
+              <input type="checkbox" id="${idPrefix}ShowKana" checked>
+              显示假名
+            </label>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}ShowRomajiLabel">
+              <input type="checkbox" id="${idPrefix}ShowRomaji" checked>
+              显示罗马音
+            </label>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}ShowPosLabel">
+              <input type="checkbox" id="${idPrefix}ShowPos" checked>
+              显示词性
+            </label>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}AutoReadLabel">
+              <input type="checkbox" id="${idPrefix}AutoRead">
+              自动朗读
+            </label>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}RepeatPlayLabel">
+              <input type="checkbox" id="${idPrefix}RepeatPlay">
+              重复播放
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 系统设置 -->
+      <div class="settings-section">
+        <div class="sidebar-title" id="${idPrefix}SystemTitle">系统设置</div>
+        <div class="system-controls">
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}ThemeLabel">主题模式</label>
+            <select id="${idPrefix}ThemeSelect" class="theme-select">
+              <option value="light">浅色模式</option>
+              <option value="dark">深色模式</option>
+              <option value="auto">跟随系统</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" id="${idPrefix}LangLabel">界面语言</label>
+            <select id="${idPrefix}LangSelect" class="lang-select">
+              <option value="ja">日本語</option>
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // 初始化共享工具栏内容
+  function initSharedToolbarContent() {
+    const toolbarContainers = document.querySelectorAll('.toolbar-content[data-context]');
+    
+    toolbarContainers.forEach(container => {
+      const context = container.getAttribute('data-context');
+      container.innerHTML = createToolbarContentHTML(context);
+    });
+  }
+
   // 确保DOM加载完成后初始化所有功能
   function initializeApp() {
+    initSharedToolbarContent(); // 首先初始化共享工具栏内容
     initDisplayControls();
     initToolbarDrag();
     initToolbarResize();
