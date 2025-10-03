@@ -518,17 +518,32 @@
       return;
     }
 
+    // 添加按钮点击动画
+    if (readingModeToggle && shouldEnable) {
+      readingModeToggle.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        readingModeToggle.style.transform = '';
+      }, 150);
+    }
+
     isReadingMode = shouldEnable;
-    document.body.id = shouldEnable ? 'reading-mode' : '';
-    if (readingModeToggle) {
-      readingModeToggle.classList.toggle('is-active', shouldEnable);
-      readingModeToggle.setAttribute('aria-pressed', String(shouldEnable));
-    }
-    updateReadingToggleLabels();
-    if (!shouldEnable) {
-      clearReadingLineHighlight();
-    }
-    syncReadingLineAttributes(shouldEnable);
+    
+    // 使用 requestAnimationFrame 确保动画流畅
+    requestAnimationFrame(() => {
+      document.body.id = shouldEnable ? 'reading-mode' : '';
+      
+      if (readingModeToggle) {
+        readingModeToggle.classList.toggle('is-active', shouldEnable);
+        readingModeToggle.setAttribute('aria-pressed', String(shouldEnable));
+      }
+      
+      updateReadingToggleLabels();
+      
+      if (!shouldEnable) {
+        clearReadingLineHighlight();
+      }
+      syncReadingLineAttributes(shouldEnable);
+    });
 
     if (updateUrl) {
       try {
@@ -3281,7 +3296,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
     function handleOutsideInteraction(e) {
       try {
         if (!isMobile()) return;
-        // 仅当当前为展开状态时处理
+        // 忽略来自菜单按钮或侧边栏折叠按钮的点击/触摸
+        const isToggleClick = (collapseMenuBtn && collapseMenuBtn.contains(e.target)) ||
+                              (toggleBtn && toggleBtn.contains(e.target));
+        if (isToggleClick) return;
+
+        // 仅当抽屉已展开且点击在 sidebar-stack 以外时收起
         if (!isCollapsed && !sidebarStack.contains(e.target)) {
           isCollapsed = true;
           mainContainer.classList.add('collapsed');

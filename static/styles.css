@@ -2009,9 +2009,59 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   box-shadow: 0 24px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* 阅读模式布局 */
+/* 阅读模式布局 - 添加优雅的展开动画 */
 #reading-mode {
   background: #f7f0de;
+  animation: readingModeExpand 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* 阅读模式展开动画 */
+@keyframes readingModeExpand {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+    filter: blur(2px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+    filter: blur(0.5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* 阅读模式按钮点击动画 */
+.reading-mode-toggle {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              box-shadow 0.3s ease, 
+              background 0.3s ease,
+              scale 0.2s ease;
+}
+
+.reading-mode-toggle:active {
+  transform: scale(0.95);
+  transition: transform 0.1s ease;
+}
+
+/* 阅读模式激活时的按钮动画 */
+.reading-mode-toggle.is-active {
+  animation: readingToggleActivate 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes readingToggleActivate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 #reading-mode .list-panel,
@@ -2024,6 +2074,41 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 #reading-mode .footer,
 #reading-mode .toolbar-resize-handle {
   display: none !important;
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* 阅读模式内容区域动画 */
+#reading-mode .content-area {
+  animation: contentSlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes contentSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    filter: blur(3px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-5px) scale(1.01);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 
 #reading-mode .token-content{
