@@ -149,6 +149,7 @@
       emptyText: '上の入力欄に日本語を入力し「解析する」をクリックしてください',
       voiceTitle: '音声設定',
       voiceSelectLabel: '音声を選択',
+      selectVoice: '音声を選択...',
       speedLabel: '話速',
       playAll: '全文再生',
       displayTitle: '表示設定',
@@ -218,6 +219,7 @@
       emptyText: 'Type Japanese above, then click "Analyze" to start',
       voiceTitle: 'Voice Settings',
       voiceSelectLabel: 'Voice',
+      selectVoice: 'Select voice...',
       speedLabel: 'Speed',
       playAll: 'Play All',
       displayTitle: 'Display Settings',
@@ -287,6 +289,7 @@
       emptyText: '请在上方输入日语文本，点击"分析文本"开始处理',
       voiceTitle: '语音设置',
       voiceSelectLabel: '语音选择',
+      selectVoice: '选择语音...',
       speedLabel: '语速调节',
       playAll: '播放全文',
       displayTitle: '显示设置',
@@ -3380,17 +3383,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
     return `
       <!-- 语音设置 -->
       <div class="settings-section">
-        <div class="sidebar-title" id="${id('voiceSettingsTitle')}">语音设置</div>
+        <div class="sidebar-title" id="${id('voiceSettingsTitle')}">${t('voiceTitle')}</div>
         <div class="voice-controls">
           <div class="control-group">
-            <label class="control-label" id="${id('voiceSelectLabel')}">语音选择</label>
+            <label class="control-label" id="${id('voiceSelectLabel')}">${t('voiceSelectLabel')}</label>
             <select id="${id('voiceSelect')}">
-              <option value="">选择语音...</option>
+              <option value="">${t('selectVoice')}</option>
             </select>
           </div>
 
           <div class="control-group">
-            <label class="control-label" id="${id('speedLabel')}">语速调节</label>
+            <label class="control-label" id="${id('speedLabel')}">${t('speedLabel')}</label>
             <input type="range" id="${id('speedRange')}" min="0.5" max="2" step="0.1" value="1">
             <div class="speed-display" id="${id('speedValue')}">1.0x</div>
           </div>
@@ -3399,62 +3402,62 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
       <!-- 显示设置 -->
       <div class="settings-section">
-        <div class="sidebar-title" id="${id('displayTitle')}">显示设置</div>
+        <div class="sidebar-title" id="${id('displayTitle')}">${t('displayTitle')}</div>
         <div class="display-controls">
           <div class="control-group">
             <label class="control-label" id="${id('showKanaLabel')}">
               <input type="checkbox" id="${id('showKana')}" checked>
-              显示假名
+              ${t('showKana')}
             </label>
           </div>
 
           <div class="control-group">
-            <label class="control-label" id="${id('readingScriptLabel')}">读音脚本</label>
+            <label class="control-label" id="${id('readingScriptLabel')}">${t('readingScript')}</label>
             <select id="${id('readingScriptSelect')}">
-              <option id="${id('readingScriptOptionKatakana')}" value="katakana">片假名</option>
-              <option id="${id('readingScriptOptionHiragana')}" value="hiragana">平假名</option>
+              <option id="${id('readingScriptOptionKatakana')}" value="katakana">${t('katakanaLabel')}</option>
+              <option id="${id('readingScriptOptionHiragana')}" value="hiragana">${t('hiraganaLabel')}</option>
             </select>
           </div>
           
           <div class="control-group">
             <label class="control-label" id="${id('showRomajiLabel')}">
               <input type="checkbox" id="${id('showRomaji')}" checked>
-              显示罗马音
+              ${t('showRomaji')}
             </label>
           </div>
           
           <div class="control-group">
             <label class="control-label" id="${id('showPosLabel')}">
               <input type="checkbox" id="${id('showPos')}" checked>
-              显示词性
+              ${t('showPos')}
             </label>
           </div>
 
           <div class="control-group">
             <label class="control-label" id="${id('showDetailsLabel')}">
               <input type="checkbox" id="${id('showDetails')}" checked>
-              显示词汇详情
+              ${t('showDetails')}
             </label>
           </div>
           
           <div class="control-group">
             <label class="control-label" id="${id('showUnderlineLabel')}">
               <input type="checkbox" id="${id('showUnderline')}" checked>
-              词性颜色下划线
+              ${t('showUnderline')}
             </label>
           </div>
           
           <div class="control-group">
             <label class="control-label" id="${id('autoReadLabel')}">
               <input type="checkbox" id="${id('autoRead')}">
-              自动朗读
+              ${t('autoRead')}
             </label>
           </div>
           
           <div class="control-group">
             <label class="control-label" id="${id('repeatPlayLabel')}">
               <input type="checkbox" id="${id('repeatPlay')}">
-              重复播放
+              ${t('repeatPlay')}
             </label>
           </div>
         </div>

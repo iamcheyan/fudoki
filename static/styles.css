@@ -594,7 +594,7 @@ body {
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
-  min-height: 72px;
+  min-height: 88px;
   border-radius: 2px;
   /* background: var(--bg); */
   color: var(--text);
@@ -1891,7 +1891,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   border-radius: 40px;
   background: linear-gradient(160deg, #fff6d8 0%, #fee6ac 100%);
   color: #70471a;
-  box-shadow: 0 16px 28px rgba(122, 86, 32, 0.28), 0 6px 14px rgba(122, 86, 32, 0.18);
+  box-shadow: 0 8px 14px rgba(122, 86, 32, 0.18), 0 3px 7px rgba(122, 86, 32, 0.10);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
