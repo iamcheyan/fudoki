@@ -1182,6 +1182,21 @@ Try Fudoki and enjoy Japanese language analysis!`;
       docs.push(newDoc);
       this.saveAllDocuments(docs);
       this.setActiveId(newDoc.id);
+      // 新建文档时清空右侧内容展示区
+      if (typeof t === 'function' && typeof contentAreaClearedOnce === 'undefined') {
+        // no-op flag placeholder to avoid bundlers stripping; keeps same scope
+      }
+      if (typeof t === 'function' && typeof document !== 'undefined') {
+        if (content) {
+          try {
+            content.innerHTML = `<div class="empty-state"><p id="emptyText">${t('emptyText')}</p></div>`;
+          } catch (e) {
+            content.innerHTML = '<div class="empty-state"><p id="emptyText">&nbsp;</p></div>';
+          }
+        }
+      } else if (content) {
+        content.innerHTML = '<div class="empty-state"><p id="emptyText"></p></div>';
+      }
       this.render();
       this.loadActiveDocument();
       
@@ -1275,22 +1290,41 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return true;
     }
 
-    // 保存当前文档
+    // 保存当前文档（空内容时不保存并删除该文档）
     saveCurrentDocument() {
       const activeId = this.getActiveId();
-      if (!activeId) return;
+      if (!activeId) return; // 没有活动文档则不保存
 
       const docs = this.getAllDocuments();
-      const doc = docs.find(d => d.id === activeId);
-      
-      if (doc) {
-        const currentContent = textInput.value.trim();
-        
-        // 如果内容为空，不删除文档，只是保存空内容
-        doc.content = textInput.value;
-        doc.updatedAt = Date.now();
+      const docIndex = docs.findIndex(d => d.id === activeId);
+      if (docIndex === -1) return;
+
+      const isEmpty = textInput.value.trim().length === 0;
+
+      if (isEmpty) {
+        // 内容为空：从存储中移除该文档，避免产生空文档
+        const removed = docs.splice(docIndex, 1);
         this.saveAllDocuments(docs);
+        // 清除活动文档，刷新列表
+        if (removed.length) {
+          const firstDoc = docs[0];
+          if (firstDoc) {
+            this.setActiveId(firstDoc.id);
+            this.loadActiveDocument();
+          } else {
+            this.setActiveId('');
+            if (textInput) textInput.value = '';
+          }
+          this.render();
+        }
+        return;
       }
+
+      // 非空内容：正常保存
+      const doc = docs[docIndex];
+      doc.content = textInput.value;
+      doc.updatedAt = Date.now();
+      this.saveAllDocuments(docs);
     }
 
     // 加载活动文档到编辑器
@@ -1403,10 +1437,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
     // 绑定事件
     bindEvents() {
-      // 新建文档按钮
+      // 新建文档按钮：立即创建空文档并设为活动；若保持为空，保存时会自动删除
       if (newDocBtn) {
         newDocBtn.addEventListener('click', () => {
-          this.createDocument(''); // 创建空文档而不是带有默认内容
+          this.createDocument('');
+          if (textInput) textInput.focus();
         });
       }
 
@@ -1427,6 +1462,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
         let saveTimeout;
         textInput.addEventListener('input', () => {
           clearTimeout(saveTimeout);
+
+          // 如果当前没有活动文档，且输入了非空内容，则先创建文档
+          if (!this.getActiveId() && textInput.value.trim().length > 0) {
+            const newDoc = this.createDocument('');
+            // createDocument 会设置 activeId 与渲染
+          }
+
           saveTimeout = setTimeout(() => {
             this.saveCurrentDocument();
           }, 1000); // 1秒后自动保存
@@ -2056,19 +2098,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
       document.querySelectorAll('.token-pill').forEach(p => {
         p.classList.remove('active');
       });
-      
-      // 如果之前有活动的卡片，将其详情面板移回对应的token元素
-      if (activeTokenDetails && activeTokenDetails.details && activeTokenDetails.element) {
-        const oldDetails = activeTokenDetails.details;
-        const oldElement = activeTokenDetails.element;
-        if (oldDetails.parentNode === document.body) {
-          oldDetails.style.display = 'none';
-          oldDetails.style.visibility = 'hidden';
-          try { oldElement.appendChild(oldDetails); } catch (e) { /* 忽略 */ }
-        }
-      }
-      
-      activeTokenDetails = null;
     }
   });
 
@@ -2268,8 +2297,31 @@ Try Fudoki and enjoy Japanese language analysis!`;
     sidebarPlayAllBtn.addEventListener('click', playAllText);
   }
 
-  // 分析按钮事件
-  analyzeBtn.addEventListener('click', analyzeText);
+  // 分析按钮事件（按钮可能不存在）
+  if (analyzeBtn) analyzeBtn.addEventListener('click', analyzeText);
+
+  // 文本框失焦且结构变化时自动解析
+  function computeStructureSignature(text) {
+    const s = (text || '').trim();
+    if (!s) return '0|0';
+    const lines = s.split(/\n+/).length;
+    const sentences = s.split(/[。．\.!？!?；;]+/).filter(x => x.trim().length > 0).length;
+    return `${lines}|${sentences}`;
+  }
+
+  let lastStructureSignature = computeStructureSignature(textInput ? textInput.value : '');
+  if (textInput) {
+    textInput.addEventListener('focus', () => {
+      lastStructureSignature = computeStructureSignature(textInput.value);
+    });
+    textInput.addEventListener('blur', () => {
+      const currentSig = computeStructureSignature(textInput.value);
+      if (currentSig !== lastStructureSignature) {
+        analyzeText();
+      }
+      lastStructureSignature = currentSig;
+    });
+  }
 
   // 清空和帮助按钮功能已移除
 
