@@ -45,6 +45,7 @@
     rate: 'rate', 
     texts: 'texts', 
     activeId: 'activeId',
+    activeFolder: 'activeFolder',
     showKana: 'showKana',
     showRomaji: 'showRomaji', 
     showPos: 'showPos',
@@ -71,28 +72,54 @@
     }
   }
 
-  // 初始化文件夹列表（轻量占位，不影响文档管理逻辑）
-  function initFolders() {
+  // ====== 文件夹管理（简化版：仅“全部”和“收藏”） ======
+  function getActiveFolderId() {
+    return localStorage.getItem(LS.activeFolder) || 'all';
+  }
+  function setActiveFolderId(id) {
+    localStorage.setItem(LS.activeFolder, id || 'all');
+  }
+
+  function renderFolders() {
     if (!folderList) return;
-    const folders = ['全部', '学习', '工作', '收藏'];
+    const activeId = getActiveFolderId();
     folderList.innerHTML = '';
-    folders.forEach((name, idx) => {
-      const item = document.createElement('div');
-      item.className = 'folder-item' + (idx === 0 ? ' active' : '');
-      item.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M10,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8A2,2 0 0,0 20,6H12L10,4Z"/>
-        </svg>
-        <div>${name}</div>
-      `;
-      item.addEventListener('click', () => {
-        const act = folderList.querySelector('.folder-item.active');
-        if (act) act.classList.remove('active');
-        item.classList.add('active');
-        // 目前文档未分组，选择文件夹不筛选，仅作视觉反馈
-      });
-      folderList.appendChild(item);
-    });
+
+    // 虚拟 “全部”
+    const allItem = document.createElement('div');
+    allItem.className = 'folder-item' + (activeId === 'all' ? ' active' : '');
+    allItem.dataset.folderId = 'all';
+    allItem.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M3,4H21V6H3V4M3,8H21V10H3V8M3,12H21V14H3V12M3,16H21V18H3V16Z"/>
+      </svg>
+      <div>全部</div>
+    `;
+    allItem.addEventListener('click', () => { selectFolder('all'); });
+    folderList.appendChild(allItem);
+
+    // 固定“收藏”
+    const favItem = document.createElement('div');
+    favItem.className = 'folder-item' + (activeId === 'favorites' ? ' active' : '');
+    favItem.dataset.folderId = 'favorites';
+    favItem.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+      </svg>
+      <div>收藏</div>
+    `;
+    favItem.addEventListener('click', () => { selectFolder('favorites'); });
+    folderList.appendChild(favItem);
+  }
+
+  function selectFolder(id) {
+    const act = folderList.querySelector('.folder-item.active');
+    if (act) act.classList.remove('active');
+    const newItem = folderList.querySelector(`.folder-item[data-folder-id="${id}"]`);
+    if (newItem) newItem.classList.add('active');
+    setActiveFolderId(id);
+    // 重新渲染文档列表（按文件夹过滤）
+    if (documentManager) documentManager.render();
   }
 
   // 简易i18n词典（默认日语）
@@ -255,8 +282,8 @@
   if (storedLang !== currentLang) {
     try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
   }
-  // 初始化文件夹列表
-  initFolders();
+  // 初始化文件夹列表（固定两项）
+  renderFolders();
   // 当前显示的详情弹层及其锚点
   let activeTokenDetails = null; // { element, details }
 
@@ -1274,12 +1301,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
     render() {
       const docs = this.getAllDocuments();
       const activeId = this.getActiveId();
+      const activeFolder = getActiveFolderId();
       
       if (!documentList) return;
       
       documentList.innerHTML = '';
       
-      docs.forEach(doc => {
+      docs.filter(doc => {
+        if (activeFolder === 'all') return true;
+        if (activeFolder === 'favorites') return !!doc.favorite;
+        return true;
+      }).forEach(doc => {
         const title = this.getDocumentTitle(doc.content);
         const docItem = document.createElement('div');
         docItem.className = 'doc-item';

@@ -2482,3 +2482,4 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
     padding: 24px;
   }
 }
+/* （移除文件夹操作按钮样式） */
