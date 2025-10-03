@@ -1155,6 +1155,19 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return title.slice(0, maxLength - 1) + '…';
     }
 
+    // 格式化创建时间
+    formatCreationTime(timestamp) {
+      const date = new Date(timestamp);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
     // 创建新文档
     createDocument(content = '') {
       const docs = this.getAllDocuments();
@@ -1322,11 +1335,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }
         
         const isFav = !!doc.favorite;
+        const createdTime = this.formatCreationTime(doc.createdAt);
         docItem.innerHTML = `
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
           </svg>
-          <div class="doc-item-title" title="${title}">${this.truncateTitle(title)}</div>
+          <div class="doc-item-content">
+            <div class="doc-item-title" title="${title}">${this.truncateTitle(title)}</div>
+            <div class="doc-item-time">${createdTime}</div>
+          </div>
           <div class="doc-item-actions">
             <button class="doc-action-btn fav-btn ${isFav ? 'active' : ''}" title="${isFav ? '取消收藏' : '收藏'}">${isFav ? '★' : '☆'}</button>
           </div>
