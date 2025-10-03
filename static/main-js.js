@@ -1291,11 +1291,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       // 检查是否需要重复播放
       if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
+        // 添加更长的延迟，并检查是否仍在播放状态
         setTimeout(() => {
-          if (repeatPlayCheckbox && repeatPlayCheckbox.checked && currentPlayingText) {
+          // 确保没有其他语音在播放，且重复播放仍然启用
+          if (repeatPlayCheckbox && repeatPlayCheckbox.checked && 
+              currentPlayingText && !isPlaying && 
+              !window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+            console.log('开始重复播放:', currentPlayingText);
             speakWithPauses(currentPlayingText, rateOverride);
           }
-        }, 500);
+        }, 1000); // 增加延迟到1秒
       } else {
         currentPlayingText = null;
         clearTokenHighlight();
@@ -1327,6 +1332,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     utterance.onerror = (event) => {
       console.warn('Speech synthesis error:', event);
+      
+      // 根据错误类型进行不同处理
+      if (event.error === 'interrupted') {
+        // 如果是被中断，不需要额外处理，这是正常的停止操作
+        console.log('Speech was interrupted (normal stop operation)');
+      } else if (event.error === 'network') {
+        console.error('Network error during speech synthesis');
+      } else if (event.error === 'synthesis-failed') {
+        console.error('Speech synthesis failed');
+      } else {
+        console.error('Unknown speech synthesis error:', event.error);
+      }
+      
+      // 清理状态
       isPlaying = false;
       currentUtterance = null;
       currentPlayingText = null;
@@ -1336,11 +1355,21 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 开始播放
     try {
-      window.speechSynthesis.speak(utterance);
+      // 确保在开始新的语音合成前停止之前的
+      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+        window.speechSynthesis.cancel();
+        // 给一个短暂的延迟确保取消操作完成
+        setTimeout(() => {
+          window.speechSynthesis.speak(utterance);
+        }, 50);
+      } else {
+        window.speechSynthesis.speak(utterance);
+      }
     } catch (e) {
       console.error('Speech synthesis failed:', e);
       isPlaying = false;
       currentUtterance = null;
+      clearTokenHighlight();
       updatePlayButtonStates();
     }
   }
@@ -1396,11 +1425,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   function stopSpeaking() {
     if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+      // 先检查是否有正在进行的语音合成
+      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+        window.speechSynthesis.cancel();
+      }
     }
     isPlaying = false;
     currentUtterance = null;
     currentPlayingText = null; // 停止时清除重复播放文本
+    clearTokenHighlight();
     updatePlayButtonStates();
   }
 
@@ -1593,11 +1626,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
         // 获取罗马音
         const romaji = getRomaji(reading || surface);
         
+        // 检查是否为符号类型
         const isPunct = (pos[0] === '記号' || pos[0] === '補助記号');
-        if (isPunct) {
-          return `
-          <span class="punct">${surface}</span>
-        `;
+        // 检查是否为常见的符号字符
+        const isSymbol = /^[•·、。，！？；：""''（）【】《》〈〉「」『』〔〕〖〗〘〙〚〛\s\u00A0\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000]+$/.test(surface);
+        
+        if (isPunct || isSymbol) {
+          // 过滤掉符号，不显示
+          return '';
         }
         
         return `
@@ -1679,6 +1715,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const tokenData = JSON.parse(element.getAttribute('data-token'));
       const surface = tokenData.surface || '';
       if (surface) {
+        // 停止当前播放，避免重复
+        if (isPlaying) {
+          stopSpeaking();
+        }
+        
         highlightToken(surface);
         // 使用reading字段进行朗读，如果没有则使用surface
         let textToSpeak = tokenData.reading || surface;
