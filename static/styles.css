@@ -261,7 +261,7 @@ body {
   /* margin: 0 20px; */
   margin-top: 60px;
   display: grid;
-  grid-template-columns: 280px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
+  grid-template-columns: 500px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
   gap: 1px;
   box-shadow: 0 10px 30px var(--border);
   min-height: calc(100vh - 60px);
@@ -285,6 +285,8 @@ body {
 
 .sidebar-stack {
   border-right: 1px solid var(--border);
+  display: grid;
+  grid-template-rows: 250px 1fr;
 }
 /* 中间列表面板 */
 .list-panel {
@@ -426,7 +428,6 @@ body {
 .folder-list { margin-top: 4px; }
 .folder-item {
   padding: 8px 12px;
-  margin-bottom: 4px;
   cursor: pointer;
   font-size: 13px;
   color: var(--muted);
@@ -587,6 +588,7 @@ body {
   background: var(--elevated);
   border-radius: 10px;
   margin: 10px;
+  max-width: 880px;
 }
 
 .input-group {
@@ -2332,7 +2334,7 @@ input[type="checkbox"] {
     bottom: 0;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    z-index: 1000;
+    z-index: 1100; /* 提升层级：抽屉位于遮罩之上 */
     display: flex;
     flex-direction: column;
     background: #fff;
@@ -2353,13 +2355,29 @@ input[type="checkbox"] {
   .sidebar-stack .sidebar-left {
     max-height: 40vh; /* 上：文件夹 */
     overflow: auto;
-    border-bottom: 1px solid var(--border);
   }
 
   .sidebar-stack .list-panel {
     flex: 1; /* 下：文档管理 */
     overflow: auto;
     background: var(--bg);
+  }
+}
+
+/* 移动端：当抽屉展开时为内容区添加灰色透明遮罩以突出左侧菜单 */
+@media (max-width: 768px) {
+  .main-container.mobile-menu-open .content-main::after {
+    content: "";
+    position: fixed;
+    top: 57px; /* 与导航高度对齐，必要时调整 */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 1050; /* 高于内容与右侧工具栏，低于sidebar-stack */
+    pointer-events: none; /* 仅视觉强调，不拦截交互 */
+    backdrop-filter: blur(5px) saturate(160%);
+    -webkit-backdrop-filter: blur(5px) saturate(160%);
   }
 }
 
