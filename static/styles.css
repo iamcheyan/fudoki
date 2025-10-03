@@ -1145,13 +1145,13 @@ input:focus, textarea:focus, select:focus {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px 14px;
-  padding: 0 10px;
-  margin: 8px 0 0 0;
-  /* border-radius: 14px;
+  gap: 10px 12px;
+  padding: 8px 14px;
+  margin: 6px 12px 12px;
+  border-radius: 16px;
   border: 1px solid var(--toolbar-border);
   background: var(--toolbar-bg);
-  box-shadow: var(--toolbar-shadow); */
+  box-shadow: var(--toolbar-shadow);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -1272,6 +1272,10 @@ input:focus, textarea:focus, select:focus {
 
 .inline-settings .speed-control {
   gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: var(--toolbar-chip-bg);
+  border: 1px solid var(--toolbar-chip-border);
 }
 
 .inline-settings .speed-control .icon-chip {
@@ -1291,6 +1295,11 @@ input:focus, textarea:focus, select:focus {
   accent-color: var(--primary);
   width: 120px;
   height: 4px;
+}
+
+.inline-settings .speed-control:has(input:focus-visible) {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 .inline-settings .speed-display {
@@ -2655,7 +2664,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   border-radius: 8px;
   background: var(--primary);
   color: var(--primary-contrast);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  /* box-shadow: 0 4px 10px rgba(0,0,0,0.12); */
   font-weight: 700;
 }
 
