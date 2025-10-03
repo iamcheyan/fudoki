@@ -2318,6 +2318,7 @@ select, .btn, .new-doc-btn, .delete-doc-btn { height: 36px; }
 
 /* 导航设置按钮（齿轮）暗色/亮色适配 */
 #settingsButton.theme-icon-btn {
+  border: 1px solid var(--control-border);
   background: var(--control-bg);
   color: var(--control-text);
 }

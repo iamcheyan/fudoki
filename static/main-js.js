@@ -3140,8 +3140,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
             <input type="range" id="${id('speedRange')}" min="0.5" max="2" step="0.1" value="1">
             <div class="speed-display" id="${id('speedValue')}">1.0x</div>
           </div>
-
-          <button class="play-all-btn" id="${id('playAllBtn')}">播放全文</button>
         </div>
       </div>
 
