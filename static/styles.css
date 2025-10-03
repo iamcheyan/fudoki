@@ -730,15 +730,12 @@ body {
 }
 
 .doc-item-actions {
-  opacity: 0;
+  opacity: 1; /* 始终显示星号 */
   transition: opacity 0.2s ease;
   display: flex;
   gap: 4px;
 }
-
-.doc-item:hover .doc-item-actions {
-  opacity: 1;
-}
+/* 取消仅在 hover 时显示 */
 
 .doc-action-btn {
   background: none;

@@ -72,7 +72,7 @@
     }
   }
 
-  // ====== 文件夹管理（简化版：仅“全部”和“收藏”） ======
+  // ====== 文件夹管理（简化版：仅"全部"和"收藏"） ======
   function getActiveFolderId() {
     return localStorage.getItem(LS.activeFolder) || 'all';
   }
@@ -85,7 +85,7 @@
     const activeId = getActiveFolderId();
     folderList.innerHTML = '';
 
-    // 虚拟 “全部”
+    // 虚拟 "全部"
     const allItem = document.createElement('div');
     allItem.className = 'folder-item' + (activeId === 'all' ? ' active' : '');
     allItem.dataset.folderId = 'all';
@@ -98,7 +98,7 @@
     allItem.addEventListener('click', () => { selectFolder('all'); });
     folderList.appendChild(allItem);
 
-    // 固定“收藏”
+    // 固定"收藏"
     const favItem = document.createElement('div');
     favItem.className = 'folder-item' + (activeId === 'favorites' ? ' active' : '');
     favItem.dataset.folderId = 'favorites';
@@ -1337,9 +1337,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const isFav = !!doc.favorite;
         const createdTime = this.formatCreationTime(doc.createdAt);
         docItem.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-          </svg>
           <div class="doc-item-content">
             <div class="doc-item-title" title="${title}">${this.truncateTitle(title)}</div>
             <div class="doc-item-time">${createdTime}</div>
