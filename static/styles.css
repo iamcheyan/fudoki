@@ -394,11 +394,10 @@ body {
 .settings-modal-header {
   background: linear-gradient(135deg, var(--primary), #463201);
   color: white;
-  padding: 10px 14px;
+  padding: 5px 10px 2px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .settings-modal-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
@@ -2293,4 +2292,38 @@ input[type="checkbox"] {
 }
 :root[data-theme="dark"] .theme-icon-btn:hover {
   background: rgba(255,255,255,0.12);
+}
+
+/* 移动端适配：导航间距与LOGO文字隐藏 */
+@media (max-width: 768px) {
+  .nav-menu { gap: 8px; }
+  .logo-text { display: none !important; }
+  /* 头部更紧凑 */
+  .header-content { padding: 0 12px; }
+  .logo { gap: 6px; }
+}
+/* 移动端：显示左侧边栏（侧滑抽屉） */
+@media (max-width: 768px) {
+  /* 单栏布局，内容占满 */
+  .main-container { grid-template-columns: 1fr; }
+
+  /* 默认隐藏为抽屉，点击按钮时通过 .show 显示 */
+  .sidebar-left {
+    display: none;
+    position: fixed;
+    top: 60px; /* 头部大约高度 */
+    left: 0;
+    width: 86vw;
+    max-width: 360px;
+    height: calc(100vh - 80px);
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+    z-index: 1000;
+  }
+
+  .sidebar-left.show { display: block; }
+
+  /* 折叠按钮在移动端不需要显示 */
+  .sidebar-toggle-btn { display: none; }
 }
