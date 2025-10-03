@@ -222,7 +222,7 @@ body {
 
 /* 主要布局 - 紧凑型三栏 */
 .main-container {
-  margin: 0 auto 30px auto;
+  margin: 0 20px;
   display: grid;
   grid-template-columns: 220px 280px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
   gap: 1px;

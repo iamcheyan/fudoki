@@ -1182,20 +1182,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
       docs.push(newDoc);
       this.saveAllDocuments(docs);
       this.setActiveId(newDoc.id);
-      // 新建文档时清空右侧内容展示区
-      if (typeof t === 'function' && typeof contentAreaClearedOnce === 'undefined') {
-        // no-op flag placeholder to avoid bundlers stripping; keeps same scope
-      }
-      if (typeof t === 'function' && typeof document !== 'undefined') {
-        if (content) {
-          try {
-            content.innerHTML = `<div class="empty-state"><p id="emptyText">${t('emptyText')}</p></div>`;
-          } catch (e) {
-            content.innerHTML = '<div class="empty-state"><p id="emptyText">&nbsp;</p></div>';
-          }
+      // 新建文档时清空右侧内容区，展示空状态
+      try {
+        if (typeof showEmptyState === 'function') {
+          showEmptyState();
+        } else if (typeof content !== 'undefined' && content) {
+          content.innerHTML = '';
         }
-      } else if (content) {
-        content.innerHTML = '<div class="empty-state"><p id="emptyText"></p></div>';
+      } catch (_) {
+        if (typeof content !== 'undefined' && content) content.innerHTML = '';
       }
       this.render();
       this.loadActiveDocument();
