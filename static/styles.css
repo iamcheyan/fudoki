@@ -97,7 +97,7 @@ body {
 
 /* 顶部导航栏 - 日式简约 */
 .header {
-  padding: 20px 0;
+  padding: 10px 0;
 }
 
 .header-content {
@@ -1582,11 +1582,13 @@ select, input[type="range"] {
   width: 28px;
   height: 28px;
   padding: 0;
+  background: var(--bg);
   color: var(--text);
   border-radius: 4px;
 }
 .theme-icon-btn svg { fill: var(--text); }
 .theme-icon-btn:hover { background: rgba(0,0,0,0.06); }
+:root[data-theme="dark"] .theme-icon-btn:hover { background: rgba(255,255,255,0.06); }
 
 /* 控件通用外观 */
 select, input[type="text"], textarea, .btn, .new-doc-btn, .delete-doc-btn, .play-all-btn, .nav-item, .play-line-btn, .play-token-btn {
@@ -2311,3 +2313,20 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 
 /* 选择框/按钮统一高度 */
 select, .btn, .new-doc-btn, .delete-doc-btn { height: 36px; }
+
+/* 导航设置按钮（齿轮）暗色/亮色适配 */
+#settingsButton.theme-icon-btn {
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--control-text);
+}
+#settingsButton.theme-icon-btn svg { fill: currentColor; }
+
+:root[data-theme="dark"] #settingsButton.theme-icon-btn {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--control-border);
+  color: var(--control-text);
+}
+:root[data-theme="dark"] #settingsButton.theme-icon-btn:hover {
+  background: rgba(255,255,255,0.12);
+}

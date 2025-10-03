@@ -2905,7 +2905,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
 // 高度调整功能
   function initToolbarResize() {
     const resizeHandle = document.getElementById('toolbarResizeHandle');
-    const toolbar = document.getElementById('sidebar-right');
+    const toolbar = document.querySelector('.sidebar-right');
     
     if (!resizeHandle || !toolbar) return;
     
@@ -3100,92 +3100,69 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 创建共享工具栏内容HTML
   function createToolbarContentHTML(context) {
-    const prefix = context === 'sidebar' ? 'sidebar' : '';
-    const idPrefix = prefix ? prefix + '' : '';
+    const isSidebar = context === 'sidebar';
+    const id = (base) => isSidebar ? `sidebar${base.charAt(0).toUpperCase()}${base.slice(1)}` : base;
     
+    // 移除“系统设置”（主题/语言）区块，仅保留语音与显示设置
     return `
       <!-- 语音设置 -->
       <div class="settings-section">
-        <div class="sidebar-title" id="${idPrefix}VoiceSettingsTitle">语音设置</div>
+        <div class="sidebar-title" id="${id('voiceSettingsTitle')}">语音设置</div>
         <div class="voice-controls">
           <div class="control-group">
-            <label class="control-label" id="${idPrefix}VoiceSelectLabel">语音选择</label>
-            <select id="${idPrefix}VoiceSelect">
+            <label class="control-label" id="${id('voiceSelectLabel')}">语音选择</label>
+            <select id="${id('voiceSelect')}">
               <option value="">选择语音...</option>
             </select>
           </div>
 
           <div class="control-group">
-            <label class="control-label" id="${idPrefix}SpeedLabel">语速调节</label>
-            <input type="range" id="${idPrefix}SpeedRange" min="0.5" max="2" step="0.1" value="1">
-            <div class="speed-display" id="${idPrefix}SpeedValue">1.0x</div>
+            <label class="control-label" id="${id('speedLabel')}">语速调节</label>
+            <input type="range" id="${id('speedRange')}" min="0.5" max="2" step="0.1" value="1">
+            <div class="speed-display" id="${id('speedValue')}">1.0x</div>
           </div>
 
-          <button class="play-all-btn" id="${idPrefix}PlayAllBtn">播放全文</button>
+          <button class="play-all-btn" id="${id('playAllBtn')}">播放全文</button>
         </div>
       </div>
 
       <!-- 显示设置 -->
       <div class="settings-section">
-        <div class="sidebar-title" id="${idPrefix}DisplayTitle">显示设置</div>
+        <div class="sidebar-title" id="${id('displayTitle')}">显示设置</div>
         <div class="display-controls">
           <div class="control-group">
-            <label class="control-label" id="${idPrefix}ShowKanaLabel">
-              <input type="checkbox" id="${idPrefix}ShowKana" checked>
+            <label class="control-label" id="${id('showKanaLabel')}">
+              <input type="checkbox" id="${id('showKana')}" checked>
               显示假名
             </label>
           </div>
           
           <div class="control-group">
-            <label class="control-label" id="${idPrefix}ShowRomajiLabel">
-              <input type="checkbox" id="${idPrefix}ShowRomaji" checked>
+            <label class="control-label" id="${id('showRomajiLabel')}">
+              <input type="checkbox" id="${id('showRomaji')}" checked>
               显示罗马音
             </label>
           </div>
           
           <div class="control-group">
-            <label class="control-label" id="${idPrefix}ShowPosLabel">
-              <input type="checkbox" id="${idPrefix}ShowPos" checked>
+            <label class="control-label" id="${id('showPosLabel')}">
+              <input type="checkbox" id="${id('showPos')}" checked>
               显示词性
             </label>
           </div>
           
           <div class="control-group">
-            <label class="control-label" id="${idPrefix}AutoReadLabel">
-              <input type="checkbox" id="${idPrefix}AutoRead">
+            <label class="control-label" id="${id('autoReadLabel')}">
+              <input type="checkbox" id="${id('autoRead')}">
               自动朗读
             </label>
           </div>
           
           <div class="control-group">
-            <label class="control-label" id="${idPrefix}RepeatPlayLabel">
-              <input type="checkbox" id="${idPrefix}RepeatPlay">
+            <label class="control-label" id="${id('repeatPlayLabel')}">
+              <input type="checkbox" id="${id('repeatPlay')}">
               重复播放
             </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- 系统设置 -->
-      <div class="settings-section">
-        <div class="sidebar-title" id="${idPrefix}SystemTitle">系统设置</div>
-        <div class="system-controls">
-          <div class="control-group">
-            <label class="control-label" id="${idPrefix}ThemeLabel">主题模式</label>
-            <select id="${idPrefix}ThemeSelect" class="theme-select">
-              <option value="light">浅色模式</option>
-              <option value="dark">深色模式</option>
-              <option value="auto">跟随系统</option>
-            </select>
-          </div>
-          
-          <div class="control-group">
-            <label class="control-label" id="${idPrefix}LangLabel">界面语言</label>
-            <select id="${idPrefix}LangSelect" class="lang-select">
-              <option value="ja">日本語</option>
-              <option value="en">English</option>
-              <option value="zh">中文</option>
-            </select>
           </div>
         </div>
       </div>
@@ -3199,6 +3176,90 @@ Try Fudoki and enjoy Japanese language analysis!`;
     toolbarContainers.forEach(container => {
       const context = container.getAttribute('data-context');
       container.innerHTML = createToolbarContentHTML(context);
+    });
+  }
+
+  // 设置弹窗：绑定齿轮按钮显示/隐藏，并在首次打开时注入共享内容
+  function initSettingsModal() {
+    const btn = document.getElementById('settingsButton');
+    const modal = document.getElementById('settingsModal');
+    const closeBtn = document.getElementById('settingsModalClose');
+    const body = document.getElementById('settingsModalBody');
+
+    if (!btn || !modal) return;
+
+    const openModal = () => {
+      // 首次打开时填充工具栏内容（modal上下文使用通用模板）
+      if (body && body.childElementCount === 0) {
+        body.innerHTML = createToolbarContentHTML('modal');
+        // 绑定语音与速度控件，以及显示控制
+        try { if (typeof initVoiceAndSpeedControls === 'function') initVoiceAndSpeedControls(); } catch (_) {}
+        try { if (typeof initDisplayControls === 'function') initDisplayControls(); } catch (_) {}
+        // 重新绑定主题与语言选择器（避免首次注入未绑定）
+        try {
+          const langSelectEl = document.getElementById('langSelect');
+          if (langSelectEl && !langSelectEl.dataset.bound) {
+            langSelectEl.dataset.bound = '1';
+            // 初始化当前语言
+            if (typeof currentLang !== 'undefined') langSelectEl.value = currentLang;
+            langSelectEl.addEventListener('change', () => {
+              const val = langSelectEl.value || 'ja';
+              try { localStorage.setItem(LS.lang, val); } catch (e) {}
+              if (typeof setLanguage === 'function') setLanguage(val); else { currentLang = val; applyI18n(); }
+            });
+          }
+
+          const themeSelectEl = document.getElementById('themeSelect');
+          if (themeSelectEl && !themeSelectEl.dataset.bound) {
+            themeSelectEl.dataset.bound = '1';
+            // 初始化当前主题
+            let savedTheme = localStorage.getItem(LS.theme) || 'light';
+            themeSelectEl.value = savedTheme;
+            themeSelectEl.addEventListener('change', () => {
+              const selectedValue = themeSelectEl.value;
+              let newTheme = selectedValue === 'dark' ? 'dark' : (selectedValue === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : 'light');
+              try { localStorage.setItem(LS.theme, newTheme); } catch (e) {}
+              if (typeof applyTheme === 'function') applyTheme(newTheme);
+            });
+            // 跟随系统变化
+            const mql = window.matchMedia('(prefers-color-scheme: dark)');
+            const onSystemThemeChange = (e) => {
+              if (themeSelectEl.value === 'auto') {
+                const newTheme = e.matches ? 'dark' : 'light';
+                try { localStorage.setItem(LS.theme, newTheme); } catch (e) {}
+                if (typeof applyTheme === 'function') applyTheme(newTheme);
+              }
+            };
+            if (!themeSelectEl._mqlBound) {
+              mql.addEventListener('change', onSystemThemeChange);
+              themeSelectEl._mqlBound = true;
+            }
+          }
+        } catch (_) {}
+        // 注入后应用文案与标签翻译
+        try { applyI18n(); } catch (_) {}
+      }
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+    };
+
+    btn.addEventListener('click', () => {
+      if (!modal.classList.contains('show')) {
+        openModal();
+      } else {
+        closeModal();
+      }
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    // 点击遮罩区域关闭
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
     });
   }
 
@@ -3278,6 +3339,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   // 确保DOM加载完成后初始化所有功能
   function initializeApp() {
     initSharedToolbarContent(); // 首先初始化共享工具栏内容
+    initSettingsModal(); // 绑定齿轮按钮与设置弹窗
     initVoiceAndSpeedControls(); // 绑定语音与速度控件事件
     initDisplayControls();
     initToolbarDrag();
