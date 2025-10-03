@@ -13,7 +13,6 @@
   const langSelect = $('langSelect');
   const themeSelect = document.getElementById('themeSelect');
   const readingModeToggle = $('readingModeToggle');
-  const readingToggleText = $('readingToggleText');
   
   // 右侧边栏元素
   const sidebarVoiceSelect = $('sidebarVoiceSelect');
@@ -54,6 +53,7 @@
   };
 
   let isReadingMode = false;
+  let activeReadingLine = null;
   const initialUrlSearch = (() => {
     try {
       return new URL(window.location.href).searchParams;
@@ -65,7 +65,7 @@
   if (initialUrlSearch && initialUrlSearch.has('read')) {
     isReadingMode = true;
     if (document.body) {
-      document.body.classList.add('reading-mode');
+      document.body.id = 'reading-mode';
     }
   }
 
@@ -235,6 +235,12 @@
   // 计算并设置详情弹层的位置
   function positionTokenDetails(element, details) {
     if (!element || !details) return;
+    
+    // 将 details 移动到 body 最底层
+    if (details.parentNode !== document.body) {
+      document.body.appendChild(details);
+    }
+    
     const rect = element.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -291,6 +297,59 @@
     return dict[key] || key;
   }
 
+  function clearReadingLineHighlight() {
+    if (!activeReadingLine) return;
+    const previous = activeReadingLine;
+    activeReadingLine = null;
+    previous.classList.remove('reading-line-active');
+    previous.removeAttribute('aria-current');
+    if (previous.hasAttribute('aria-pressed')) {
+      previous.setAttribute('aria-pressed', 'false');
+    }
+  }
+
+  function syncReadingLineAttributes(enabled) {
+    if (!content) return;
+    const lines = content.querySelectorAll('.line-container');
+    lines.forEach((line) => {
+      if (enabled) {
+        line.setAttribute('tabindex', '0');
+        line.setAttribute('role', 'button');
+        const isActive = line.classList.contains('reading-line-active');
+        line.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        if (isActive) {
+          line.setAttribute('aria-current', 'true');
+        } else {
+          line.removeAttribute('aria-current');
+        }
+      } else {
+        line.setAttribute('tabindex', '-1');
+        if (line.getAttribute('role') === 'button') {
+          line.removeAttribute('role');
+        }
+        line.removeAttribute('aria-pressed');
+        line.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  function setReadingLineActive(line) {
+    if (!line) return;
+    if (document.body.id !== 'reading-mode') return;
+    if (activeReadingLine === line) {
+      clearReadingLineHighlight();
+      syncReadingLineAttributes(true);
+      return;
+    }
+
+    clearReadingLineHighlight();
+    activeReadingLine = line;
+    line.classList.add('reading-line-active');
+    line.setAttribute('aria-pressed', 'true');
+    line.setAttribute('aria-current', 'true');
+    syncReadingLineAttributes(true);
+  }
+
   function updateReadingToggleLabels() {
     if (!readingModeToggle) return;
     const enterLabel = t('readingToggleEnter') || '阅读模式';
@@ -300,11 +359,6 @@
     const label = isReadingMode ? exitLabel : enterLabel;
     const tooltip = isReadingMode ? exitTooltip : enterTooltip;
 
-    if (readingToggleText) {
-      readingToggleText.textContent = label;
-    } else {
-      readingModeToggle.textContent = label;
-    }
     readingModeToggle.title = tooltip;
     readingModeToggle.setAttribute('aria-label', tooltip);
     readingModeToggle.setAttribute('aria-pressed', String(isReadingMode));
@@ -333,12 +387,16 @@
     }
 
     isReadingMode = shouldEnable;
-    document.body.classList.toggle('reading-mode', shouldEnable);
+    document.body.id = shouldEnable ? 'reading-mode' : '';
     if (readingModeToggle) {
       readingModeToggle.classList.toggle('is-active', shouldEnable);
       readingModeToggle.setAttribute('aria-pressed', String(shouldEnable));
     }
     updateReadingToggleLabels();
+    if (!shouldEnable) {
+      clearReadingLineHighlight();
+    }
+    syncReadingLineAttributes(shouldEnable);
 
     if (updateUrl) {
       try {
@@ -1662,6 +1720,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   function showEmptyState() {
+    clearReadingLineHighlight();
     content.innerHTML = `
       <div style="text-align: center; color: #a0aec0; padding: 2rem;">
         <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.5;" viewBox="0 0 24 24">
@@ -1670,18 +1729,22 @@ Try Fudoki and enjoy Japanese language analysis!`;
         <p>${t('emptyText')}</p>
       </div>
     `;
+    syncReadingLineAttributes(isReadingMode);
   }
 
   function showLoadingState() {
+    clearReadingLineHighlight();
     content.innerHTML = `
       <div style="text-align: center; color: #667eea; padding: 2rem;">
         <div class="loading" style="margin: 0 auto 1rem;"></div>
         <p>${t('loading')}</p>
       </div>
     `;
+    syncReadingLineAttributes(isReadingMode);
   }
 
   function showErrorState(message) {
+    clearReadingLineHighlight();
     content.innerHTML = `
       <div style="text-align: center; color: #e53e3e; padding: 2rem;">
         <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.7;" viewBox="0 0 24 24">
@@ -1691,6 +1754,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         <button class="btn btn-secondary" onclick="analyzeText()" style="margin-top: 1rem;">${t('analyzeBtn')}</button>
       </div>
     `;
+    syncReadingLineAttributes(isReadingMode);
   }
 
   function displayResults(result) {
@@ -1699,11 +1763,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return;
     }
 
-    // 按行显示分词结果
-    const html = result.lines.map((line, lineIndex) => {
-      if (!Array.isArray(line) || line.length === 0) {
-        return '';
-      }
+    clearReadingLineHighlight();
+
+    // 按行显示分词结果，先过滤掉空行
+    const nonEmptyLines = result.lines.filter(line => Array.isArray(line) && line.length > 0);
+    const html = nonEmptyLines.map((line, lineIndex) => {
       
       const lineHtml = line.map((token, tokenIndex) => {
         const surface = token.surface || '';
@@ -1719,14 +1783,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
         // 获取罗马音
         const romaji = getRomaji(reading || surface);
         
-        // 检查是否为符号类型
+        // 检查是否为标点符号
         const isPunct = (pos[0] === '記号' || pos[0] === '補助記号');
-        // 检查是否为常见的符号字符
-        const isSymbol = /^[•·、。，！？；：""''（）【】《》〈〉「」『』〔〕〖〗〘〙〚〛\s\u00A0\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000]+$/.test(surface);
+        // 检查是否为需要过滤的装饰性符号
+        const isDecorativeSymbol = /^[•·\/\s\u00A0\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000]+$/.test(surface);
 
-        if (isPunct || isSymbol) {
-          // 过滤掉符号，不显示
+        if (isDecorativeSymbol) {
+          // 过滤掉装饰性符号，不显示
           return '';
+        } else if (isPunct) {
+          // 标点符号以普通文本显示，不作为卡片
+          return `<span class="punct">${surface}</span>`;
         }
         
         return `
@@ -1759,7 +1826,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }).join('');
       
       return `
-        <div class="line-container">
+        <div class="line-container" data-line-index="${lineIndex}" tabindex="-1">
           ${lineHtml}
           <button class="play-line-btn" onclick="playLine(${lineIndex})" title="播放这一行">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -1768,9 +1835,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
           </button>
         </div>
       `;
-    }).filter(line => line).join('');
+    }).join('');
 
     content.innerHTML = html;
+    syncReadingLineAttributes(isReadingMode);
   }
 
   // 播放单个词汇
@@ -2796,6 +2864,32 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
   }
 
+  function initReadingModeInteractions() {
+    if (!content) return;
+
+    content.addEventListener('click', (event) => {
+      if (document.body.id !== 'reading-mode') return;
+      const container = event.target.closest('.line-container');
+      if (!container) return;
+      setReadingLineActive(container);
+    });
+
+    content.addEventListener('keydown', (event) => {
+      if (document.body.id !== 'reading-mode') return;
+      const container = event.target.closest('.line-container');
+      if (!container) return;
+
+      if ((event.key === 'Enter' || event.key === ' ') && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        event.preventDefault();
+        setReadingLineActive(container);
+      } else if (event.key === 'Escape' && activeReadingLine === container) {
+        event.preventDefault();
+        clearReadingLineHighlight();
+        syncReadingLineAttributes(true);
+      }
+    });
+  }
+
   // 创建共享工具栏内容HTML
   function createToolbarContentHTML(context) {
     const prefix = context === 'sidebar' ? 'sidebar' : '';
@@ -2909,6 +3003,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initSidebarToggle();
     initMobileSidebarRight();
     initReadingModeToggle();
+    initReadingModeInteractions();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
   }
 

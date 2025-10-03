@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="static/styles.css">
   <link rel="icon" type="image/png" href="static/logo.png">
 </head>
-<body>
+<body id="reading-mode">
   <!-- 顶部导航 -->
   <header class="header">
     <div class="header-content">
@@ -305,8 +305,9 @@
   </div>
 
   <button type="button" class="reading-mode-toggle" id="readingModeToggle" aria-pressed="false" title="阅读模式">
-    <span class="reading-toggle-icon" aria-hidden="true"></span>
-    <span class="reading-toggle-text" id="readingToggleText">阅读</span>
+    <span class="reading-toggle-icon" aria-hidden="true">
+      <span class="reading-icon-lines"></span>
+    </span>
   </button>
 
   <footer class="footer">
