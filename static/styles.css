@@ -718,9 +718,11 @@ body {
 .doc-item-title {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  /* white-space: nowrap; */
   font-size: 13px;
   color: var(--text);
+  flex: 1;           /* 让标题占据剩余空间 */
+  min-width: 0;      /* 允许在flex容器中正确截断 */
 }
 
 .doc-item-time {
@@ -734,6 +736,8 @@ body {
   transition: opacity 0.2s ease;
   display: flex;
   gap: 4px;
+  flex-shrink: 0;     /* 防止压缩星号区域 */
+  margin-left: 8px;   /* 与标题留出间距，避免覆盖 */
 }
 /* 取消仅在 hover 时显示 */
 
