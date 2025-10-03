@@ -89,20 +89,20 @@
     const activeId = getActiveFolderId();
     folderList.innerHTML = '';
 
-    // 虚拟 "全部"
+    // 虚拟 "全部"（多语言）
     const allItem = document.createElement('div');
     allItem.className = 'folder-item' + (activeId === 'all' ? ' active' : '');
     allItem.dataset.folderId = 'all';
     allItem.innerHTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3,4H21V6H3V4M3,8H21V10H3V8M3,12H21V14H3V12M3,16H21V18H3V16Z"/>
+        <path d="M3,13h2v-2H3V13M7,13h2v-2H7V13M11,13h2v-2H11V13M15,13h2v-2H15V13M19,13h2v-2H19V13M3,17h2v-2H3V17M7,17h2v-2H7V17M11,17h2v-2H11V17M15,17h2v-2H15V17M19,17h2v-2H19V17M3,9h2V7H3V9M7,9h2V7H7V9M11,9h2V7H11V9M15,9h2V7H15V9M19,9h2V7H19V9"/>
       </svg>
-      <div>全部</div>
+      <div>${t('folderAll')}</div>
     `;
     allItem.addEventListener('click', () => { selectFolder('all'); });
     folderList.appendChild(allItem);
 
-    // 固定"收藏"
+    // 固定"收藏"（多语言）
     const favItem = document.createElement('div');
     favItem.className = 'folder-item' + (activeId === 'favorites' ? ' active' : '');
     favItem.dataset.folderId = 'favorites';
@@ -110,10 +110,14 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
       </svg>
-      <div>收藏</div>
+      <div>${t('folderFavorites')}</div>
     `;
     favItem.addEventListener('click', () => { selectFolder('favorites'); });
     folderList.appendChild(favItem);
+
+    // 同步左侧标题（冗余设置，确保语言切换后与首次渲染都正确）
+    const folderTitleEl = $('sidebarFolderTitle');
+    if (folderTitleEl) folderTitleEl.textContent = t('sidebarFolderTitle');
   }
 
   function selectFolder(id) {
@@ -174,6 +178,22 @@
       ,lbl_field: '分野'
       ,lbl_note: '備考'
       ,lbl_chinese: '中文'
+      ,folderAll: 'すべて',
+      folderFavorites: 'お気に入り',
+      sidebarFolderTitle: 'フォルダー管理',
+      favorite: 'お気に入り',
+      unfavorite: 'お気に入り解除',
+      cannotDeleteDefault: 'デフォルトのドキュメントは削除できません',
+      confirmDelete: 'ドキュメント「{title}」を削除しますか？',
+      pleaseInputText: '先にテキストを入力してください',
+      noJapaneseVoice: '日本語音声は利用できません',
+      untitledDocument: '無題のドキュメント',
+      play: '再生',
+      stop: '停止',
+      pause: '一時停止',
+      playThisLine: 'この行を再生',
+      expand: '展開',
+      collapse: '折りたたむ',
     },
     en: {
       title: 'Fudoki',
@@ -221,6 +241,22 @@
       ,lbl_field: 'Field'
       ,lbl_note: 'Note'
       ,lbl_chinese: 'Chinese'
+      ,folderAll: 'All',
+      folderFavorites: 'Favorites',
+      sidebarFolderTitle: 'Folders',
+      favorite: 'Favorite',
+      unfavorite: 'Unfavorite',
+      cannotDeleteDefault: 'Cannot delete the default document',
+      confirmDelete: 'Delete document "{title}"?',
+      pleaseInputText: 'Please enter text first',
+      noJapaneseVoice: 'Japanese voice is unavailable',
+      untitledDocument: 'Untitled Document',
+      play: 'Play',
+      stop: 'Stop',
+      pause: 'Pause',
+      playThisLine: 'Play this line',
+      expand: 'Expand',
+      collapse: 'Collapse',
     },
     zh: {
       title: 'Fudoki',
@@ -268,6 +304,22 @@
       ,lbl_field: '领域'
       ,lbl_note: '备注'
       ,lbl_chinese: '中文'
+      ,folderAll: '全部',
+      folderFavorites: '收藏',
+      sidebarFolderTitle: '文件夹管理',
+      favorite: '收藏',
+      unfavorite: '取消收藏',
+      cannotDeleteDefault: '默认文档不能删除',
+      confirmDelete: '确定要删除文档"{title}"吗？',
+      pleaseInputText: '请先输入文本',
+      noJapaneseVoice: '日语语音不可用',
+      untitledDocument: '无标题文档',
+      play: '播放',
+      stop: '停止',
+      pause: '暂停',
+      playThisLine: '播放这一行',
+      expand: '展开',
+      collapse: '收缩',
     }
   };
 
@@ -1036,7 +1088,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
         
         const opt = document.createElement('option');
-        opt.textContent = '日语语音不可用';
+        opt.textContent = t('noJapaneseVoice');
         opt.disabled = true;
         opt.selected = true;
         voiceSelect.appendChild(opt);
@@ -1290,12 +1342,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const doc = docs[index];
       if (doc.locked) {
         if (!skipConfirm) {
-          alert('默认文档不能删除');
+          alert(t('cannotDeleteDefault'));
         }
         return false;
       }
 
-      if (!skipConfirm && !showDeleteConfirm(`确定要删除文档"${this.getDocumentTitle(doc.content)}"吗？`, 
+      if (!skipConfirm && !showDeleteConfirm((t('confirmDelete') || '').replace('{title}', this.getDocumentTitle(doc.content)), 
         () => {
           // 确认删除
           docs.splice(index, 1);
@@ -1453,7 +1505,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
             <div class="doc-item-time">${createdTime}</div>
           </div>
           <div class="doc-item-actions">
-            <button class="doc-action-btn fav-btn ${isFav ? 'active' : ''}" title="${isFav ? '取消收藏' : '收藏'}">${isFav ? '★' : '☆'}</button>
+            <button class="doc-action-btn fav-btn ${isFav ? 'active' : ''}" title="${isFav ? t('unfavorite') : t('favorite')}">${isFav ? '★' : '☆'}</button>
           </div>
         `;
         
@@ -1818,11 +1870,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       updateButtonIcon(btn, isPlaying);
     });
     
-    // 更新移动端播放按钮图标
-    const mobilePlayBtn = document.getElementById('mobilePlayBtn');
-    if (mobilePlayBtn) {
-      updateMobilePlayButtonIcon(mobilePlayBtn, isPlaying);
-    }
+    // 移动端播放按钮已移除，不再更新移动端图标
   }
 
   function updateButtonIcon(button, playing) {
@@ -1839,7 +1887,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
       buttonText = playAllLabel(playing);
     } else {
-      buttonText = playing ? '停止' : '播放';
+      buttonText = playing ? t('stop') : t('play');
     }
     
     if (playing) {
@@ -1849,7 +1897,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
         button.title = playAllLabel(true);
       } else {
-        button.title = '停止';
+        button.title = t('stop');
       }
     } else {
       // 播放图标 (三角形)
@@ -1858,7 +1906,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
         button.title = playAllLabel(false);
       } else {
-        button.title = '播放';
+        button.title = t('play');
       }
     }
     
@@ -1866,23 +1914,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 保留其他按钮默认文本行为（目前无文本）
   }
 
-  // 更新移动端播放按钮图标
-  function updateMobilePlayButtonIcon(button, playing) {
-    if (!button) return;
-    
-    const svg = button.querySelector('svg');
-    if (!svg) return;
-    
-    if (playing) {
-      // 暂停图标 (两个竖条)
-      svg.innerHTML = '<rect x="6" y="6" width="4" height="12" fill="currentColor"/><rect x="14" y="6" width="4" height="12" fill="currentColor"/>';
-      button.title = '暂停播放';
-    } else {
-      // 播放图标 (三角形)
-      svg.innerHTML = '<path d="M8 5v14l11-7z" fill="currentColor"/>';
-      button.title = '播放全文';
-    }
-  }
+  // 移动端播放按钮图标更新函数已移除
 
   function applyVoice(u) {
     try {
@@ -2034,7 +2066,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
             </div>
             <div class="token-details" style="display: none;">
               ${detailInfo}
-              <button class="play-token-btn" onclick="playToken('${surface}', event, ${JSON.stringify(token).replace(/'/g, '&apos;')})" title="播放">
+              <button class="play-token-btn" onclick="playToken('${surface}', event, ${JSON.stringify(token).replace(/'/g, '&apos;')})" title="${t('play')}">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
@@ -2047,7 +2079,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return `
         <div class="line-container" data-line-index="${lineIndex}" tabindex="-1">
           ${lineHtml}
-          <button class="play-line-btn" onclick="playLine(${lineIndex})" title="播放这一行">
+          <button class="play-line-btn" onclick="playLine(${lineIndex})" title="${t('playThisLine')}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M8 5v14l11-7z"/>
             </svg>
@@ -2358,7 +2390,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (text) {
       speak(text);
     } else {
-      showNotification('请先输入文本', 'warning');
+      showNotification(t('pleaseInputText'), 'warning');
     }
   }
 
@@ -2768,7 +2800,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         toolbarContent.style.display = 'none';
         toolbar.classList.add('collapsed');
         minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
-        minimizeBtn.title = '展开';
+        minimizeBtn.title = t('expand');
       } else {
         // 展开：恢复完整高度
         const savedHeight = localStorage.getItem('toolbarHeight');
@@ -2785,7 +2817,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         toolbarContent.style.display = 'flex';
         toolbar.classList.remove('collapsed');
         minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 11h12v2H6z"/></svg>';
-        minimizeBtn.title = '收缩';
+        minimizeBtn.title = t('collapse');
       }
       
       localStorage.setItem('toolbarCollapsed', isCollapsed);
@@ -2805,7 +2837,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         toolbarContent.style.display = 'none';
         toolbar.classList.add('collapsed');
         minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
-        minimizeBtn.title = '展开';
+        minimizeBtn.title = t('expand');
       }
     }
     
@@ -2841,7 +2873,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         toolbarContent.style.display = 'flex';
         toolbar.classList.remove('collapsed');
         minimizeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 11h12v2H6z"/></svg>';
-        minimizeBtn.title = '收缩';
+        minimizeBtn.title = t('collapse');
       }
     });
     
@@ -3057,7 +3089,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (text) {
         speak(text);
       } else {
-        showNotification('请先输入文本', 'warning');
+        showNotification(t('pleaseInputText'), 'warning');
       }
     }
     

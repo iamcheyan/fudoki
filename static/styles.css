@@ -27,14 +27,14 @@
   --border: #e0e0e0;
   --elev: #fafafa;
   --primary: #8B6914;
-  --toolbar-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(139, 105, 20, 0.08));
-  --toolbar-border: rgba(139, 105, 20, 0.2);
-  --toolbar-shadow: 0 18px 36px rgba(139, 105, 20, 0.12);
-  --toolbar-chip-bg: rgba(255, 255, 255, 0.82);
-  --toolbar-chip-border: rgba(139, 105, 20, 0.16);
+  --toolbar-bg: linear-gradient(120deg, rgba(255, 255, 255, 0.94), rgba(139, 105, 20, 0.08));
+  --toolbar-border: rgba(139, 105, 20, 0.16);
+  --toolbar-shadow: 0 10px 24px rgba(139, 105, 20, 0.09);
+  --toolbar-chip-bg: rgba(255, 255, 255, 0.88);
+  --toolbar-chip-border: rgba(139, 105, 20, 0.15);
   --toolbar-chip-hover: rgba(139, 105, 20, 0.12);
-  --toolbar-chip-neutral: rgba(255, 255, 255, 0.9);
-  --toolbar-chip-neutral-border: rgba(139, 105, 20, 0.18);
+  --toolbar-chip-neutral: rgba(255, 255, 255, 0.92);
+  --toolbar-chip-neutral-border: rgba(139, 105, 20, 0.16);
 }
 
 :root[data-theme="dark"] {
@@ -44,14 +44,14 @@
   --border: #2c323d;     /* 低对比边框 */
   --elev: #1e2229;       /* 提升层（卡片/面板） */
   --primary: #d9b35a;    /* 暖金主色 */
-  --toolbar-bg: linear-gradient(135deg, rgba(217, 179, 90, 0.14), rgba(12, 14, 18, 0.94));
-  --toolbar-border: rgba(217, 179, 90, 0.28);
-  --toolbar-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
-  --toolbar-chip-bg: rgba(35, 41, 52, 0.9);
+  --toolbar-bg: linear-gradient(120deg, rgba(217, 179, 90, 0.1), rgba(16, 19, 26, 0.96));
+  --toolbar-border: rgba(217, 179, 90, 0.22);
+  --toolbar-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  --toolbar-chip-bg: rgba(36, 42, 52, 0.92);
   --toolbar-chip-border: rgba(217, 179, 90, 0.24);
-  --toolbar-chip-hover: rgba(217, 179, 90, 0.22);
-  --toolbar-chip-neutral: rgba(27, 31, 38, 0.92);
-  --toolbar-chip-neutral-border: rgba(217, 179, 90, 0.26);
+  --toolbar-chip-hover: rgba(217, 179, 90, 0.2);
+  --toolbar-chip-neutral: rgba(30, 36, 46, 0.94);
+  --toolbar-chip-neutral-border: rgba(217, 179, 90, 0.24);
 }
 
 /* 滚动条主题变量（简约风格） */
@@ -87,6 +87,18 @@ body {
   color: var(--text);
   line-height: 1.6;
   font-size: 14px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* 暗色模式下的body背景 */
@@ -205,6 +217,22 @@ body {
 .mobile-settings-btn .settings-icon {
   width: 20px;
   height: 20px;
+}
+
+@media (max-width: 768px) {
+  .collapse-menu-btn {
+    left: 10px;
+  }
+
+  .mobile-play-btn {
+    display: block;
+    right: 58px;
+  }
+
+  .mobile-settings-btn {
+    display: block;
+    right: 10px;
+  }
 }
 
 .nav-menu {
@@ -429,266 +457,7 @@ body {
   overflow: hidden;
 }
 
-/* 移动端优化 */
-@media (max-width: 768px) {
-  .collapse-menu-btn {
-    left: 10px;
-  }
-  
-  /* 移动端播放按钮显示 */
-  .mobile-play-btn {
-    display: block;
-    right: 58px; /* 位于设置按钮左侧 */
-  }
-  
-  /* 移动端设置按钮显示 */
-  .mobile-settings-btn {
-    display: block;
-    right: 10px;
-  }
-  
-  /* 设置弹窗样式 */
-  .settings-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  .settings-modal.show {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
-  }
-  
-  .settings-modal-content {
-    background: var(--bg);
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    width: 90%;
-    max-width: 400px;
-    max-height: 80vh;
-    overflow: hidden;
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
-  }
-  
-  .settings-modal.show .settings-modal-content {
-    transform: scale(1);
-  }
-  
-  .settings-modal-header {
-    background: linear-gradient(135deg, var(--primary), #463201);
-    color: white;
-    padding: 5px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .settings-modal-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 16px;
-    font-weight: 600;
-  }
-  
-  .settings-modal-title .settings-icon {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .settings-modal-close {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-  }
-  
-  .settings-modal-close:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  
-  .settings-modal .toolbar-content {
-    padding: 20px;
-    max-height: calc(80vh - 80px);
-    overflow-y: auto;
-  }
-  
-  /* 隐藏桌面端的sidebar-right在移动端 */
-   .sidebar-right {
-     display: none !important;
-   }
-
-   .logo-icon {
-    width: 38px;
-    height: auto;
-   }
-  /* 头部导航 */
-  .header {
-    padding: 12px 0;
-  }
-  
-  .header-content {
-    padding: 0 12px;
-  }
-  
-  .logo-text {
-    display: none;
-  }
-  
-  .nav-menu {
-    gap: 12px;
-  }
-  
-  /* 主容器 */
-  .main-container {
-    grid-template-columns: 1fr;
-    position: relative;
-    margin: 0 12px 20px 12px;
-    border-radius: 12px;
-    min-height: calc(100vh - 120px);
-  }
-  
-  /* 左侧边栏移动端样式 */
-  .sidebar-left {
-    position: fixed;
-    top: 80px;
-    left: -200px;
-    width: 200px !important;
-    height: calc(100vh - 80px);
-    z-index: 999;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 0 12px 12px 0;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-    transform: translateX(0);
-  }
-  
-  .sidebar-left.show {
-    left: 0;
-  }
-  
-  .sidebar-left .sidebar-toggle-btn {
-    right: -24px;
-    top: 20px;
-  }
-  
-  .sidebar-left.show .sidebar-toggle-btn .toggle-icon {
-    transform: rotate(180deg);
-  }
-  
-  /* 主内容区域 */
-  .content-main {
-    padding: 16px;
-  }
-  
-  /* 输入区域 */
-  .input-section {
-    margin-bottom: 16px;
-  }
-  
-  .input-group {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  #textInput {
-    min-height: 120px;
-    font-size: 16px; /* 防止iOS缩放 */
-  }
-  
-  .btn-primary {
-    padding: 12px 24px;
-    font-size: 16px;
-  }
-  
-  /* 右侧工具栏移动端适配 */
-  .sidebar-right {
-    position: fixed;
-    top: 80px;
-    right: 10px; /* 改为默认显示，而不是隐藏 */
-    left: auto;
-    width: 280px;
-    max-height: 70vh;
-    z-index: 999;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px 0 0 12px;
-    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
-    transition: right 0.3s ease;
-    overflow-y: auto;
-  }
-  
-  .sidebar-right.show {
-    right: 0;
-  }
-  
-  .toolbar-header {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-  
-  .toolbar-content {
-    padding: 12px;
-  }
-  
-  /* 设置控件移动端优化 */
-  .control-group {
-    margin-bottom: 12px;
-  }
-  
-  .control-label {
-    font-size: 13px;
-  }
-  
-  select, input[type="range"] {
-    font-size: 16px; /* 防止iOS缩放 */
-  }
-  
-  /* 文档列表移动端优化 */
-  .doc-item {
-    padding: 12px;
-    font-size: 14px;
-  }
-  
-  .new-doc-btn, .delete-doc-btn {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-  
-  /* 内容区域移动端优化 */
-  .token-pill {
-    font-size: 14px;
-    padding: 6px 8px;
-    margin: 2px;
-  }
-  
-  .token-details {
-    left: 12px !important;
-    right: 12px !important;
-    width: auto !important;
-    max-height: 50vh;
-  }
-  
-  /* 页脚移动端优化 */
-  .footer {
-    margin: 20px 12px 40px 12px;
-    font-size: 11px;
-  }
-}
+/* 移动端优化（已移除） */
 
 /* 通用：设置弹窗（桌面与移动共用WAP尺寸） */
 .settings-modal {
@@ -1371,122 +1140,230 @@ input:focus, textarea:focus, select:focus {
   flex: 1; /* 自动填充剩余空间 */
 }
 
-/* 顶部内嵌设置栏（横向布局） */
+/* 顶部内嵌设置栏 */
 .inline-settings {
   display: flex;
-  flex-wrap: nowrap; /* 全部横排，不换行 */
-  gap: 12px;
   align-items: center;
-  padding: 8px 12px; /* 工具栏内边距 */
-  margin-bottom: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  position: sticky; /* 工具栏吸顶（在内容区域内） */
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 0 10px;
+  margin: 8px 0 0 0;
+  /* border-radius: 14px;
+  border: 1px solid var(--toolbar-border);
+  background: var(--toolbar-bg);
+  box-shadow: var(--toolbar-shadow); */
+  position: sticky;
   top: 0;
   z-index: 20;
-  overflow-x: auto; /* 超出时横向滚动 */
-  backdrop-filter: saturate(160%) blur(6px);
-  margin: 10px 10px 0 10px;
+  backdrop-filter: saturate(150%) blur(8px);
 }
+
 .inline-settings .settings-section {
   margin: 0;
   padding: 0;
   border: none;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: nowrap;
 }
 
-/* 工具栏分组分隔线 */
-.inline-settings .settings-section + .settings-section {
-  border-left: 1px solid var(--border);
-  padding-left: 12px;
+.inline-settings .inline-primary {
+  flex: 1;
+  min-width: 260px;
+  gap: 10px;
 }
-/* 移除标题样式，纯控件布局 */
-.inline-settings .voice-controls,
-.inline-settings .display-controls {
-  display: inline-flex;
-  flex-wrap: nowrap;
+
+.inline-settings .inline-toggles {
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.inline-settings .control-group {
+  display: flex;
   align-items: center;
   gap: 8px;
-}
-.inline-settings .control-group { margin: 0; }
-.inline-settings .control-label {
   margin: 0;
-  padding: 6px;
-  border: none; /* 不用边框表示选择状态 */
-  border-radius: 6px;
-  background: var(--elevated);
-  color: var(--text);
+  min-width: 0;
+}
+
+.inline-settings .control-group input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.inline-settings .icon-chip,
+.inline-settings .icon-toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--toolbar-chip-neutral);
+  border: 1px solid var(--toolbar-chip-neutral-border);
+  color: var(--text);
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
-.inline-settings .control-label:hover { transform: translateY(-1px); }
-/* 隐藏原生复选框，仅保留可访问性 */
-.inline-settings .control-label input[type="checkbox"] {
+
+.inline-settings .icon-chip:hover,
+.inline-settings .icon-toggle:hover {
+  transform: translateY(-1px);
+  background: var(--toolbar-chip-hover);
+}
+
+.inline-settings .icon-chip .icon,
+.inline-settings .icon-toggle .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inline-settings .icon-chip svg,
+.inline-settings .icon-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.inline-settings .icon-toggle {
+  background: transparent;
+  border: 1px solid var(--toolbar-chip-border);
+  color: var(--text);
+}
+
+.inline-settings .icon-toggle:has(input:checked) {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+  box-shadow: 0 12px 24px rgba(139, 105, 20, 0.24);
+}
+
+:root[data-theme="dark"] .inline-settings .icon-toggle:has(input:checked) {
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.48);
+}
+
+.inline-settings .icon-toggle input[type="checkbox"] {
   position: absolute;
+  inset: 0;
   opacity: 0;
   pointer-events: none;
 }
-/* 使用选择态的填充高亮 */
-.inline-settings .control-label:has(input:checked) {
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+
+.inline-settings select {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--toolbar-chip-border);
+  background: var(--toolbar-chip-neutral);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.inline-settings .control-label:focus-visible {
+
+.inline-settings select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.inline-settings .speed-control {
+  gap: 6px;
+}
+
+.inline-settings .speed-control .icon-chip {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  transform: none;
+  color: var(--text);
+}
+
+.inline-settings .speed-control .icon-chip:hover {
+  background: transparent;
+}
+
+.inline-settings .speed-control input[type="range"] {
+  accent-color: var(--primary);
+  width: 120px;
+  height: 4px;
+}
+
+.inline-settings .speed-display {
+  min-width: 46px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--toolbar-chip-neutral);
+  border: 1px solid var(--toolbar-chip-border);
+  border-radius: 10px;
+  padding: 2px 6px;
+}
+
+.inline-settings .play-all-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 24px rgba(139, 105, 20, 0.28);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.inline-settings .play-all-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.inline-settings .play-all-btn:active {
+  transform: scale(0.94);
+}
+
+.inline-settings .play-all-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.inline-settings .icon-chip:focus-visible,
+.inline-settings .icon-toggle:focus-visible,
+.inline-settings .play-all-btn:focus-visible,
+.inline-settings select:focus-visible,
+.inline-settings input[type="range"]:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
-.inline-settings .control-label .icon {
-  width: 16px;
-  height: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  line-height: 1;
-}
-.inline-settings .control-label .label-text { display: none; }
-.inline-settings select {
-  width: auto;
-  min-width: 190px;
-  height: 28px;
-  padding: 0 8px;
-  border-radius: 6px;
-}
-.inline-settings input[type="range"] { width: 170px; }
-.inline-settings .speed-display {
-  width: auto;
-  min-width: 44px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--elevated);
-}
-.inline-settings .play-all-btn {
-  width: auto;
-  padding: 8px 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-}
-.inline-settings .play-all-btn { width: 28px; height: 28px; padding: 0; border-radius: 6px; }
-.inline-settings .play-all-btn svg { width: 16px; height: 16px; }
 
-/* 暗色主题下的阴影与分隔调整 */
-:root[data-theme="dark"] .inline-settings {
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+.inline-settings .icon-toggle:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 860px) {
+  .inline-settings {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inline-settings .inline-primary,
+  .inline-settings .inline-toggles {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .inline-settings .inline-toggles {
+    justify-content: flex-start;
+  }
 }
 
 /* 设置分组样式 */
@@ -1548,8 +1425,6 @@ input:focus, textarea:focus, select:focus {
   align-items: center;         /* 垂直居中对齐 */
   min-height: 40px;
 }
-
-.voice-controls { margin-bottom: 12px; }
 
 .control-group {
   margin-bottom: 0;            /* 工具栏风格：去掉底部外边距 */
@@ -1676,91 +1551,25 @@ select, input[type="range"] {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .main-container {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
   
-  .sidebar-left {
-    position: fixed;
-    top: 60px;
-    left: -280px;
-    width: 280px;
-    height: calc(100vh - 100px);
-    background: var(--bg);
-    border-right: 1px solid var(--border);
-    z-index: 1000;
-    transition: left 0.3s ease;
-    overflow-y: auto;
-  }
   
-  /* 移动端工具栏调整 */
-  .sidebar-right {
-    width: 200px;
-    max-height: 400px;
-    top: 60px;
-    right: 10px;
-  }
   
-  .toolbar-header {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
   
-  .toolbar-content {
-    padding: 12px;
-  }
   
-  .header-content {
-    padding: 0 12px 0 60px;
-    flex-wrap: nowrap;
-    position: relative;
-    justify-content: unset;
-  }
   
-  .nav-menu {
-    gap: 12px;
-    flex-wrap: nowrap;
-  }
   
-  .nav-item {
-    font-size: 12px;
-    padding: 4px 6px;
-    white-space: nowrap;
-  }
   
-
   
-  /* 移动端内容区域优化 */
-  .content-area {
-    background: var(--bg) !important;
-    opacity: 1 !important;
-  }
   
-  .input-section {
-    background: var(--bg) !important;
-    opacity: 1 !important;
-  }
   
-  .line-container {
-    background: var(--bg) !important;
-    opacity: 1 !important;
-  }
   
-  .line-container:hover {
-    background: var(--elev) !important;
-    opacity: 1 !important;
-  }
   
-  .token-container {
-    background: var(--bg) !important;
-    opacity: 1 !important;
-  }
   
-  .main-container {
-    background: var(--bg) !important;
-    opacity: 1 !important;
-  }
+  
+  
+  
+  
+  /* 移动端内容区域优化（已移除） */
 }
 
 /* 翻译功能样式 */

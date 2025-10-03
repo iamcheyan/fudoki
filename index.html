@@ -17,21 +17,21 @@
           <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
         </svg>
       </button>
-      
+
       <!-- 移动端播放按钮 -->
       <button class="mobile-play-btn" id="mobilePlayBtn" title="播放全文">
         <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M8 5v14l11-7z"/>
         </svg>
       </button>
-      
+
       <!-- 移动端设置按钮 -->
       <button class="mobile-settings-btn" id="mobileSettingsBtn" title="打开设置">
         <svg class="settings-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+          <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5-0.38,1.03-0.7,1.62-0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
         </svg>
       </button>
-      
+
       <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
       <nav class="nav-menu">
         
@@ -88,78 +88,118 @@
     <main class="content-main">
       <!-- 顶部内嵌设置栏（横向排列，位于文本框上方） -->
       <div class="inline-settings" id="inlineSettings">
-        <!-- 语音设置（标题移除，横排控件） -->
-        <div class="settings-section">
-          <div class="voice-controls">
-            <div class="control-group">
-              <label class="control-label" id="voiceSelectLabel" title="语音选择">
-                <span class="icon" aria-hidden="true">🎤</span>
-                <span class="label-text">语音选择</span>
-              </label>
-              <select id="voiceSelect">
-                <option value="">选择语音...</option>
-              </select>
-            </div>
-
-            <div class="control-group">
-              <label class="control-label" id="speedLabel" title="语速调节">
-                <span class="icon" aria-hidden="true">⏱</span>
-                <span class="label-text">语速调节</span>
-              </label>
-              <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
-              <div class="speed-display" id="speedValue">1.0x</div>
-            </div>
-
-            <button class="play-all-btn" id="playAllBtn" title="播放全文">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </button>
+        <div class="settings-section inline-primary voice-controls">
+          <div class="control-group select-control">
+            <label class="control-label icon-chip" id="voiceSelectLabel" for="voiceSelect" title="语音选择">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="4" width="6" height="10" rx="3"></rect>
+                  <path d="M5 11a7 7 0 0 0 14 0"></path>
+                  <path d="M12 21v-4"></path>
+                  <path d="M9 21h6"></path>
+                </svg>
+              </span>
+              <span class="sr-only label-text">语音选择</span>
+            </label>
+            <select id="voiceSelect">
+              <option value="">选择语音...</option>
+            </select>
           </div>
+
+          <div class="control-group speed-control">
+            <label class="control-label icon-chip" id="speedLabel" for="speedRange" title="语速调节">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 15.5a7 7 0 0 1 14 0"></path>
+                  <path d="M12 9.5v4l2 2"></path>
+                  <circle cx="12" cy="17" r="1.2" fill="currentColor" stroke="none"></circle>
+                </svg>
+              </span>
+              <span class="sr-only label-text">语速调节</span>
+            </label>
+            <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
+            <div class="speed-display" id="speedValue">1.0x</div>
+          </div>
+
+          <button class="play-all-btn" id="playAllBtn" title="播放全文">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 7v10l8-5z" fill="currentColor" stroke="none"></path>
+              <path d="M12 3a9 9 0 1 1-6.36 2.64" ></path>
+            </svg>
+            <span class="sr-only">播放全文</span>
+          </button>
         </div>
 
-        <!-- 显示设置（标题移除，横排控件） -->
-        <div class="settings-section">
-          <div class="display-controls">
-            <div class="control-group">
-              <label class="control-label" id="showKanaLabel" title="显示假名">
-                <input type="checkbox" id="showKana" checked>
-                <span class="icon" aria-hidden="true">あ</span>
-                <span class="label-text">显示假名</span>
-              </label>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="showRomajiLabel" title="显示罗马音">
-                <input type="checkbox" id="showRomaji" checked>
-                <span class="icon" aria-hidden="true">A</span>
-                <span class="label-text">显示罗马音</span>
-              </label>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="showPosLabel" title="显示词性">
-                <input type="checkbox" id="showPos" checked>
-                <span class="icon" aria-hidden="true">品</span>
-                <span class="label-text">显示词性</span>
-              </label>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="autoReadLabel" title="自动朗读">
-                <input type="checkbox" id="autoRead">
-                <span class="icon" aria-hidden="true">🔊</span>
-                <span class="label-text">自动朗读</span>
-              </label>
-            </div>
-            
-            <div class="control-group">
-              <label class="control-label" id="repeatPlayLabel" title="重复播放">
-                <input type="checkbox" id="repeatPlay">
-                <span class="icon" aria-hidden="true">🔁</span>
-                <span class="label-text">重复播放</span>
-              </label>
-            </div>
+        <div class="settings-section inline-toggles display-controls" role="group" aria-label="Display Controls">
+          <div class="control-group">
+            <label class="control-label icon-toggle" id="showKanaLabel" title="显示假名">
+              <input type="checkbox" id="showKana" checked>
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.5 8h15"></path>
+                  <path d="M6 12h7"></path>
+                  <path d="M7 16h5"></path>
+                  <circle cx="17.5" cy="13.5" r="1.8" fill="currentColor" stroke="none"></circle>
+                </svg>
+              </span>
+              <span class="sr-only label-text">显示假名</span>
+            </label>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label icon-toggle" id="showRomajiLabel" title="显示罗马音">
+              <input type="checkbox" id="showRomaji" checked>
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6.5 17.5 12 6.5l5.5 11"></path>
+                  <path d="M9.5 13h5"></path>
+                </svg>
+              </span>
+              <span class="sr-only label-text">显示罗马音</span>
+            </label>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label icon-toggle" id="showPosLabel" title="显示词性">
+              <input type="checkbox" id="showPos" checked>
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+                  <path d="M6 12h12"></path>
+                  <path d="M12 6v12"></path>
+                </svg>
+              </span>
+              <span class="sr-only label-text">显示词性</span>
+            </label>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label icon-toggle" id="autoReadLabel" title="自动朗读">
+              <input type="checkbox" id="autoRead">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 10v4h3l4 3V7l-4 3H5z" fill="currentColor" stroke="none"></path>
+                  <path d="M15 9a3 3 0 0 1 0 6"></path>
+                  <path d="M17.5 7.5a5 5 0 0 1 0 9"></path>
+                </svg>
+              </span>
+              <span class="sr-only label-text">自动朗读</span>
+            </label>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label icon-toggle" id="repeatPlayLabel" title="重复播放">
+              <input type="checkbox" id="repeatPlay">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 7h8l-1.5-1.5"></path>
+                  <path d="M17 17H9l1.5 1.5"></path>
+                  <path d="M7 7v4"></path>
+                  <path d="M17 17v-4"></path>
+                </svg>
+              </span>
+              <span class="sr-only label-text">重复播放</span>
+            </label>
           </div>
         </div>
       </div>
