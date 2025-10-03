@@ -79,6 +79,7 @@
     total: 0,
     completed: 0,
     failed: 0,
+    failedAssets: [],
     registration: null,
     hideTimer: null,
     lastError: ''
@@ -510,6 +511,30 @@
     pwaToastIcon.innerHTML = icons[kind] || icons.download;
   }
 
+  // 格式化失败文件的简要列表（最多 N 个）
+  function formatFailedAssetsSummary(max = 3) {
+    const list = Array.isArray(PWA_STATE.failedAssets) ? PWA_STATE.failedAssets : [];
+    if (!list.length) return '';
+    
+    // 在控制台打印所有失败的文件
+    console.group('[PWA] 缓存失败的文件列表:');
+    list.forEach((url, index) => {
+      console.log(`${index + 1}. ${url}`);
+    });
+    console.groupEnd();
+    
+    const labels = list.slice(0, max).map((url) => {
+      try {
+        const u = new URL(url, window.location.href);
+        return u.origin === window.location.origin ? u.pathname : url;
+      } catch (_) {
+        return url;
+      }
+    });
+    const more = list.length > max ? ` (+${list.length - max} more)` : '';
+    return `失败文件: ${labels.join(', ')}${more}`;
+  }
+
   function updatePwaToast(state, { title, message, progress, icon } = {}) {
     if (!pwaToast) return;
     if (PWA_STATE.hideTimer) {
@@ -579,6 +604,10 @@
 
     if (data.type === 'CACHE_PROGRESS') {
       if (data.status === 'cached') {
+        // 在页面控制台打印当前已缓存的文件
+        if (data.asset) {
+          console.log('[PWA] Cached', `${data.completed || '?'} / ${PWA_STATE.total || '?'}:`, data.asset);
+        }
         PWA_STATE.completed = data.completed || PWA_STATE.completed;
         const percentValue = PWA_STATE.total ? Math.round((PWA_STATE.completed / PWA_STATE.total) * 100) : 0;
         const progressValue = PWA_STATE.total ? PWA_STATE.completed / PWA_STATE.total : 0;
@@ -589,11 +618,22 @@
           icon: 'download'
         });
       } else if (data.status === 'error') {
+        // 在页面控制台打印失败的文件名
+        if (data.asset) {
+          console.warn('[PWA] Failed to cache:', data.asset, '|', data.message || '');
+        }
         PWA_STATE.failed += 1;
         PWA_STATE.lastError = data.message || '';
+        if (data.asset) {
+          const exists = PWA_STATE.failedAssets.includes(data.asset);
+          if (!exists) PWA_STATE.failedAssets.push(data.asset);
+        }
         const percentValue = PWA_STATE.total ? Math.round((PWA_STATE.completed / PWA_STATE.total) * 100) : 0;
         const progressValue = PWA_STATE.total ? PWA_STATE.completed / PWA_STATE.total : 0;
-        const combined = `${formatMessage('pwaProgress', { completed: PWA_STATE.completed, total: PWA_STATE.total, percent: percentValue })} · ${formatMessage('pwaError', { message: PWA_STATE.lastError })}`;
+        const details = formatFailedAssetsSummary(3);
+        const progressMsg = formatMessage('pwaProgress', { completed: PWA_STATE.completed, total: PWA_STATE.total, percent: percentValue });
+        const errorMsg = formatMessage('pwaError', { message: PWA_STATE.lastError });
+        const combined = details ? `${progressMsg}\n\n${errorMsg}\n${details}` : `${progressMsg} · ${errorMsg}`;
         updatePwaToast('progress', {
           title: formatMessage('pwaTitle'),
           message: combined,
@@ -610,9 +650,20 @@
       const progressValue = data.total ? data.completed / data.total : 1;
 
       if (PWA_STATE.failed > 0) {
+        // 在控制台打印详细的失败信息
+        console.group('[PWA] 缓存完成 - 失败统计:');
+        console.log(`总文件数: ${PWA_STATE.total}`);
+        console.log(`成功缓存: ${PWA_STATE.completed}`);
+        console.log(`失败文件: ${PWA_STATE.failed}`);
+        console.log(`最后错误: ${PWA_STATE.lastError}`);
+        console.groupEnd();
+        
+        const details = formatFailedAssetsSummary(5);
+        const baseMsg = formatMessage('pwaPartial', { failed: PWA_STATE.failed });
+        const message = details ? `${baseMsg}\n\n${details}` : baseMsg;
         updatePwaToast('error', {
           title: formatMessage('pwaTitle'),
-          message: formatMessage('pwaPartial', { failed: PWA_STATE.failed }) || formatMessage('pwaError', { message: PWA_STATE.lastError || '' }),
+          message,
           progress: progressValue,
           icon: 'error'
         });
@@ -626,6 +677,7 @@
         hidePwaToast(5000);
       }
       PWA_STATE.failed = 0;
+      PWA_STATE.failedAssets = [];
       PWA_STATE.lastError = '';
     }
   }
@@ -658,6 +710,7 @@
     PWA_STATE.lastError = '';
     PWA_STATE.total = 0;
     PWA_STATE.completed = 0;
+    PWA_STATE.failedAssets = [];
     headerDownloadBtn?.classList.add('is-loading');
 
     updatePwaToast('progress', {

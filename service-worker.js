@@ -56,6 +56,8 @@ async function cacheAssetsSequentially(assets, requestId, source) {
   for (const rawAsset of assets) {
     const assetUrl = new URL(rawAsset, self.registration.scope).toString();
     try {
+      // 打印当前正在缓存的文件
+      console.log('[PWA] Caching asset:', assetUrl);
       const request = new Request(assetUrl, { cache: 'reload', mode: 'same-origin', credentials: 'same-origin' });
       const response = await fetch(request);
       if (!response.ok) {
@@ -63,6 +65,7 @@ async function cacheAssetsSequentially(assets, requestId, source) {
       }
       await cache.put(request, response.clone());
       completed += 1;
+      console.log('[PWA] Cached:', assetUrl);
       await notifyClient(client, {
         type: 'CACHE_PROGRESS',
         status: 'cached',
@@ -72,6 +75,7 @@ async function cacheAssetsSequentially(assets, requestId, source) {
         requestId
       });
     } catch (error) {
+      console.error('[PWA] Cache error:', assetUrl, error && error.message ? error.message : error);
       await notifyClient(client, {
         type: 'CACHE_PROGRESS',
         status: 'error',

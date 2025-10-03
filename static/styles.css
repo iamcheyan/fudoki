@@ -1626,7 +1626,8 @@ select, input[type="range"] {
 .pwa-toast {
   position: fixed;
   right: 24px;
-  bottom: 24px;
+  top: 64px; /* 顶部导航下方显示 */
+  bottom: auto;
   z-index: 1100;
   min-width: 280px;
   max-width: 360px;
@@ -1640,7 +1641,7 @@ select, input[type="range"] {
   color: var(--text);
   transition: opacity 0.3s ease, transform 0.3s ease;
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(-12px); /* 自顶部轻微滑入 */
 }
 
 .pwa-toast[hidden] {
@@ -1707,6 +1708,8 @@ select, input[type="range"] {
   font-size: 13px;
   line-height: 1.5;
   color: var(--muted);
+  white-space: pre-line;
+  word-break: break-word;
 }
 
 .pwa-toast__progress {
@@ -1767,7 +1770,8 @@ select, input[type="range"] {
   .pwa-toast {
     left: 16px;
     right: 16px;
-    bottom: 16px;
+    top: 64px; /* 移动端同样置于导航下方 */
+    bottom: auto;
     max-width: none;
   }
 }
