@@ -15,6 +15,11 @@
   const themeSelect = document.getElementById('themeSelect');
   const readingModeToggle = $('readingModeToggle');
   const openSettingsBtn = document.getElementById('openSettingsBtn');
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  // 导航语言国旗按钮
+  const langFlagJA = $('langFlagJA');
+  const langFlagEN = $('langFlagEN');
+  const langFlagZH = $('langFlagZH');
   
   // 右侧边栏元素
   const sidebarVoiceSelect = $('sidebarVoiceSelect');
@@ -607,6 +612,10 @@
       sidebarLangSelect.value = currentLang;
       Array.from(sidebarLangSelect.options || []).forEach(opt => opt.selected = (opt.value === currentLang));
     }
+    // 同步导航国旗按钮的选中状态
+    const flagMap = { ja: langFlagJA, en: langFlagEN, zh: langFlagZH };
+    Object.values(flagMap).forEach(btn => { if (btn) btn.classList.remove('active'); });
+    if (flagMap[currentLang]) flagMap[currentLang].classList.add('active');
     // 语言变化时刷新主题图标与aria标签
     updateReadingToggleLabels();
     applyTheme(savedTheme);
@@ -646,6 +655,7 @@
       currentLang = langSelect.value || 'ja';
       try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
       if (sidebarLangSelect) sidebarLangSelect.value = currentLang;
+      // 导航国旗状态同步
       applyI18n();
       refreshOpenCardTexts();
     });
@@ -661,6 +671,21 @@
     });
   }
 
+  // 导航国旗点击切换语言
+  function setLanguage(lang) {
+    if (!lang || (lang !== 'ja' && lang !== 'en' && lang !== 'zh')) return;
+    currentLang = lang;
+    try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
+    if (langSelect) langSelect.value = currentLang;
+    if (sidebarLangSelect) sidebarLangSelect.value = currentLang;
+    applyI18n();
+    refreshOpenCardTexts();
+  }
+
+  if (langFlagJA) langFlagJA.addEventListener('click', () => setLanguage('ja'));
+  if (langFlagEN) langFlagEN.addEventListener('click', () => setLanguage('en'));
+  if (langFlagZH) langFlagZH.addEventListener('click', () => setLanguage('zh'));
+
   // 主题切换
   const THEME = { LIGHT: 'light', DARK: 'dark' };
   function applyTheme(theme) {
@@ -671,6 +696,14 @@
     }
     if (sidebarThemeSelect) {
       sidebarThemeSelect.value = t === THEME.DARK ? 'dark' : 'light';
+    }
+    // 同步顶部主题按钮图标与标签（显示“切换到”目标主题）
+    if (themeToggleBtn) {
+      const next = (t === THEME.DARK) ? THEME.LIGHT : THEME.DARK;
+      const icon = themeToggleBtn.querySelector('.theme-icon');
+      if (icon) icon.textContent = (next === THEME.DARK) ? '🌙' : '☀️';
+      themeToggleBtn.setAttribute('aria-label', next === THEME.DARK ? labelSwitchToDark() : labelSwitchToLight());
+      themeToggleBtn.title = themeToggleBtn.getAttribute('aria-label');
     }
   }
   let savedTheme = localStorage.getItem(LS.theme) || THEME.LIGHT;
@@ -700,6 +733,28 @@
     });
   }
 
+  // 顶部主题按钮：浅色/深色快速切换（不涉及跟随系统）
+  function labelSwitchToDark() {
+    switch (currentLang) {
+      case 'ja': return 'ダークモードに切り替え';
+      case 'en': return 'Switch to Dark Theme';
+      default: return '切换到暗色主题';
+    }
+  }
+  function labelSwitchToLight() {
+    switch (currentLang) {
+      case 'ja': return 'ライトモードに切り替え';
+      case 'en': return 'Switch to Light Theme';
+      default: return '切换到浅色主题';
+    }
+  }
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      savedTheme = (savedTheme === THEME.DARK) ? THEME.LIGHT : THEME.DARK;
+      try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
+      applyTheme(savedTheme);
+    });
+  }
   if (sidebarThemeSelect) {
     sidebarThemeSelect.addEventListener('change', () => {
       const selectedValue = sidebarThemeSelect.value;
@@ -2862,7 +2917,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function initSidebarToggle() {
     const sidebar = document.getElementById('sidebar-left');
     const toggleBtn = document.getElementById('sidebarToggle');
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const collapseMenuBtn = document.getElementById('collapseMenuBtn');
     const mainContainer = document.querySelector('.main-container');
     
     if (!sidebar || !mainContainer) return;
@@ -2932,8 +2987,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
     
     // 移动端菜单按钮事件 - 确保在所有设备上都能工作
-    if (mobileMenuBtn) {
-      mobileMenuBtn.addEventListener('click', toggleSidebar);
+    if (collapseMenuBtn) {
+      collapseMenuBtn.addEventListener('click', toggleSidebar);
     }
     
     window.addEventListener('resize', handleResize);

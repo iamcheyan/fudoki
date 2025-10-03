@@ -122,7 +122,7 @@ body {
 }
 
 /* 移动端菜单按钮 - 永远显示 */
-.mobile-menu-btn {
+.collapse-menu-btn {
   display: block;
   position: absolute;
   left: -48px;
@@ -138,11 +138,11 @@ body {
   transition: background-color 0.2s ease;
 }
 
-.mobile-menu-btn:hover {
+.collapse-menu-btn:hover {
   background-color: var(--elevated);
 }
 
-.mobile-menu-btn .menu-icon {
+.collapse-menu-btn .menu-icon {
   width: 20px;
   height: 20px;
 }
@@ -220,15 +220,106 @@ body {
   color: var(--text);
 }
 
+/* 主题切换按钮样式 - 切换开关设计 */
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 20px;
+  border-radius: 15px;
+  position: relative;
+  transition: all 0.3s ease;
+  background-color: #000;
+  /* border: 2px solid #ddd; */
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-icon {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  left: 1px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 暗色主题时的切换状态 */
+[data-theme="dark"] .theme-toggle .theme-icon {
+  left: 25px;
+  background: #2c2c2c;
+  color: white;
+}
+
+/* 悬停时的旋转效果 */
+.theme-toggle:hover .theme-icon {
+  transform: rotate(180deg);
+}
+
+/* 导航语言切换（国旗，无边框） */
+.nav-lang {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+}
+
+.lang-flag {
+  line-height: 1;
+  background: none;
+  color: var(--text);
+  /* border-radius: 4px; */
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  border: 1px solid #a6a6a6;
+}
+
+.lang-flag:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.lang-flag.active {
+  border-color: var(--primary);
+}
+
+.flag-icon {
+  width: 20px;
+  height: 14px;
+  display: block;
+}
+
 /* 主要布局 - 紧凑型三栏 */
 .main-container {
-  margin: 0 20px;
+  /* margin: 0 20px; */
   display: grid;
   grid-template-columns: 220px 280px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
   gap: 1px;
   box-shadow: 0 10px 30px var(--border);
   min-height: calc(100vh - 60px);
-  border-radius: 20px;
+  /* border-radius: 20px; */
   overflow: hidden;
   transition: grid-template-columns 0.3s ease;
 }
@@ -328,7 +419,7 @@ body {
 
 /* 移动端优化 */
 @media (max-width: 768px) {
-  .mobile-menu-btn {
+  .collapse-menu-btn {
     left: 10px;
   }
   
@@ -1031,7 +1122,7 @@ input:focus, textarea:focus, select:focus {
 
 .token-pill.active,
 .token-pill.playing {
-  background: linear-gradient(135deg, #ddffde, #63eb69);
+  background: linear-gradient(135deg, #fffdeb, #f0e12f);
   border-color: #4CAF50;
   /* color: white !important; */
   /* transform: scale(1.05); */
