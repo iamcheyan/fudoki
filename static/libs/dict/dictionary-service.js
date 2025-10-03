@@ -48,8 +48,8 @@ class DictionaryService {
         // 加载分片文件
         return await this.loadChunkedJMDict(metadata);
       } else {
-        // 回退到加载原始文件
-        return await this.loadOriginalJMDict();
+        // 未找到分片元数据时直接报错，不再回退到原始文件
+        throw new Error('JMDict metadata not found');
       }
     } catch (error) {
       console.error('加载JMDict词典失败:', error);
@@ -97,23 +97,7 @@ class DictionaryService {
     return this.jmdictData;
   }
 
-  /**
-   * 加载原始的JMDict文件（回退方案）
-   */
-  async loadOriginalJMDict() {
-    console.log('加载原始JMDict文件...');
-    const response = await fetch('/static/libs/dict/jmdict-eng-3.6.1.json');
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    this.jmdictData = await response.json();
-    this.isLoaded = true;
-    console.log(`JMDict词典加载完成，共 ${this.jmdictData.words.length} 个词条`);
-    
-    return this.jmdictData;
-  }
+  // 原始 JMDict 回退已移除：请确保使用分片文件 jmdict_metadata.json 与对应 chunks
 
   /**
    * 查询词汇翻译
