@@ -98,6 +98,14 @@ body {
 /* 顶部导航栏 - 日式简约 */
 .header {
   padding: 10px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 18px rgba(180, 150, 80, 0.13), 0 1.5px 6px rgba(120, 100, 40, 0.08);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
 }
 
 .header-content {
@@ -251,8 +259,9 @@ body {
 /* 主要布局 - 紧凑型三栏 */
 .main-container {
   /* margin: 0 20px; */
+  margin-top: 60px;
   display: grid;
-  grid-template-columns: 220px 280px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
+  grid-template-columns: 280px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
   gap: 1px;
   box-shadow: 0 10px 30px var(--border);
   min-height: calc(100vh - 60px);
@@ -263,7 +272,7 @@ body {
 
 /* 左侧边栏折叠时的布局 */
 .main-container.sidebar-collapsed {
-  grid-template-columns: 0 0 1fr;
+  grid-template-columns: 0 1fr;
 }
 
 /* 左侧边栏 - 文档管理 */
@@ -274,11 +283,12 @@ body {
   overflow: hidden;
 }
 
+.sidebar-stack {
+  border-right: 1px solid var(--border);
+}
 /* 中间列表面板 */
 .list-panel {
   background: var(--bg);
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
 }
 
 .list-content {
@@ -335,8 +345,6 @@ body {
 .sidebar-content {
   padding: 16px 12px;
   height: 100%;
-  opacity: 1;
-  transition: opacity 0.2s ease, transform 0.3s ease;
 }
 
 .sidebar-left.collapsed .sidebar-content {
@@ -412,7 +420,6 @@ body {
   color: var(--muted);
   margin-bottom: 12px;
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
 }
 
 /* 文件夹列表样式 */
@@ -2017,6 +2024,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 
 #reading-mode .list-panel,
 #reading-mode .header,
+#reading-mode .sidebar-stack,
 #reading-mode .sidebar-left,
 #reading-mode .sidebar-right,
 #reading-mode .input-section,
@@ -2307,25 +2315,52 @@ input[type="checkbox"] {
   /* 单栏布局，内容占满 */
   .main-container { grid-template-columns: 1fr; }
 
-  /* 默认隐藏为抽屉，点击按钮时通过 .show 显示 */
-  .sidebar-left {
-    display: none;
-    position: fixed;
-    top: 60px; /* 头部大约高度 */
-    left: 0;
-    width: 86vw;
-    max-width: 360px;
-    height: calc(100vh - 80px);
-    background: var(--bg);
-    border-right: 1px solid var(--border);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.22);
-    z-index: 1000;
-  }
 
   .sidebar-left.show { display: block; }
 
   /* 折叠按钮在移动端不需要显示 */
   .sidebar-toggle-btn { display: none; }
+}
+
+/* 移动端：统一抽屉（sidebar-stack）上下堆叠文件夹与文档 */
+@media (max-width: 768px) {
+  .sidebar-stack {
+    position: fixed;
+    top: 57px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-right: 1px solid var(--border);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+    width: 80%;
+  }
+
+  .main-container.mobile-menu-open .sidebar-stack { transform: translateX(0); }
+
+  .sidebar-stack .sidebar-left,
+  .sidebar-stack .list-panel {
+    position: relative;
+    width: 100%;
+    border-right: none;
+  }
+
+  .sidebar-stack .sidebar-left {
+    max-height: 40vh; /* 上：文件夹 */
+    overflow: auto;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-stack .list-panel {
+    flex: 1; /* 下：文档管理 */
+    overflow: auto;
+    background: var(--bg);
+  }
 }
 
 /* 列表面板收缩样式（与左侧边栏一致向左收起） */

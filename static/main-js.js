@@ -3256,9 +3256,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 切换侧边栏状态
     function toggleSidebar() {
       if (isMobile()) {
-        // 移动端：显示/隐藏
-        sidebar.classList.toggle('show');
-        if (listPanel) listPanel.classList.toggle('show');
+        // 移动端：统一抽屉开关（通过 main-container 上的类控制）
+        mainContainer.classList.toggle('mobile-menu-open');
       } else {
         // PC端：简单的收缩/展开切换
         if (!isCollapsed) {
@@ -3303,6 +3302,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       } else {
         // 桌面端：移除移动端的显示状态，恢复折叠状态
         sidebar.classList.remove('show');
+        mainContainer.classList.remove('mobile-menu-open');
         if (isCollapsed) {
           sidebar.classList.add('collapsed');
           mainContainer.classList.add('sidebar-collapsed');
