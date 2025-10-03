@@ -14,7 +14,6 @@
   const langSelect = $('langSelect');
   const themeSelect = document.getElementById('themeSelect');
   const readingModeToggle = $('readingModeToggle');
-  const openSettingsBtn = document.getElementById('openSettingsBtn');
   const themeToggleBtn = document.getElementById('theme-toggle');
   // 导航语言国旗按钮
   const langFlagJA = $('langFlagJA');
@@ -515,9 +514,17 @@
     const voiceTitle = $('voiceSettingsTitle');
     if (voiceTitle) voiceTitle.textContent = t('voiceTitle');
     const voiceSelectLabel = $('voiceSelectLabel');
-    if (voiceSelectLabel) voiceSelectLabel.textContent = t('voiceSelectLabel');
+    if (voiceSelectLabel) {
+      voiceSelectLabel.title = t('voiceSelectLabel');
+      const s = voiceSelectLabel.querySelector('.label-text');
+      if (s) s.textContent = t('voiceSelectLabel');
+    }
     const speedLabel = $('speedLabel');
-    if (speedLabel) speedLabel.textContent = t('speedLabel');
+    if (speedLabel) {
+      speedLabel.title = t('speedLabel');
+      const s = speedLabel.querySelector('.label-text');
+      if (s) s.textContent = t('speedLabel');
+    }
     if (playAllBtn) {
       // 改为仅更新提示文本，不插入按钮文字
       const currentlyPlaying = isPlaying && currentUtterance;
@@ -527,15 +534,35 @@
     const displayTitle = $('displayTitle');
     if (displayTitle) displayTitle.textContent = t('displayTitle');
     const showKanaLabel = $('showKanaLabel');
-    if (showKanaLabel) showKanaLabel.lastChild && (showKanaLabel.lastChild.textContent = ' ' + t('showKana'));
+    if (showKanaLabel) {
+      showKanaLabel.title = t('showKana');
+      const s = showKanaLabel.querySelector('.label-text');
+      if (s) s.textContent = t('showKana');
+    }
     const showRomajiLabel = $('showRomajiLabel');
-    if (showRomajiLabel) showRomajiLabel.lastChild && (showRomajiLabel.lastChild.textContent = ' ' + t('showRomaji'));
+    if (showRomajiLabel) {
+      showRomajiLabel.title = t('showRomaji');
+      const s = showRomajiLabel.querySelector('.label-text');
+      if (s) s.textContent = t('showRomaji');
+    }
     const showPosLabel = $('showPosLabel');
-    if (showPosLabel) showPosLabel.lastChild && (showPosLabel.lastChild.textContent = ' ' + t('showPos'));
+    if (showPosLabel) {
+      showPosLabel.title = t('showPos');
+      const s = showPosLabel.querySelector('.label-text');
+      if (s) s.textContent = t('showPos');
+    }
     const autoReadLabel = $('autoReadLabel');
-    if (autoReadLabel) autoReadLabel.lastChild && (autoReadLabel.lastChild.textContent = ' ' + t('autoRead'));
+    if (autoReadLabel) {
+      autoReadLabel.title = t('autoRead');
+      const s = autoReadLabel.querySelector('.label-text');
+      if (s) s.textContent = t('autoRead');
+    }
     const repeatPlayLabel = $('repeatPlayLabel');
-    if (repeatPlayLabel) repeatPlayLabel.lastChild && (repeatPlayLabel.lastChild.textContent = ' ' + t('repeatPlay'));
+    if (repeatPlayLabel) {
+      repeatPlayLabel.title = t('repeatPlay');
+      const s = repeatPlayLabel.querySelector('.label-text');
+      if (s) s.textContent = t('repeatPlay');
+    }
 
     // 系统设置标签
     const systemTitle = $('systemTitle');
@@ -697,7 +724,7 @@
     if (sidebarThemeSelect) {
       sidebarThemeSelect.value = t === THEME.DARK ? 'dark' : 'light';
     }
-    // 同步顶部主题按钮图标与标签（显示“切换到”目标主题）
+    // 同步顶部主题按钮图标与标签（显示"切换到"目标主题）
     if (themeToggleBtn) {
       const next = (t === THEME.DARK) ? THEME.LIGHT : THEME.DARK;
       const icon = themeToggleBtn.querySelector('.theme-icon');
@@ -2998,7 +3025,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const mobilePlayBtn = document.getElementById('mobilePlayBtn');
     const settingsModal = document.getElementById('settingsModal');
     const settingsModalClose = document.getElementById('settingsModalClose');
-    const desktopSettingsBtn = document.getElementById('openSettingsBtn');
+    const desktopSettingsBtn = null; // 顶部按钮已移除
     
     if (!settingsModal || !settingsModalClose) return;
     

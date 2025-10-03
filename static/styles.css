@@ -27,6 +27,14 @@
   --border: #e0e0e0;
   --elev: #fafafa;
   --primary: #8B6914;
+  --toolbar-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(139, 105, 20, 0.08));
+  --toolbar-border: rgba(139, 105, 20, 0.2);
+  --toolbar-shadow: 0 18px 36px rgba(139, 105, 20, 0.12);
+  --toolbar-chip-bg: rgba(255, 255, 255, 0.82);
+  --toolbar-chip-border: rgba(139, 105, 20, 0.16);
+  --toolbar-chip-hover: rgba(139, 105, 20, 0.12);
+  --toolbar-chip-neutral: rgba(255, 255, 255, 0.9);
+  --toolbar-chip-neutral-border: rgba(139, 105, 20, 0.18);
 }
 
 :root[data-theme="dark"] {
@@ -36,42 +44,42 @@
   --border: #2c323d;     /* 低对比边框 */
   --elev: #1e2229;       /* 提升层（卡片/面板） */
   --primary: #d9b35a;    /* 暖金主色 */
+  --toolbar-bg: linear-gradient(135deg, rgba(217, 179, 90, 0.14), rgba(12, 14, 18, 0.94));
+  --toolbar-border: rgba(217, 179, 90, 0.28);
+  --toolbar-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  --toolbar-chip-bg: rgba(35, 41, 52, 0.9);
+  --toolbar-chip-border: rgba(217, 179, 90, 0.24);
+  --toolbar-chip-hover: rgba(217, 179, 90, 0.22);
+  --toolbar-chip-neutral: rgba(27, 31, 38, 0.92);
+  --toolbar-chip-neutral-border: rgba(217, 179, 90, 0.26);
 }
 
-/* 滚动条主题变量 */
+/* 滚动条主题变量（简约风格） */
 :root {
-  --scroll-track: #1b1f24;
-  --scroll-thumb: #343b46;
-  --scroll-thumb-hover: #454e5c;
+  --scroll-track: rgba(0,0,0,0.06);      /* 轻浅轨道 */
+  --scroll-thumb: rgba(0,0,0,0.28);      /* 默认拇指 */
+  --scroll-thumb-hover: rgba(0,0,0,0.38);/* 悬停拇指 */
 }
 :root[data-theme="dark"] {
-  --scroll-track: #1b1f27;
-  --scroll-thumb: #3a4250;
-  --scroll-thumb-hover: #4a5568;
+  --scroll-track: rgba(255,255,255,0.06);
+  --scroll-thumb: rgba(255,255,255,0.26);
+  --scroll-thumb-hover: rgba(255,255,255,0.36);
 }
 
-/* Firefox 滚动条 */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
-}
+/* Firefox 滚动条（简约、细） */
+* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 
-/* WebKit 滚动条 */
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-*::-webkit-scrollbar-track {
-  background: var(--scroll-track);
-}
+/* WebKit 滚动条（极简胶囊拇指） */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
   background-color: var(--scroll-thumb);
-  border-radius: 8px;
-  border: 2px solid var(--scroll-track);
+  border-radius: 999px;
+  border: 3px solid transparent;        /* 让拇指更细，露出透明轨道 */
+  background-clip: padding-box;
 }
-*::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scroll-thumb-hover);
-}
+*::-webkit-scrollbar-thumb:hover { background-color: var(--scroll-thumb-hover); }
+*::-webkit-scrollbar-corner { background: transparent; }
 
 body {
   font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
@@ -238,6 +246,10 @@ body {
   background-color: #000;
   /* border: 2px solid #ddd; */
   overflow: hidden;
+}
+
+:root[data-theme="dark"] .theme-toggle {
+  background-color: #fff;
 }
 
 .theme-toggle:hover {
@@ -920,7 +932,7 @@ body {
   resize: vertical;
   min-height: 72px;
   border-radius: 2px;
-  background: var(--bg);
+  /* background: var(--bg); */
   color: var(--text);
 }
 
@@ -1362,38 +1374,105 @@ input:focus, textarea:focus, select:focus {
 /* 顶部内嵌设置栏（横向布局） */
 .inline-settings {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px 24px;
+  flex-wrap: nowrap; /* 全部横排，不换行 */
+  gap: 12px;
   align-items: center;
-  padding: 8px 0 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 8px 12px; /* 工具栏内边距 */
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  position: sticky; /* 工具栏吸顶（在内容区域内） */
+  top: 0;
+  z-index: 20;
+  overflow-x: auto; /* 超出时横向滚动 */
+  backdrop-filter: saturate(160%) blur(6px);
+  margin: 10px 10px 0 10px;
 }
 .inline-settings .settings-section {
   margin: 0;
   padding: 0;
   border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 工具栏分组分隔线 */
+.inline-settings .settings-section + .settings-section {
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
 }
 /* 移除标题样式，纯控件布局 */
 .inline-settings .voice-controls,
 .inline-settings .display-controls {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 12px 16px;
+  gap: 8px;
 }
 .inline-settings .control-group { margin: 0; }
 .inline-settings .control-label {
   margin: 0;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  padding: 6px;
+  border: none; /* 不用边框表示选择状态 */
+  border-radius: 6px;
+  background: var(--elevated);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.inline-settings .control-label:hover { transform: translateY(-1px); }
+/* 隐藏原生复选框，仅保留可访问性 */
+.inline-settings .control-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+/* 使用选择态的填充高亮 */
+.inline-settings .control-label:has(input:checked) {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+.inline-settings .control-label:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.inline-settings .control-label .icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+}
+.inline-settings .control-label .label-text { display: none; }
+.inline-settings select {
+  width: auto;
+  min-width: 190px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+}
+.inline-settings input[type="range"] { width: 170px; }
+.inline-settings .speed-display {
+  width: auto;
+  min-width: 44px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 6px;
+  border-radius: 4px;
   background: var(--elevated);
 }
-.inline-settings .control-label:hover { border-color: var(--primary); }
-.inline-settings .control-label input[type="checkbox"] { accent-color: var(--primary); }
-.inline-settings select { width: auto; min-width: 220px; }
-.inline-settings input[type="range"] { width: 240px; }
-.inline-settings .speed-display { width: 48px; text-align: center; }
 .inline-settings .play-all-btn {
   width: auto;
   padding: 8px 10px;
@@ -1402,7 +1481,13 @@ input:focus, textarea:focus, select:focus {
   justify-content: center;
   gap: 0;
 }
+.inline-settings .play-all-btn { width: 28px; height: 28px; padding: 0; border-radius: 6px; }
 .inline-settings .play-all-btn svg { width: 16px; height: 16px; }
+
+/* 暗色主题下的阴影与分隔调整 */
+:root[data-theme="dark"] .inline-settings {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
 
 /* 设置分组样式 */
 .settings-section {
@@ -1457,16 +1542,19 @@ input:focus, textarea:focus, select:focus {
 .voice-controls,
 .display-controls {
   display: flex;
-  flex-direction: column;
-  gap: 0;
+  flex-direction: row;         /* 横向排列 */
+  flex-wrap: wrap;             /* 换行以适配窄屏 */
+  gap: 8px;                    /* 控件间距 */
+  align-items: center;         /* 垂直居中对齐 */
+  min-height: 40px;
 }
 
-.voice-controls {
-  margin-bottom: 16px;
-}
+.voice-controls { margin-bottom: 12px; }
 
 .control-group {
-  margin-bottom: 12px;
+  margin-bottom: 0;            /* 工具栏风格：去掉底部外边距 */
+  display: inline-flex;
+  align-items: center;         /* 组内元素垂直居中 */
 }
 
 .control-label {
@@ -1475,7 +1563,7 @@ input:focus, textarea:focus, select:focus {
   gap: 6px;
   font-size: 11px;
   color: var(--muted);
-  margin-bottom: 4px;
+  margin-bottom: 0;            /* 工具栏横排时不需要额外下边距 */
   font-weight: 600;
   cursor: pointer;
 }
@@ -1498,13 +1586,14 @@ select, input[type="range"] {
 .speed-display {
   font-size: 11px;
   color: var(--muted);
-  text-align: center;
-  margin-top: 2px;
+  text-align: right;
+  margin-top: 0;
+  line-height: 36px;           /* 与控件等高 */
 }
 
 .play-all-btn {
   width: 100%;
-  padding: 8px;
+  padding: 0 12px; height: 36px; display: inline-flex; align-items: center;
   background: var(--primary);
   color: white;
   border: none;
@@ -1518,18 +1607,9 @@ select, input[type="range"] {
   background: #6B5B00;
 }
 
-.display-controls {
-  margin-top: 8px;
-}
+.display-controls { margin-top: 4px; }
 
-.display-controls .control-group {
-  margin-bottom: 8px;
-}
-
-.display-controls .control-label {
-  font-weight: normal;
-  font-size: 12px;
-}
+.display-controls .control-group { margin-bottom: 0; }
 
 /* 播放按钮 */
 .play-line-btn {
@@ -2020,13 +2100,11 @@ select, input[type="range"] {
   width: 28px;
   height: 28px;
   padding: 0;
-  background: var(--bg);
   color: var(--text);
   border-radius: 4px;
 }
 .theme-icon-btn svg { fill: var(--text); }
 .theme-icon-btn:hover { background: rgba(0,0,0,0.06); }
-:root[data-theme="dark"] .theme-icon-btn:hover { background: rgba(255,255,255,0.06); }
 
 /* 控件通用外观 */
 select, input[type="text"], textarea, .btn, .new-doc-btn, .delete-doc-btn, .play-all-btn, .nav-item, .play-line-btn, .play-token-btn {
@@ -2748,3 +2826,29 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 [data-theme="dark"] .footer {
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0));
 }
+
+/* 工具栏控件尺寸优化 */
+.voice-controls select#voiceSelect { min-width: 220px; height: 36px; }
+.voice-controls #speedRange { width: 180px; margin: 0 6px; align-self: center; }
+.voice-controls #speedValue { width: 36px; text-align: right; }
+.play-all-btn { padding: 0 12px; height: 36px; display: inline-flex; align-items: center; }
+
+.display-controls .control-label .icon { font-size: 12px; }
+.display-controls input[type="checkbox"] { margin-right: 4px; margin-top: 0; align-self: center; }
+
+/* 图标按钮统一尺寸（あ / A / 品 等） */
+.control-label .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  font-weight: 700;
+}
+
+/* 选择框/按钮统一高度 */
+select, .btn, .new-doc-btn, .delete-doc-btn { height: 36px; }

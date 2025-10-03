@@ -34,7 +34,7 @@
       
       <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
       <nav class="nav-menu">
-        <button class="nav-item" id="openSettingsBtn" title="系统设置">设置</button>
+        
         <a href="https://kotoba.iamcheyan.com/" target="_blank" class="nav-item" >kotoba</a>
         <a href="https://terebi.iamcheyan.com/" target="_blank" class="nav-item" >terebi</a>
         <a href="https://github.com/iamcheyan/fudoki" target="_blank" class="nav-item theme-icon-btn" id="GitHub" aria-label="GitHub" title="GitHub">
@@ -92,14 +92,20 @@
         <div class="settings-section">
           <div class="voice-controls">
             <div class="control-group">
-              <label class="control-label" id="voiceSelectLabel">语音选择</label>
+              <label class="control-label" id="voiceSelectLabel" title="语音选择">
+                <span class="icon" aria-hidden="true">🎤</span>
+                <span class="label-text">语音选择</span>
+              </label>
               <select id="voiceSelect">
                 <option value="">选择语音...</option>
               </select>
             </div>
 
             <div class="control-group">
-              <label class="control-label" id="speedLabel">语速调节</label>
+              <label class="control-label" id="speedLabel" title="语速调节">
+                <span class="icon" aria-hidden="true">⏱</span>
+                <span class="label-text">语速调节</span>
+              </label>
               <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
               <div class="speed-display" id="speedValue">1.0x</div>
             </div>
@@ -116,37 +122,42 @@
         <div class="settings-section">
           <div class="display-controls">
             <div class="control-group">
-              <label class="control-label" id="showKanaLabel">
+              <label class="control-label" id="showKanaLabel" title="显示假名">
                 <input type="checkbox" id="showKana" checked>
-                显示假名
+                <span class="icon" aria-hidden="true">あ</span>
+                <span class="label-text">显示假名</span>
               </label>
             </div>
             
             <div class="control-group">
-              <label class="control-label" id="showRomajiLabel">
+              <label class="control-label" id="showRomajiLabel" title="显示罗马音">
                 <input type="checkbox" id="showRomaji" checked>
-                显示罗马音
+                <span class="icon" aria-hidden="true">A</span>
+                <span class="label-text">显示罗马音</span>
               </label>
             </div>
             
             <div class="control-group">
-              <label class="control-label" id="showPosLabel">
+              <label class="control-label" id="showPosLabel" title="显示词性">
                 <input type="checkbox" id="showPos" checked>
-                显示词性
+                <span class="icon" aria-hidden="true">品</span>
+                <span class="label-text">显示词性</span>
               </label>
             </div>
             
             <div class="control-group">
-              <label class="control-label" id="autoReadLabel">
+              <label class="control-label" id="autoReadLabel" title="自动朗读">
                 <input type="checkbox" id="autoRead">
-                自动朗读
+                <span class="icon" aria-hidden="true">🔊</span>
+                <span class="label-text">自动朗读</span>
               </label>
             </div>
             
             <div class="control-group">
-              <label class="control-label" id="repeatPlayLabel">
+              <label class="control-label" id="repeatPlayLabel" title="重复播放">
                 <input type="checkbox" id="repeatPlay">
-                重复播放
+                <span class="icon" aria-hidden="true">🔁</span>
+                <span class="label-text">重复播放</span>
               </label>
             </div>
           </div>
