@@ -3242,6 +3242,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const toggleBtn = document.getElementById('sidebarToggle');
     const collapseMenuBtn = document.getElementById('collapseMenuBtn');
     const mainContainer = document.querySelector('.main-container');
+    const listPanel = document.getElementById('listPanel');
     
     if (!sidebar || !mainContainer) return;
     
@@ -3257,6 +3258,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (isMobile()) {
         // 移动端：显示/隐藏
         sidebar.classList.toggle('show');
+        if (listPanel) listPanel.classList.toggle('show');
       } else {
         // PC端：简单的收缩/展开切换
         if (!isCollapsed) {
@@ -3265,12 +3267,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
           sidebar.classList.add('collapsed');
           mainContainer.classList.add('sidebar-collapsed');
           localStorage.setItem('sidebarCollapsed', true);
+          if (listPanel) listPanel.classList.add('collapsed');
         } else {
           // 点击展开：完全展开
           isCollapsed = false;
           sidebar.classList.remove('collapsed');
           mainContainer.classList.remove('sidebar-collapsed');
           localStorage.setItem('sidebarCollapsed', false);
+          if (listPanel) listPanel.classList.remove('collapsed');
         }
       }
     }
@@ -3284,6 +3288,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           isCollapsed = true;
           sidebar.classList.add('collapsed');
           mainContainer.classList.add('sidebar-collapsed');
+          if (listPanel) listPanel.classList.add('collapsed');
         }
       }
     }
@@ -3294,13 +3299,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
         // 移动端：移除桌面端的折叠状态
         sidebar.classList.remove('collapsed');
         mainContainer.classList.remove('sidebar-collapsed');
+        if (listPanel) listPanel.classList.remove('collapsed');
       } else {
         // 桌面端：移除移动端的显示状态，恢复折叠状态
         sidebar.classList.remove('show');
         if (isCollapsed) {
           sidebar.classList.add('collapsed');
           mainContainer.classList.add('sidebar-collapsed');
+          if (listPanel) listPanel.classList.add('collapsed');
         }
+        if (listPanel) listPanel.classList.remove('show');
       }
     }
     

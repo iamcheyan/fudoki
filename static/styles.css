@@ -263,7 +263,7 @@ body {
 
 /* 左侧边栏折叠时的布局 */
 .main-container.sidebar-collapsed {
-  grid-template-columns: 0 1fr;
+  grid-template-columns: 0 0 1fr;
 }
 
 /* 左侧边栏 - 文档管理 */
@@ -869,7 +869,7 @@ input:focus, textarea:focus, select:focus {
   display: none !important;
 }
 #reading-mode .token-pill.active, #reading-mode .token-pill.playing {
-  /* 避免在深色主题下把文字强制成深灰导致“看不见” */
+  /* 避免在深色主题下把文字强制成深灰导致"看不见" */
   color: inherit;
 }
 
@@ -2326,4 +2326,12 @@ input[type="checkbox"] {
 
   /* 折叠按钮在移动端不需要显示 */
   .sidebar-toggle-btn { display: none; }
+}
+
+/* 列表面板收缩样式（与左侧边栏一致向左收起） */
+.list-panel.collapsed {
+  width: 0 !important;
+  transform: translateX(-100%);
+  transition: width 0.3s ease, transform 0.3s ease;
+  overflow: hidden;
 }
