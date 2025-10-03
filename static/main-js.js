@@ -1923,7 +1923,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 详细信息显示逻辑
     const details = element.querySelector('.token-details');
     if (details) {
-      const isVisible = details.style.display !== 'none';
+      // 检查当前元素是否已经是活动状态
+      const isCurrentActive = activeTokenDetails && activeTokenDetails.element === element;
       
       // 先关闭所有卡片，保证只有一个打开
       document.querySelectorAll('.token-details').forEach(d => {
@@ -1933,7 +1934,22 @@ Try Fudoki and enjoy Japanese language analysis!`;
         p.classList.remove('active');
       });
       
-      if (!isVisible) {
+      // 如果之前有活动的卡片，将其详情面板移回对应的token元素
+      if (activeTokenDetails && activeTokenDetails.details && activeTokenDetails.element) {
+        const oldDetails = activeTokenDetails.details;
+        const oldElement = activeTokenDetails.element;
+        if (oldDetails.parentNode === document.body) {
+          // 隐藏并移回，以便下次点击能再次找到
+          oldDetails.style.display = 'none';
+          oldDetails.style.visibility = 'hidden';
+          try { oldElement.appendChild(oldDetails); } catch (e) { /* 忽略 */ }
+        }
+      }
+      
+      // 清除活动状态
+      activeTokenDetails = null;
+      
+      if (!isCurrentActive) {
         // 设置位置并显示
         details.style.display = 'block';
         details.style.visibility = 'hidden';
@@ -1944,11 +1960,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
         activeTokenDetails = { element, details };
         // 加载翻译信息
         loadTranslation(element);
-      } else {
-        // 若当前就是活动弹层，关闭时清除引用
-        if (activeTokenDetails && activeTokenDetails.details === details) {
-          activeTokenDetails = null;
-        }
       }
     }
   };
@@ -1957,6 +1968,25 @@ Try Fudoki and enjoy Japanese language analysis!`;
   document.addEventListener('click', (e) => {
     const isPill = e.target.closest && e.target.closest('.token-pill');
     if (!isPill) {
+      // 关闭所有卡片
+      document.querySelectorAll('.token-details').forEach(d => {
+        d.style.display = 'none';
+      });
+      document.querySelectorAll('.token-pill').forEach(p => {
+        p.classList.remove('active');
+      });
+      
+      // 如果之前有活动的卡片，将其详情面板移回对应的token元素
+      if (activeTokenDetails && activeTokenDetails.details && activeTokenDetails.element) {
+        const oldDetails = activeTokenDetails.details;
+        const oldElement = activeTokenDetails.element;
+        if (oldDetails.parentNode === document.body) {
+          oldDetails.style.display = 'none';
+          oldDetails.style.visibility = 'hidden';
+          try { oldElement.appendChild(oldDetails); } catch (e) { /* 忽略 */ }
+        }
+      }
+      
       activeTokenDetails = null;
     }
   });

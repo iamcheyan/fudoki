@@ -2308,8 +2308,12 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   border: 1px solid rgba(226, 207, 163, 0.5);
 } */
 
+#reading-mode .line-container.reading-line-active {
+  border-bottom: 2px solid rgb(217 169 58 / 60%);
+}
+
 #reading-mode .line-container.reading-line-active .token-pill {
-  border-bottom: 1px solid rgb(217 169 58 / 50%);
+  border-bottom: none;
 }
 
 /* #reading-mode .line-container.reading-line-active::before {
@@ -2360,6 +2364,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 :root[data-theme="dark"] #reading-mode .line-container.reading-line-active {
   background: linear-gradient(120deg, rgba(109, 72, 38, 0.95) 0%, rgba(135, 88, 38, 0.97) 60%, rgba(158, 101, 42, 0.98) 100%);
   border-color: rgba(227, 179, 103, 0.9);
+  border-bottom: 2px solid rgba(227, 179, 103, 0.7);
   box-shadow: 0 26px 60px -28px rgba(0, 0, 0, 0.78);
 }
 
