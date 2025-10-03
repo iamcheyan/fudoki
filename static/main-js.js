@@ -519,9 +519,9 @@
     const speedLabel = $('speedLabel');
     if (speedLabel) speedLabel.textContent = t('speedLabel');
     if (playAllBtn) {
-      // 根据当前播放状态设置播放全文按钮文本
+      // 改为仅更新提示文本，不插入按钮文字
       const currentlyPlaying = isPlaying && currentUtterance;
-      playAllBtn.textContent = playAllLabel(currentlyPlaying);
+      playAllBtn.title = playAllLabel(currentlyPlaying);
     }
 
     const displayTitle = $('displayTitle');
@@ -1835,14 +1835,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
     }
     
-    // 更新按钮文本（保留SVG）
-    if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
-      // 对于播放全文按钮，保留SVG和更新文本
-      const svgElement = button.querySelector('svg');
-      button.innerHTML = '';
-      button.appendChild(svgElement);
-      button.appendChild(document.createTextNode(buttonText));
-    }
+    // 播放全文按钮改为纯图标：不添加文字，仅更新 title
+    // 保留其他按钮默认文本行为（目前无文本）
   }
 
   // 更新移动端播放按钮图标

@@ -86,6 +86,72 @@
 
     <!-- 右侧列 - 内容区域 -->
     <main class="content-main">
+      <!-- 顶部内嵌设置栏（横向排列，位于文本框上方） -->
+      <div class="inline-settings" id="inlineSettings">
+        <!-- 语音设置（标题移除，横排控件） -->
+        <div class="settings-section">
+          <div class="voice-controls">
+            <div class="control-group">
+              <label class="control-label" id="voiceSelectLabel">语音选择</label>
+              <select id="voiceSelect">
+                <option value="">选择语音...</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label" id="speedLabel">语速调节</label>
+              <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
+              <div class="speed-display" id="speedValue">1.0x</div>
+            </div>
+
+            <button class="play-all-btn" id="playAllBtn" title="播放全文">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 显示设置（标题移除，横排控件） -->
+        <div class="settings-section">
+          <div class="display-controls">
+            <div class="control-group">
+              <label class="control-label" id="showKanaLabel">
+                <input type="checkbox" id="showKana" checked>
+                显示假名
+              </label>
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label" id="showRomajiLabel">
+                <input type="checkbox" id="showRomaji" checked>
+                显示罗马音
+              </label>
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label" id="showPosLabel">
+                <input type="checkbox" id="showPos" checked>
+                显示词性
+              </label>
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label" id="autoReadLabel">
+                <input type="checkbox" id="autoRead">
+                自动朗读
+              </label>
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label" id="repeatPlayLabel">
+                <input type="checkbox" id="repeatPlay">
+                重复播放
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- 输入区域 -->
       <section class="input-section">
         <div class="input-group">
@@ -120,94 +186,8 @@
           </button>
         </div>
       
-      <!-- 工具栏内容 -->
-       <div class="toolbar-content">
-         <!-- 语音设置 -->
-         <div class="settings-section">
-           <div class="sidebar-title" id="voiceSettingsTitle">语音设置</div>
-           <div class="voice-controls">
-             <div class="control-group">
-               <label class="control-label" id="voiceSelectLabel">语音选择</label>
-               <select id="voiceSelect">
-                 <option value="">选择语音...</option>
-               </select>
-             </div>
-
-             <div class="control-group">
-               <label class="control-label" id="speedLabel">语速调节</label>
-               <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
-               <div class="speed-display" id="speedValue">1.0x</div>
-             </div>
-
-             <button class="play-all-btn" id="playAllBtn">播放全文</button>
-           </div>
-         </div>
-
-         <!-- 显示设置 -->
-         <div class="settings-section">
-           <div class="sidebar-title" id="displayTitle">显示设置</div>
-           <div class="display-controls">
-             <div class="control-group">
-               <label class="control-label" id="showKanaLabel">
-                 <input type="checkbox" id="showKana" checked>
-                 显示假名
-               </label>
-             </div>
-             
-             <div class="control-group">
-               <label class="control-label" id="showRomajiLabel">
-                 <input type="checkbox" id="showRomaji" checked>
-                 显示罗马音
-               </label>
-             </div>
-             
-             <div class="control-group">
-               <label class="control-label" id="showPosLabel">
-                 <input type="checkbox" id="showPos" checked>
-                 显示词性
-               </label>
-             </div>
-             
-             <div class="control-group">
-               <label class="control-label" id="autoReadLabel">
-                 <input type="checkbox" id="autoRead">
-                 自动朗读
-               </label>
-             </div>
-             
-             <div class="control-group">
-               <label class="control-label" id="repeatPlayLabel">
-                 <input type="checkbox" id="repeatPlay">
-                 重复播放
-               </label>
-             </div>
-           </div>
-         </div>
-
-         <!-- 系统设置 -->
-         <div class="settings-section">
-           <div class="sidebar-title" id="systemTitle">系统设置</div>
-           <div class="system-controls">
-             <div class="control-group">
-               <label class="control-label" id="themeLabel">主题模式</label>
-               <select id="themeSelect" class="theme-select">
-                 <option value="light">浅色模式</option>
-                 <option value="dark">深色模式</option>
-                 <option value="auto">跟随系统</option>
-               </select>
-             </div>
-             
-             <div class="control-group">
-               <label class="control-label" id="langLabel">界面语言</label>
-               <select id="langSelect" class="lang-select">
-                 <option value="ja">日本語</option>
-                 <option value="en">English</option>
-                 <option value="zh">中文</option>
-               </select>
-             </div>
-           </div>
-         </div>
-       </div>
+      <!-- 工具栏内容（弹窗内保留空容器，避免与内嵌设置重复ID） -->
+       <div class="toolbar-content" id="settingsModalBody"></div>
      </div>
    </div>
 

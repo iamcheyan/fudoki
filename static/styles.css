@@ -30,19 +30,19 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #111318;
-  --text: #e6e6e6;
-  --muted: #a2a7b0;
-  --border: #2a2f38;
-  --elev: #171a20;
-  --primary: #B8860B;
+  --bg: #16181d;         /* 深炭黑底色 */
+  --text: #e7eaf0;       /* 稍亮的正文色 */
+  --muted: #a6aebb;      /* 次级文字 */
+  --border: #2c323d;     /* 低对比边框 */
+  --elev: #1e2229;       /* 提升层（卡片/面板） */
+  --primary: #d9b35a;    /* 暖金主色 */
 }
 
 /* 滚动条主题变量 */
 :root {
-  --scroll-track: #f0f1f3;
-  --scroll-thumb: #c6cbd3;
-  --scroll-thumb-hover: #aeb4bf;
+  --scroll-track: #1b1f24;
+  --scroll-thumb: #343b46;
+  --scroll-thumb-hover: #454e5c;
 }
 :root[data-theme="dark"] {
   --scroll-track: #1b1f27;
@@ -1359,6 +1359,51 @@ input:focus, textarea:focus, select:focus {
   flex: 1; /* 自动填充剩余空间 */
 }
 
+/* 顶部内嵌设置栏（横向布局） */
+.inline-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  align-items: center;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+.inline-settings .settings-section {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+/* 移除标题样式，纯控件布局 */
+.inline-settings .voice-controls,
+.inline-settings .display-controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+.inline-settings .control-group { margin: 0; }
+.inline-settings .control-label {
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--elevated);
+}
+.inline-settings .control-label:hover { border-color: var(--primary); }
+.inline-settings .control-label input[type="checkbox"] { accent-color: var(--primary); }
+.inline-settings select { width: auto; min-width: 220px; }
+.inline-settings input[type="range"] { width: 240px; }
+.inline-settings .speed-display { width: 48px; text-align: center; }
+.inline-settings .play-all-btn {
+  width: auto;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.inline-settings .play-all-btn svg { width: 16px; height: 16px; }
+
 /* 设置分组样式 */
 .settings-section {
   margin-bottom: 20px;
@@ -2000,12 +2045,12 @@ select, input[type="text"], textarea, .btn, .new-doc-btn, .delete-doc-btn, .play
 
 /* 深色主题控件变量 */
 :root[data-theme="dark"] {
-  --control-bg: #1a1d23;
-  --control-border: #2d3340;
-  --control-text: #e6e6e6;
-  --control-muted: #9aa3ad;
-  --control-elev: #20242c;
-  --primary-contrast: #ffffff;
+  --control-bg: #1b1f26;       /* 输入/按钮 背景 */
+  --control-border: #2a303b;   /* 控件边框 */
+  --control-text: #e7eaf0;     /* 控件文字 */
+  --control-muted: #9fa7b3;    /* 控件次级文字 */
+  --control-elev: #222833;     /* 控件悬浮层 */
+  --primary-contrast: #0d0f13; /* 金色上的反差文字 */
 }
 
 /* 输入/选择/文本域 */
@@ -2602,3 +2647,104 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 }
 .doc-action-btn.favorite-btn:hover { color: var(--text); }
 .doc-item.favorited .doc-action-btn.favorite-btn { color: #f5a623; }
+
+/* 深色主题：常用容器的质感增强 */
+[data-theme="dark"] .sidebar-left,
+[data-theme="dark"] .list-panel,
+[data-theme="dark"] .input-section,
+[data-theme="dark"] .content-area,
+[data-theme="dark"] .sidebar-right,
+[data-theme="dark"] .settings-modal-content {
+  background: rgba(30, 34, 41, 0.78);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255,255,255,0.08);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+}
+
+/* 深色主题：更明亮的层次与立体感（不依赖变量的明确配色） */
+[data-theme="dark"] body {
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(255, 215, 128, 0.06), transparent 60%),
+    radial-gradient(1000px 500px at 120% 110%, rgba(120, 180, 255, 0.06), transparent 60%),
+    #171a20;
+}
+
+[data-theme="dark"] .header {
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+}
+
+[data-theme="dark"] .main-container {
+  box-shadow: 0 18px 50px rgba(0,0,0,0.4);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0));
+}
+
+[data-theme="dark"] .sidebar-left,
+[data-theme="dark"] .list-panel {
+  background: rgba(28, 33, 41, 0.72);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .doc-item {
+  background: #1b2027;
+  border: 1px solid transparent;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+[data-theme="dark"] .doc-item:hover {
+  background: #202632;
+}
+[data-theme="dark"] .doc-item.active {
+  background: #222a36;
+  border-left-color: #d9b35a;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+
+[data-theme="dark"] .input-section {
+  background: rgba(31, 36, 44, 0.72);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.32);
+}
+
+[data-theme="dark"] .content-area {
+  background: rgba(32, 38, 49, 0.72);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .line-container {
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  margin: 6px 0;
+  padding: 6px 8px;
+}
+[data-theme="dark"] .line-container:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+[data-theme="dark"] .token-pill {
+  background: rgba(35, 42, 54, 0.7);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+[data-theme="dark"] .token-pill:hover {
+  background: #283241;
+}
+[data-theme="dark"] .token-pill.playing,
+[data-theme="dark"] .token-pill.active {
+  background: linear-gradient(135deg, rgba(255, 231, 150, 0.25), rgba(217, 179, 90, 0.28));
+  border-color: #d9b35a;
+  box-shadow: 0 6px 22px rgba(217,179,90,0.22);
+}
+
+[data-theme="dark"] .toolbar-header {
+  background: linear-gradient(135deg, #745b1e, #3c2d0b);
+}
+
+[data-theme="dark"] .footer {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0));
+}
