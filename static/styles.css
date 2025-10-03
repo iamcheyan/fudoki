@@ -705,7 +705,7 @@ input:focus, textarea:focus, select:focus {
   display: flex;
   align-items: end;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 0;
   /* padding: 8px 0; */
   position: relative;
 }
@@ -878,7 +878,7 @@ input:focus, textarea:focus, select:focus {
 #reading-mode .token-pill {
   border-bottom: none;
   padding: 0;
-  margin: 0;
+  margin: 8px 0;
   background: transparent !important;
   box-shadow: none !important;
 }
@@ -1114,6 +1114,7 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 0;            /* 工具栏横排时不需要额外下边距 */
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .control-label input[type="checkbox"] {
@@ -1698,7 +1699,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 .footer a:hover {
   text-decoration: underline;
 }
-
+.footer .theme-icon-btn {
+  border:none
+}
 /* 移动端页脚规则已移除 */
 
 /* 播放高亮 */
@@ -2018,7 +2021,6 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   gap: 0;
   align-items: baseline;  
 }
-
 
 #reading-mode .main-container {
   display: block;

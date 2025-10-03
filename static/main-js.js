@@ -57,7 +57,9 @@
     autoRead: 'autoRead',
     repeatPlay: 'repeatPlay',
     lang: 'lang',
-    theme: 'theme'
+    theme: 'theme',
+    showUnderline: 'showUnderline',
+    readingScript: 'readingScript'
   };
 
   let isReadingMode = false;
@@ -152,6 +154,7 @@
       showKana: 'ふりがなを表示',
       showRomaji: 'ローマ字を表示',
       showPos: '品詞を表示',
+      showUnderline: '品詞の色下線',
       autoRead: '自動読み上げ',
       repeatPlay: 'リピート再生',
       readingToggleEnter: '読書モード',
@@ -195,6 +198,10 @@
       playThisLine: 'この行を再生',
       expand: '展開',
       collapse: '折りたたむ',
+      showUnderline: '品詞ラインを表示',
+      readingScript: 'ふりがな表記',
+      katakanaLabel: 'カタカナ',
+      hiraganaLabel: 'ひらがな'
     },
     en: {
       title: 'Fudoki',
@@ -215,6 +222,7 @@
       showKana: 'Show Kana',
       showRomaji: 'Show Romaji',
       showPos: 'Show POS',
+      showUnderline: 'POS underline color',
       autoRead: 'Auto Read',
       repeatPlay: 'Repeat Play',
       readingToggleEnter: 'Reading Mode',
@@ -258,6 +266,10 @@
       playThisLine: 'Play this line',
       expand: 'Expand',
       collapse: 'Collapse',
+      showUnderline: 'Show POS underline',
+      readingScript: 'Reading script',
+      katakanaLabel: 'Katakana',
+      hiraganaLabel: 'Hiragana'
     },
     zh: {
       title: 'Fudoki',
@@ -321,6 +333,10 @@
       playThisLine: '播放这一行',
       expand: '展开',
       collapse: '收缩',
+      showUnderline: '显示词性下划线',
+      readingScript: '读音脚本',
+      katakanaLabel: '片假名',
+      hiraganaLabel: '平假名'
     }
   };
 
@@ -586,6 +602,13 @@
 
     const displayTitle = $('displayTitle');
     if (displayTitle) displayTitle.textContent = t('displayTitle');
+    // 读音脚本标签与选项
+    const readingScriptLabel = $('readingScriptLabel');
+    if (readingScriptLabel) readingScriptLabel.textContent = t('readingScript');
+    const readingScriptOptionKatakana = $('readingScriptOptionKatakana');
+    if (readingScriptOptionKatakana) readingScriptOptionKatakana.textContent = t('katakanaLabel');
+    const readingScriptOptionHiragana = $('readingScriptOptionHiragana');
+    if (readingScriptOptionHiragana) readingScriptOptionHiragana.textContent = t('hiraganaLabel');
     const showKanaLabel = $('showKanaLabel');
     if (showKanaLabel) {
       showKanaLabel.title = t('showKana');
@@ -603,6 +626,12 @@
       showPosLabel.title = t('showPos');
       const s = showPosLabel.querySelector('.label-text');
       if (s) s.textContent = t('showPos');
+    }
+    const showUnderlineLabel = $('showUnderlineLabel');
+    if (showUnderlineLabel) {
+      showUnderlineLabel.title = t('showUnderline');
+      const s = showUnderlineLabel.querySelector('.label-text');
+      if (s) s.textContent = t('showUnderline');
     }
     const autoReadLabel = $('autoReadLabel');
     if (autoReadLabel) {
@@ -643,10 +672,18 @@
     if (sidebarShowRomajiLabel) sidebarShowRomajiLabel.lastChild && (sidebarShowRomajiLabel.lastChild.textContent = ' ' + t('showRomaji'));
     const sidebarShowPosLabel = $('sidebarShowPosLabel');
     if (sidebarShowPosLabel) sidebarShowPosLabel.lastChild && (sidebarShowPosLabel.lastChild.textContent = ' ' + t('showPos'));
+    const sidebarShowUnderlineLabel = $('sidebarShowUnderlineLabel');
+    if (sidebarShowUnderlineLabel) sidebarShowUnderlineLabel.lastChild && (sidebarShowUnderlineLabel.lastChild.textContent = ' ' + t('showUnderline'));
     const sidebarAutoReadLabel = $('sidebarAutoReadLabel');
     if (sidebarAutoReadLabel) sidebarAutoReadLabel.lastChild && (sidebarAutoReadLabel.lastChild.textContent = ' ' + t('autoRead'));
     const sidebarRepeatPlayLabel = $('sidebarRepeatPlayLabel');
     if (sidebarRepeatPlayLabel) sidebarRepeatPlayLabel.lastChild && (sidebarRepeatPlayLabel.lastChild.textContent = ' ' + t('repeatPlay'));
+    const sidebarReadingScriptLabel = $('sidebarReadingScriptLabel');
+    if (sidebarReadingScriptLabel) sidebarReadingScriptLabel.textContent = t('readingScript');
+    const sidebarReadingScriptOptionKatakana = $('sidebarReadingScriptOptionKatakana');
+    if (sidebarReadingScriptOptionKatakana) sidebarReadingScriptOptionKatakana.textContent = t('katakanaLabel');
+    const sidebarReadingScriptOptionHiragana = $('sidebarReadingScriptOptionHiragana');
+    if (sidebarReadingScriptOptionHiragana) sidebarReadingScriptOptionHiragana.textContent = t('hiraganaLabel');
     
     const sidebarThemeLabel = $('sidebarThemeLabel');
     if (sidebarThemeLabel) sidebarThemeLabel.textContent = t('themeLabel');
@@ -960,6 +997,79 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
     
     return romaji;
+  }
+
+  // 读取当前读音脚本（默认片假名）
+  function getReadingScript() {
+    const v = localStorage.getItem(LS.readingScript);
+    return (v === 'hiragana' || v === 'katakana') ? v : 'katakana';
+  }
+
+  // 片假名转平假名
+  function toHiragana(text) {
+    if (!text) return '';
+    let out = '';
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      // Katakana range to Hiragana by -0x60
+      if (code >= 0x30A1 && code <= 0x30F6) {
+        out += String.fromCharCode(code - 0x60);
+      } else {
+        out += text[i];
+      }
+    }
+    return out;
+  }
+
+  // 平假名转片假名
+  function toKatakana(text) {
+    if (!text) return '';
+    let out = '';
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      // Hiragana range to Katakana by +0x60
+      if (code >= 0x3041 && code <= 0x3096) {
+        out += String.fromCharCode(code + 0x60);
+      } else {
+        out += text[i];
+      }
+    }
+    return out;
+  }
+
+  function normalizeKanaByScript(text, script) {
+    if (!text) return '';
+    return script === 'hiragana' ? toHiragana(text) : toKatakana(text);
+  }
+
+  // 根据设置格式化读音：处理助词“は”并按脚本转换
+  function formatReading(token, script) {
+    const surface = token && token.surface ? token.surface : '';
+    const posArr = Array.isArray(token && token.pos) ? token.pos : [token && token.pos || ''];
+    const readingRaw = token && token.reading ? token.reading : '';
+    if (!readingRaw) return '';
+    // 特例：助词“は”读作“わ/ワ”
+    if (surface === 'は' && posArr[0] === '助詞') {
+      return script === 'hiragana' ? 'わ' : 'ワ';
+    }
+    const normalized = normalizeKanaByScript(readingRaw, script);
+    // 如果读音与表层一致，则不重复显示
+    if (normalized === surface) return '';
+    return normalized;
+  }
+
+  // 切换脚本时即时更新已渲染的读音
+  function updateReadingScriptDisplay() {
+    const script = getReadingScript();
+    const pills = document.querySelectorAll('.token-pill');
+    pills.forEach(el => {
+      try {
+        const raw = el.getAttribute('data-token') || '{}';
+        const token = JSON.parse(raw.replace(/&apos;/g, "'"));
+        const kanaEl = el.querySelector('.token-kana');
+        if (kanaEl) kanaEl.textContent = formatReading(token, script);
+      } catch (_) {}
+    });
   }
 
   // 词性解析函数
@@ -2050,19 +2160,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
           return `<span class="punct">${surface}</span>`;
         }
         
+        const readingText = formatReading(token, getReadingScript());
         return `
           <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(token).replace(/'/g, "&apos;")}' data-pos="${posDisplay}">
             <div class="token-content">
-              <div class="token-kana display-kana">${(() => {
-                if (reading && reading !== surface) {
-                  // 特殊处理：助词"は"单字时显示读音为"わ"
-                  if (surface === 'は' && pos[0] === '助詞') {
-                    return 'わ';
-                  }
-                  return reading;
-                }
-                return '';
-              })()}</div>
+              <div class="token-kana display-kana">${readingText}</div>
               <div class="token-romaji display-romaji">${romaji}</div>
               <div class="token-kanji display-kanji">${surface}</div>
               <div class="token-pos display-pos">${posDisplay}</div>
@@ -2124,30 +2226,30 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 显示/隐藏词汇详细信息
   window.toggleTokenDetails = function(element) {
-    // 检查是否启用了自动朗读功能
-    if (autoReadCheckbox && autoReadCheckbox.checked) {
-      // 如果启用了自动朗读，朗读词汇
-      const tokenData = JSON.parse(element.getAttribute('data-token'));
-      const surface = tokenData.surface || '';
-      if (surface) {
-        // 停止当前播放，避免重复
-        if (isPlaying) {
-          stopSpeaking();
+    // 仅在“自动朗读”开启时朗读；动态读取主设置、侧边栏或本地存储
+    try {
+      const isAutoReadEnabled = (() => {
+        const main = document.getElementById('autoRead');
+        const sidebar = document.getElementById('sidebarAutoRead');
+        if (main && typeof main.checked !== 'undefined') return main.checked;
+        if (sidebar && typeof sidebar.checked !== 'undefined') return sidebar.checked;
+        const v = localStorage.getItem(LS.autoRead);
+        return v === 'true';
+      })();
+      if (isAutoReadEnabled) {
+        const tokenData = JSON.parse(element.getAttribute('data-token'));
+        const surface = tokenData.surface || '';
+        if (surface) {
+          if (isPlaying) stopSpeaking();
+          highlightToken(surface, element);
+          let textToSpeak = tokenData.reading || surface;
+          if (surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
+            textToSpeak = 'わ';
+          }
+          speak(textToSpeak);
         }
-        
-        highlightToken(surface, element);
-        // 使用reading字段进行朗读，如果没有则使用surface
-        let textToSpeak = tokenData.reading || surface;
-        
-        // 特殊处理：助词"は"单字时读作"wa"
-        if (surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
-          textToSpeak = 'わ';
-        }
-        
-        speak(textToSpeak);
       }
-      // 继续执行显示详细信息面板的逻辑，不要直接返回
-    }
+    } catch (_) {}
     
     // 详细信息显示逻辑
     const details = element.querySelector('.token-details');
@@ -2511,30 +2613,53 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const showKanaCheckbox = document.getElementById('showKana');
     const showRomajiCheckbox = document.getElementById('showRomaji');
     const showPosCheckbox = document.getElementById('showPos');
+    const showUnderlineCheckbox = document.getElementById('showUnderline');
     const autoReadCheckbox = document.getElementById('autoRead');
     const repeatPlayCheckbox = document.getElementById('repeatPlay');
     const sidebarShowKanaCheckbox = document.getElementById('sidebarShowKana');
     const sidebarShowRomajiCheckbox = document.getElementById('sidebarShowRomaji');
     const sidebarShowPosCheckbox = document.getElementById('sidebarShowPos');
+    const sidebarShowUnderlineCheckbox = document.getElementById('sidebarShowUnderline');
     const sidebarAutoReadCheckbox = document.getElementById('sidebarAutoRead');
     const sidebarRepeatPlayCheckbox = document.getElementById('sidebarRepeatPlay');
+    // 读音脚本下拉
+    const readingScriptSelect = document.getElementById('readingScriptSelect');
+    const sidebarReadingScriptSelect = document.getElementById('sidebarReadingScriptSelect');
     
+    // 从本地存储读取初始状态
+    const getBool = (key, defaultVal = true) => {
+      const v = localStorage.getItem(key);
+      return v === null ? defaultVal : v === 'true';
+    };
     // 设置复选框状态 - 主弹窗
-    if (showKanaCheckbox) showKanaCheckbox.checked = showKanaCheckbox.checked;
-    if (showRomajiCheckbox) showRomajiCheckbox.checked = showRomajiCheckbox.checked;
-    if (showPosCheckbox) showPosCheckbox.checked = showPosCheckbox.checked;
-    if (autoReadCheckbox) autoReadCheckbox.checked = autoReadCheckbox.checked;
-    if (repeatPlayCheckbox) repeatPlayCheckbox.checked = repeatPlayCheckbox.checked;
+    if (showKanaCheckbox) showKanaCheckbox.checked = getBool(LS.showKana, true);
+    if (showRomajiCheckbox) showRomajiCheckbox.checked = getBool(LS.showRomaji, true);
+    if (showPosCheckbox) showPosCheckbox.checked = getBool(LS.showPos, true);
+    if (showUnderlineCheckbox) showUnderlineCheckbox.checked = getBool(LS.showUnderline, true);
+    if (autoReadCheckbox) autoReadCheckbox.checked = getBool(LS.autoRead, false);
+    if (repeatPlayCheckbox) repeatPlayCheckbox.checked = getBool(LS.repeatPlay, false);
     
+    // 设置下拉初始值 - 主弹窗
+    const getScript = () => {
+      const v = localStorage.getItem(LS.readingScript);
+      return (v === 'hiragana' || v === 'katakana') ? v : 'katakana';
+    };
+    if (readingScriptSelect) readingScriptSelect.value = getScript();
     // 设置复选框状态 - 侧边栏
-    if (sidebarShowKanaCheckbox) sidebarShowKanaCheckbox.checked = sidebarShowKanaCheckbox.checked;
-    if (sidebarShowRomajiCheckbox) sidebarShowRomajiCheckbox.checked = sidebarShowRomajiCheckbox.checked;
-    if (sidebarShowPosCheckbox) sidebarShowPosCheckbox.checked = sidebarShowPosCheckbox.checked;
-    if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = sidebarAutoReadCheckbox.checked;
-    if (sidebarRepeatPlayCheckbox) sidebarRepeatPlayCheckbox.checked = sidebarRepeatPlayCheckbox.checked;
+    if (sidebarShowKanaCheckbox) sidebarShowKanaCheckbox.checked = getBool(LS.showKana, true);
+    if (sidebarShowRomajiCheckbox) sidebarShowRomajiCheckbox.checked = getBool(LS.showRomaji, true);
+    if (sidebarShowPosCheckbox) sidebarShowPosCheckbox.checked = getBool(LS.showPos, true);
+    if (sidebarShowUnderlineCheckbox) sidebarShowUnderlineCheckbox.checked = getBool(LS.showUnderline, true);
+    if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = getBool(LS.autoRead, false);
+    if (sidebarRepeatPlayCheckbox) sidebarRepeatPlayCheckbox.checked = getBool(LS.repeatPlay, false);
+    // 设置下拉初始值 - 侧边栏
+    if (sidebarReadingScriptSelect) sidebarReadingScriptSelect.value = getScript();
     
     // 应用显示设置
     updateDisplaySettings();
+    
+    // 应用当前读音脚本显示
+    updateReadingScriptDisplay();
     
     // 添加事件监听器 - 主弹窗
     if (showKanaCheckbox) {
@@ -2564,6 +2689,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
       });
     }
     
+    if (showUnderlineCheckbox) {
+      showUnderlineCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.showUnderline, showUnderlineCheckbox.checked);
+        // 同步侧边栏状态
+        if (sidebarShowUnderlineCheckbox) sidebarShowUnderlineCheckbox.checked = showUnderlineCheckbox.checked;
+        updateDisplaySettings();
+      });
+    }
+    
     if (autoReadCheckbox) {
       autoReadCheckbox.addEventListener('change', () => {
         localStorage.setItem(LS.autoRead, autoReadCheckbox.checked);
@@ -2577,6 +2711,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
         localStorage.setItem(LS.repeatPlay, repeatPlayCheckbox.checked);
         // 同步侧边栏状态
         if (sidebarRepeatPlayCheckbox) sidebarRepeatPlayCheckbox.checked = repeatPlayCheckbox.checked;
+      });
+    }
+    // 主弹窗：读音脚本
+    if (readingScriptSelect) {
+      readingScriptSelect.addEventListener('change', () => {
+        const val = readingScriptSelect.value === 'hiragana' ? 'hiragana' : 'katakana';
+        localStorage.setItem(LS.readingScript, val);
+        if (sidebarReadingScriptSelect) sidebarReadingScriptSelect.value = val;
+        updateReadingScriptDisplay();
       });
     }
     
@@ -2608,6 +2751,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
       });
     }
     
+    if (sidebarShowUnderlineCheckbox) {
+      sidebarShowUnderlineCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.showUnderline, sidebarShowUnderlineCheckbox.checked);
+        // 同步主弹窗状态
+        if (showUnderlineCheckbox) showUnderlineCheckbox.checked = sidebarShowUnderlineCheckbox.checked;
+        updateDisplaySettings();
+      });
+    }
+    
     if (sidebarAutoReadCheckbox) {
       sidebarAutoReadCheckbox.addEventListener('change', () => {
         localStorage.setItem(LS.autoRead, sidebarAutoReadCheckbox.checked);
@@ -2623,15 +2775,26 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (repeatPlayCheckbox) repeatPlayCheckbox.checked = sidebarRepeatPlayCheckbox.checked;
       });
     }
+    // 侧边栏：读音脚本
+    if (sidebarReadingScriptSelect) {
+      sidebarReadingScriptSelect.addEventListener('change', () => {
+        const val = sidebarReadingScriptSelect.value === 'hiragana' ? 'hiragana' : 'katakana';
+        localStorage.setItem(LS.readingScript, val);
+        if (readingScriptSelect) readingScriptSelect.value = val;
+        updateReadingScriptDisplay();
+      });
+    }
   }
 
   function updateDisplaySettings() {
     const showKanaCheckbox = document.getElementById('showKana');
     const showRomajiCheckbox = document.getElementById('showRomaji');
     const showPosCheckbox = document.getElementById('showPos');
+    const showUnderlineCheckbox = document.getElementById('showUnderline');
     const sidebarShowKanaCheckbox = document.getElementById('sidebarShowKana');
     const sidebarShowRomajiCheckbox = document.getElementById('sidebarShowRomaji');
     const sidebarShowPosCheckbox = document.getElementById('sidebarShowPos');
+    const sidebarShowUnderlineCheckbox = document.getElementById('sidebarShowUnderline');
     // 获取当前状态，优先从主弹窗获取，如果不存在则从侧边栏获取
     const showKana = showKanaCheckbox ? showKanaCheckbox.checked : 
                      (sidebarShowKanaCheckbox ? sidebarShowKanaCheckbox.checked : true);
@@ -2639,6 +2802,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
                        (sidebarShowRomajiCheckbox ? sidebarShowRomajiCheckbox.checked : true);
     const showPos = showPosCheckbox ? showPosCheckbox.checked : 
                     (sidebarShowPosCheckbox ? sidebarShowPosCheckbox.checked : true);
+    const showUnderline = showUnderlineCheckbox ? showUnderlineCheckbox.checked : 
+                         (sidebarShowUnderlineCheckbox ? sidebarShowUnderlineCheckbox.checked : true);
     
     // 创建或更新CSS规则
     let styleElement = document.getElementById('display-control-styles');
@@ -2653,6 +2818,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (!showRomaji) css += '.display-romaji { display: none !important; }\n';
     // 汉字永远显示，不添加隐藏规则
     if (!showPos) css += '.display-pos { display: none !important; }\n';
+    // 关闭词性彩色下划线：移除底边线
+    if (!showUnderline) css += '.token-pill { border-bottom: none !important; }\n';
     
     styleElement.textContent = css;
   }
@@ -3153,6 +3320,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
               显示假名
             </label>
           </div>
+
+          <div class="control-group">
+            <label class="control-label" id="${id('readingScriptLabel')}">读音脚本</label>
+            <select id="${id('readingScriptSelect')}">
+              <option id="${id('readingScriptOptionKatakana')}" value="katakana">片假名</option>
+              <option id="${id('readingScriptOptionHiragana')}" value="hiragana">平假名</option>
+            </select>
+          </div>
           
           <div class="control-group">
             <label class="control-label" id="${id('showRomajiLabel')}">
@@ -3165,6 +3340,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
             <label class="control-label" id="${id('showPosLabel')}">
               <input type="checkbox" id="${id('showPos')}" checked>
               显示词性
+            </label>
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label" id="${id('showUnderlineLabel')}">
+              <input type="checkbox" id="${id('showUnderline')}" checked>
+              词性颜色下划线
             </label>
           </div>
           
@@ -3207,6 +3389,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
     btn.addEventListener('click', () => modal.classList.contains('show') ? closeModal() : openModal());
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    // ESC 关闭
+    document.addEventListener('keydown', (e) => {
+      if ((e.key === 'Escape' || e.key === 'Esc') && modal.classList.contains('show')) {
+        e.preventDefault();
+        closeModal();
+      }
+    });
   }
 
   // 在页面加载时为设置弹窗挂载内容并绑定事件
