@@ -1531,11 +1531,25 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   // 高亮词汇函数
-  function highlightToken(text) {
+  function highlightToken(text, targetElement = null) {
     // 清除之前的高亮
     clearTokenHighlight();
     
     if (!text) return;
+    
+    // 如果指定了目标元素，直接高亮该元素
+    if (targetElement) {
+      targetElement.classList.add('playing');
+      currentHighlightedToken = targetElement;
+      
+      // 滚动到可视区域
+      targetElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center',
+        inline: 'nearest'
+      });
+      return;
+    }
     
     // 查找匹配的词汇卡片
     const tokenPills = document.querySelectorAll('.token-pill');
@@ -1765,8 +1779,19 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
     clearReadingLineHighlight();
 
-    // 按行显示分词结果，先过滤掉空行
-    const nonEmptyLines = result.lines.filter(line => Array.isArray(line) && line.length > 0);
+    // 按行显示分词结果，先过滤掉空行和只有标点符号的行
+    const nonEmptyLines = result.lines.filter(line => {
+      if (!Array.isArray(line) || line.length === 0) return false;
+      
+      // 检查整行是否都只有标点符号
+      const allPunct = line.every(token => {
+        const pos = Array.isArray(token.pos) ? token.pos : [token.pos || ''];
+        return pos[0] === '記号' || pos[0] === '補助記号';
+      });
+      
+      return !allPunct; // 如果整行都是标点符号，则过滤掉
+    });
+    
     const html = nonEmptyLines.map((line, lineIndex) => {
       
       const lineHtml = line.map((token, tokenIndex) => {
@@ -1881,7 +1906,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           stopSpeaking();
         }
         
-        highlightToken(surface);
+        highlightToken(surface, element);
         // 使用reading字段进行朗读，如果没有则使用surface
         let textToSpeak = tokenData.reading || surface;
         

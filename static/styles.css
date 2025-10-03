@@ -1017,7 +1017,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 #reading-mode .token-pill:hover {
-  background: rgba(0, 0, 0, 0.05) !important;
+  background: none !important;
   box-shadow: none !important;
 }
 
