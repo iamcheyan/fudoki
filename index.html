@@ -34,6 +34,7 @@
       
       <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
       <nav class="nav-menu">
+        <button class="nav-item" id="openSettingsBtn" title="系统设置">设置</button>
         <a href="https://kotoba.iamcheyan.com/" target="_blank" class="nav-item" >kotoba</a>
         <a href="https://terebi.iamcheyan.com/" target="_blank" class="nav-item" >terebi</a>
         <a href="https://github.com/iamcheyan/fudoki" target="_blank" class="nav-item theme-icon-btn" id="GitHub" aria-label="GitHub" title="GitHub">
@@ -45,22 +46,31 @@
 
   <!-- 主要内容区域 -->
   <div class="main-container">
-    <!-- 左侧边栏 - 文档管理 -->
+    <!-- 最左列 - 文件夹管理 -->
     <aside class="sidebar-left" id="sidebar-left">
       <div class="sidebar-content">
-        <div class="sidebar-title" id="sidebarDocsTitle">文档管理</div>
-        
+        <div class="sidebar-title" id="sidebarFolderTitle">文件夹管理</div>
+        <div class="folder-list" id="folderList">
+          <!-- 文件夹列表由 JS 生成 -->
+        </div>
+      </div>
+    </aside>
+   
+   <!-- 中间列 - 文档列表 -->
+    <section class="list-panel" id="listPanel">
+      <div class="list-content">
+        <div class="sidebar-title" id="sidebarDocsTitle">文档列表</div>
         <div class="doc-list" id="documentList">
-          <!-- 文档列表将通过JavaScript动态生成 -->
+          <!-- 文档列表由 JS 生成 -->
         </div>
         <div class="doc-actions">
           <button class="new-doc-btn" id="newDocBtn">+ 新建文档</button>
           <button class="delete-doc-btn" id="deleteDocBtn" disabled>删除文档</button>
         </div>
       </div>
-    </aside>
+    </section>
 
-    <!-- 主内容区域 -->
+    <!-- 右侧列 - 内容区域 -->
     <main class="content-main">
       <!-- 输入区域 -->
       <section class="input-section">

@@ -10,9 +10,11 @@
   const playAllBtn = $('playAllBtn');
   const newDocBtn = $('newDocBtn');
   const documentList = $('documentList');
+  const folderList = $('folderList');
   const langSelect = $('langSelect');
   const themeSelect = document.getElementById('themeSelect');
   const readingModeToggle = $('readingModeToggle');
+  const openSettingsBtn = document.getElementById('openSettingsBtn');
   
   // 右侧边栏元素
   const sidebarVoiceSelect = $('sidebarVoiceSelect');
@@ -67,6 +69,30 @@
     if (document.body) {
       document.body.id = 'reading-mode';
     }
+  }
+
+  // 初始化文件夹列表（轻量占位，不影响文档管理逻辑）
+  function initFolders() {
+    if (!folderList) return;
+    const folders = ['全部', '学习', '工作', '收藏'];
+    folderList.innerHTML = '';
+    folders.forEach((name, idx) => {
+      const item = document.createElement('div');
+      item.className = 'folder-item' + (idx === 0 ? ' active' : '');
+      item.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8A2,2 0 0,0 20,6H12L10,4Z"/>
+        </svg>
+        <div>${name}</div>
+      `;
+      item.addEventListener('click', () => {
+        const act = folderList.querySelector('.folder-item.active');
+        if (act) act.classList.remove('active');
+        item.classList.add('active');
+        // 目前文档未分组，选择文件夹不筛选，仅作视觉反馈
+      });
+      folderList.appendChild(item);
+    });
   }
 
   // 简易i18n词典（默认日语）
@@ -229,6 +255,8 @@
   if (storedLang !== currentLang) {
     try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
   }
+  // 初始化文件夹列表
+  initFolders();
   // 当前显示的详情弹层及其锚点
   let activeTokenDetails = null; // { element, details }
 
@@ -2821,8 +2849,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const mobilePlayBtn = document.getElementById('mobilePlayBtn');
     const settingsModal = document.getElementById('settingsModal');
     const settingsModalClose = document.getElementById('settingsModalClose');
+    const desktopSettingsBtn = document.getElementById('openSettingsBtn');
     
-    if (!mobileSettingsBtn || !settingsModal || !settingsModalClose) return;
+    if (!settingsModal || !settingsModalClose) return;
     
     // 检测是否为移动端
     function isMobile() {
@@ -2831,10 +2860,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 显示设置弹窗
     function showSettingsModal() {
-      if (isMobile()) {
-        settingsModal.classList.add('show');
-        document.body.style.overflow = 'hidden'; // 防止背景滚动
-      }
+      settingsModal.classList.add('show');
+      document.body.style.overflow = 'hidden'; // 防止背景滚动
     }
     
     // 隐藏设置弹窗
@@ -2869,17 +2896,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 响应窗口大小变化
     function handleResize() {
-      if (!isMobile()) {
-        // 桌面端：隐藏弹窗，移除移动端的显示状态
-        hideSettingsModal();
-        if (sidebarRight) {
-          sidebarRight.classList.remove('show');
-        }
+      // 桌面端也使用弹窗，不在此强制隐藏
+      if (sidebarRight) {
+        sidebarRight.classList.remove('show');
       }
     }
     
     // 绑定事件
-    mobileSettingsBtn.addEventListener('click', toggleSidebarRight);
+    if (mobileSettingsBtn) mobileSettingsBtn.addEventListener('click', toggleSidebarRight);
+    if (desktopSettingsBtn) desktopSettingsBtn.addEventListener('click', showSettingsModal);
     if (mobilePlayBtn) {
       mobilePlayBtn.addEventListener('click', mobilePlayAll);
     }

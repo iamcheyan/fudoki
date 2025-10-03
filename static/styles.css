@@ -8,19 +8,14 @@
 
 /* 桌面端样式 */
 @media (min-width: 769px) {
-  /* 隐藏移动端设置按钮 */
+  /* 隐藏移动端设置按钮（桌面用菜单项触发弹窗） */
   .mobile-settings-btn {
     display: none !important;
   }
   
-  /* 隐藏设置弹窗 */
-  .settings-modal {
-    display: none !important;
-  }
-  
-  /* 显示桌面端sidebar-right */
+  /* 桌面端使用弹窗，不显示右侧浮动工具栏 */
   .sidebar-right {
-    display: flex !important;
+    display: none !important;
   }
 }
 
@@ -227,10 +222,9 @@ body {
 
 /* 主要布局 - 紧凑型三栏 */
 .main-container {
-  max-width: 1000px;
   margin: 0 auto 30px auto;
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 220px 280px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
   gap: 1px;
   box-shadow: 0 10px 30px var(--border);
   min-height: calc(100vh - 60px);
@@ -250,6 +244,18 @@ body {
   position: relative;
   transition: width 0.3s ease, transform 0.3s ease;
   overflow: hidden;
+}
+
+/* 中间列表面板 */
+.list-panel {
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.list-content {
+  padding: 16px 12px;
+  height: 100%;
 }
 
 /* 折叠按钮 */
@@ -581,6 +587,57 @@ body {
   }
 }
 
+/* 通用：设置弹窗（桌面与移动共用WAP尺寸） */
+.settings-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.settings-modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
+.settings-modal-content {
+  background: var(--bg);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 92%;
+  max-width: 480px; /* 参考WAP端尺寸 */
+  max-height: 80vh;
+  overflow: hidden;
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+}
+
+.settings-modal.show .settings-modal-content { transform: scale(1); }
+
+.settings-modal-header {
+  background: linear-gradient(135deg, var(--primary), #463201);
+  color: white;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-modal-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+.settings-modal-title .settings-icon { width: 20px; height: 20px; }
+.settings-modal-close { background: none; border: none; color: white; cursor: pointer; padding: 4px; border-radius: 4px; }
+.settings-modal-close:hover { background: rgba(255, 255, 255, 0.1); }
+.settings-modal .toolbar-content { padding: 20px; max-height: calc(80vh - 80px); overflow-y: auto; }
+
 .sidebar-title {
   font-size: 12px;
   font-weight: 600;
@@ -589,6 +646,32 @@ body {
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
 }
+
+/* 文件夹列表样式 */
+.folder-list { margin-top: 4px; }
+.folder-item {
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.folder-item:hover {
+  background: var(--elevated);
+  color: var(--text);
+}
+.folder-item.active {
+  background: var(--elevated);
+  color: var(--primary);
+  border-left-color: var(--primary);
+}
+.folder-item svg { opacity: 0.7; flex-shrink: 0; }
 
 .doc-list {
   margin-bottom: 12px;
