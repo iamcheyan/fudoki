@@ -1585,6 +1585,8 @@ select, input[type="range"] {
   background: var(--bg);
   color: var(--text);
   border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--control-border);
 }
 .theme-icon-btn svg { fill: var(--text); }
 .theme-icon-btn:hover { background: rgba(0,0,0,0.06); }
@@ -2316,7 +2318,6 @@ select, .btn, .new-doc-btn, .delete-doc-btn { height: 36px; }
 
 /* 导航设置按钮（齿轮）暗色/亮色适配 */
 #settingsButton.theme-icon-btn {
-  border: 1px solid var(--control-border);
   background: var(--control-bg);
   color: var(--control-text);
 }

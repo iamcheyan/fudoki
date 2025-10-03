@@ -8,6 +8,7 @@
   const speedSlider = $('speedRange');
   const speedValue = $('speedValue');
   const playAllBtn = $('playAllBtn');
+  const headerPlayToggle = $('headerPlayToggle');
   const newDocBtn = $('newDocBtn');
   const documentList = $('documentList');
   const folderList = $('folderList');
@@ -1086,18 +1087,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }, 100);
         
         // 显示语音不可用选项
-        if (voiceSelect) voiceSelect.innerHTML = '';
-        if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
+        const voiceSelectEl = document.getElementById('voiceSelect');
+        const sidebarVoiceSelectEl = document.getElementById('sidebarVoiceSelect');
+        if (voiceSelectEl) voiceSelectEl.innerHTML = '';
+        if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.innerHTML = '';
         
         const opt = document.createElement('option');
         opt.textContent = t('noJapaneseVoice');
         opt.disabled = true;
         opt.selected = true;
-        if (voiceSelect) voiceSelect.appendChild(opt);
+        if (voiceSelectEl) voiceSelectEl.appendChild(opt);
         
-        if (sidebarVoiceSelect) {
+        if (sidebarVoiceSelectEl) {
           const sidebarOpt = opt.cloneNode(true);
-          sidebarVoiceSelect.appendChild(sidebarOpt);
+          sidebarVoiceSelectEl.appendChild(sidebarOpt);
         }
         
         currentVoice = null;
@@ -1108,18 +1111,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
     };
     
     const populateVoiceSelects = () => {
-      if (voiceSelect) voiceSelect.innerHTML = '';
-      if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
+      const voiceSelectEl = document.getElementById('voiceSelect');
+      const sidebarVoiceSelectEl = document.getElementById('sidebarVoiceSelect');
+      if (voiceSelectEl) voiceSelectEl.innerHTML = '';
+      if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.innerHTML = '';
       
       voices.forEach((v, i) => {
         const opt = document.createElement('option');
         opt.value = v.voiceURI || v.name || String(i);
         opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (默认)' : ''}`;
-        if (voiceSelect) voiceSelect.appendChild(opt);
+        if (voiceSelectEl) voiceSelectEl.appendChild(opt);
         
-        if (sidebarVoiceSelect) {
+        if (sidebarVoiceSelectEl) {
           const sidebarOpt = opt.cloneNode(true);
-          sidebarVoiceSelect.appendChild(sidebarOpt);
+          sidebarVoiceSelectEl.appendChild(sidebarOpt);
         }
       });
 
@@ -1129,8 +1134,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       if (chosen) {
         currentVoice = chosen;
-        if (voiceSelect) voiceSelect.value = chosen.voiceURI || chosen.name;
-        if (sidebarVoiceSelect) sidebarVoiceSelect.value = chosen.voiceURI || chosen.name;
+        if (voiceSelectEl) voiceSelectEl.value = chosen.voiceURI || chosen.name;
+        if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.value = chosen.voiceURI || chosen.name;
       }
     };
     
@@ -1142,29 +1147,21 @@ Try Fudoki and enjoy Japanese language analysis!`;
     window.speechSynthesis.onvoiceschanged = refreshVoices;
   }
 
-  if (voiceSelect) {
-    voiceSelect.addEventListener('change', () => {
-      const uri = voiceSelect.value;
-      const v = voices.find(v => (v.voiceURI || v.name) === uri);
-      if (v) {
-        currentVoice = v;
-        localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
-        if (sidebarVoiceSelect) sidebarVoiceSelect.value = uri;
-      }
-    });
-  }
-
-  if (sidebarVoiceSelect) {
-    sidebarVoiceSelect.addEventListener('change', () => {
-      const uri = sidebarVoiceSelect.value;
-      const v = voices.find(v => (v.voiceURI || v.name) === uri);
-      if (v) {
-        currentVoice = v;
-        localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
-        if (voiceSelect) voiceSelect.value = uri;
-      }
-    });
-  }
+  // 选择事件：用事件委托到文档，确保晚注入的节点也能工作
+  document.addEventListener('change', (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLSelectElement)) return;
+    if (target.id !== 'voiceSelect' && target.id !== 'sidebarVoiceSelect') return;
+    const uri = target.value;
+    const v = voices.find(v => (v.voiceURI || v.name) === uri);
+    if (v) {
+      currentVoice = v;
+      try { localStorage.setItem(LS.voiceURI, v.voiceURI || v.name); } catch (_) {}
+      const otherId = target.id === 'voiceSelect' ? 'sidebarVoiceSelect' : 'voiceSelect';
+      const other = document.getElementById(otherId);
+      if (other) other.value = uri;
+    }
+  });
 
   // 自定义确认对话框 - 支持动态定位
   function showDeleteConfirm(message, onConfirm, onCancel, targetElement) {
@@ -1863,6 +1860,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function updatePlayButtonStates() {
     // 更新播放全文按钮
     updateButtonIcon(playAllBtn, isPlaying);
+    // 更新导航播放按钮
+    updateButtonIcon(headerPlayToggle, isPlaying);
     
     // 更新所有行播放按钮
     document.querySelectorAll('.play-line-btn').forEach(btn => {
@@ -2399,6 +2398,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   if (playAllBtn) playAllBtn.addEventListener('click', playAllText);
+  if (headerPlayToggle) {
+    headerPlayToggle.addEventListener('click', (e) => {
+      if (isPlaying) {
+        stopSpeaking();
+      } else {
+        playAllText();
+      }
+    });
+  }
 
   if (sidebarPlayAllBtn) {
     sidebarPlayAllBtn.addEventListener('click', playAllText);
@@ -2499,26 +2507,31 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 显示控制功能
   function initDisplayControls() {
-    // 从本地存储加载设置
-    const showKana = localStorage.getItem(LS.showKana) !== 'false';
-    const showRomaji = localStorage.getItem(LS.showRomaji) !== 'false';
-    const showPos = localStorage.getItem(LS.showPos) !== 'false';
-    const autoRead = localStorage.getItem(LS.autoRead) === 'true';
-    const repeatPlay = localStorage.getItem(LS.repeatPlay) === 'true';
+    // 动态获取当前DOM中的控件引用
+    const showKanaCheckbox = document.getElementById('showKana');
+    const showRomajiCheckbox = document.getElementById('showRomaji');
+    const showPosCheckbox = document.getElementById('showPos');
+    const autoReadCheckbox = document.getElementById('autoRead');
+    const repeatPlayCheckbox = document.getElementById('repeatPlay');
+    const sidebarShowKanaCheckbox = document.getElementById('sidebarShowKana');
+    const sidebarShowRomajiCheckbox = document.getElementById('sidebarShowRomaji');
+    const sidebarShowPosCheckbox = document.getElementById('sidebarShowPos');
+    const sidebarAutoReadCheckbox = document.getElementById('sidebarAutoRead');
+    const sidebarRepeatPlayCheckbox = document.getElementById('sidebarRepeatPlay');
     
     // 设置复选框状态 - 主弹窗
-    if (showKanaCheckbox) showKanaCheckbox.checked = showKana;
-    if (showRomajiCheckbox) showRomajiCheckbox.checked = showRomaji;
-    if (showPosCheckbox) showPosCheckbox.checked = showPos;
-    if (autoReadCheckbox) autoReadCheckbox.checked = autoRead;
-    if (repeatPlayCheckbox) repeatPlayCheckbox.checked = repeatPlay;
+    if (showKanaCheckbox) showKanaCheckbox.checked = showKanaCheckbox.checked;
+    if (showRomajiCheckbox) showRomajiCheckbox.checked = showRomajiCheckbox.checked;
+    if (showPosCheckbox) showPosCheckbox.checked = showPosCheckbox.checked;
+    if (autoReadCheckbox) autoReadCheckbox.checked = autoReadCheckbox.checked;
+    if (repeatPlayCheckbox) repeatPlayCheckbox.checked = repeatPlayCheckbox.checked;
     
     // 设置复选框状态 - 侧边栏
-    if (sidebarShowKanaCheckbox) sidebarShowKanaCheckbox.checked = showKana;
-    if (sidebarShowRomajiCheckbox) sidebarShowRomajiCheckbox.checked = showRomaji;
-    if (sidebarShowPosCheckbox) sidebarShowPosCheckbox.checked = showPos;
-    if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = autoRead;
-    if (sidebarRepeatPlayCheckbox) sidebarRepeatPlayCheckbox.checked = repeatPlay;
+    if (sidebarShowKanaCheckbox) sidebarShowKanaCheckbox.checked = sidebarShowKanaCheckbox.checked;
+    if (sidebarShowRomajiCheckbox) sidebarShowRomajiCheckbox.checked = sidebarShowRomajiCheckbox.checked;
+    if (sidebarShowPosCheckbox) sidebarShowPosCheckbox.checked = sidebarShowPosCheckbox.checked;
+    if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = sidebarAutoReadCheckbox.checked;
+    if (sidebarRepeatPlayCheckbox) sidebarRepeatPlayCheckbox.checked = sidebarRepeatPlayCheckbox.checked;
     
     // 应用显示设置
     updateDisplaySettings();
@@ -2613,6 +2626,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   function updateDisplaySettings() {
+    const showKanaCheckbox = document.getElementById('showKana');
+    const showRomajiCheckbox = document.getElementById('showRomaji');
+    const showPosCheckbox = document.getElementById('showPos');
+    const sidebarShowKanaCheckbox = document.getElementById('sidebarShowKana');
+    const sidebarShowRomajiCheckbox = document.getElementById('sidebarShowRomaji');
+    const sidebarShowPosCheckbox = document.getElementById('sidebarShowPos');
     // 获取当前状态，优先从主弹窗获取，如果不存在则从侧边栏获取
     const showKana = showKanaCheckbox ? showKanaCheckbox.checked : 
                      (sidebarShowKanaCheckbox ? sidebarShowKanaCheckbox.checked : true);
@@ -3103,7 +3122,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const isSidebar = context === 'sidebar';
     const id = (base) => isSidebar ? `sidebar${base.charAt(0).toUpperCase()}${base.slice(1)}` : base;
     
-    // 移除“系统设置”（主题/语言）区块，仅保留语音与显示设置
+    // 移除"系统设置"（主题/语言）区块，仅保留语音与显示设置
     return `
       <!-- 语音设置 -->
       <div class="settings-section">
@@ -3179,88 +3198,31 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
   }
 
-  // 设置弹窗：绑定齿轮按钮显示/隐藏，并在首次打开时注入共享内容
+  // 设置弹窗：仅负责打开/关闭已有模态（不做内容注入）
   function initSettingsModal() {
     const btn = document.getElementById('settingsButton');
     const modal = document.getElementById('settingsModal');
     const closeBtn = document.getElementById('settingsModalClose');
-    const body = document.getElementById('settingsModalBody');
-
     if (!btn || !modal) return;
-
-    const openModal = () => {
-      // 首次打开时填充工具栏内容（modal上下文使用通用模板）
-      if (body && body.childElementCount === 0) {
-        body.innerHTML = createToolbarContentHTML('modal');
-        // 绑定语音与速度控件，以及显示控制
-        try { if (typeof initVoiceAndSpeedControls === 'function') initVoiceAndSpeedControls(); } catch (_) {}
-        try { if (typeof initDisplayControls === 'function') initDisplayControls(); } catch (_) {}
-        // 重新绑定主题与语言选择器（避免首次注入未绑定）
-        try {
-          const langSelectEl = document.getElementById('langSelect');
-          if (langSelectEl && !langSelectEl.dataset.bound) {
-            langSelectEl.dataset.bound = '1';
-            // 初始化当前语言
-            if (typeof currentLang !== 'undefined') langSelectEl.value = currentLang;
-            langSelectEl.addEventListener('change', () => {
-              const val = langSelectEl.value || 'ja';
-              try { localStorage.setItem(LS.lang, val); } catch (e) {}
-              if (typeof setLanguage === 'function') setLanguage(val); else { currentLang = val; applyI18n(); }
-            });
-          }
-
-          const themeSelectEl = document.getElementById('themeSelect');
-          if (themeSelectEl && !themeSelectEl.dataset.bound) {
-            themeSelectEl.dataset.bound = '1';
-            // 初始化当前主题
-            let savedTheme = localStorage.getItem(LS.theme) || 'light';
-            themeSelectEl.value = savedTheme;
-            themeSelectEl.addEventListener('change', () => {
-              const selectedValue = themeSelectEl.value;
-              let newTheme = selectedValue === 'dark' ? 'dark' : (selectedValue === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : 'light');
-              try { localStorage.setItem(LS.theme, newTheme); } catch (e) {}
-              if (typeof applyTheme === 'function') applyTheme(newTheme);
-            });
-            // 跟随系统变化
-            const mql = window.matchMedia('(prefers-color-scheme: dark)');
-            const onSystemThemeChange = (e) => {
-              if (themeSelectEl.value === 'auto') {
-                const newTheme = e.matches ? 'dark' : 'light';
-                try { localStorage.setItem(LS.theme, newTheme); } catch (e) {}
-                if (typeof applyTheme === 'function') applyTheme(newTheme);
-              }
-            };
-            if (!themeSelectEl._mqlBound) {
-              mql.addEventListener('change', onSystemThemeChange);
-              themeSelectEl._mqlBound = true;
-            }
-          }
-        } catch (_) {}
-        // 注入后应用文案与标签翻译
-        try { applyI18n(); } catch (_) {}
-      }
-      modal.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    };
-
-    const closeModal = () => {
-      modal.classList.remove('show');
-      document.body.style.overflow = '';
-    };
-
-    btn.addEventListener('click', () => {
-      if (!modal.classList.contains('show')) {
-        openModal();
-      } else {
-        closeModal();
-      }
-    });
-
+    const openModal = () => { modal.classList.add('show'); document.body.style.overflow = 'hidden'; };
+    const closeModal = () => { modal.classList.remove('show'); document.body.style.overflow = ''; };
+    btn.addEventListener('click', () => modal.classList.contains('show') ? closeModal() : openModal());
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    // 点击遮罩区域关闭
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  }
+
+  // 在页面加载时为设置弹窗挂载内容并绑定事件
+  function mountSettingsModalContent() {
+    const body = document.getElementById('settingsModalBody');
+    if (!body) return;
+    if (body.childElementCount > 0) return; // 已挂载
+    // 注入通用设置表单
+    body.innerHTML = createToolbarContentHTML('modal');
+    // 绑定控件事件
+    try { initVoiceAndSpeedControls(); } catch (_) {}
+    try { initDisplayControls(); } catch (_) {}
+    try { applyI18n(); } catch (_) {}
+    try { if ('speechSynthesis' in window) refreshVoices(); } catch (_) {}
   }
 
   // 在模板注入后，重新绑定语音与速度控件事件，避免初次选择为空导致不生效
@@ -3338,9 +3300,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 确保DOM加载完成后初始化所有功能
   function initializeApp() {
-    initSharedToolbarContent(); // 首先初始化共享工具栏内容
+    initSharedToolbarContent(); // 首先初始化共享工具栏内容（保留其它处使用）
+    mountSettingsModalContent(); // 为设置弹窗注入内容
     initSettingsModal(); // 绑定齿轮按钮与设置弹窗
-    initVoiceAndSpeedControls(); // 绑定语音与速度控件事件
     initDisplayControls();
     initToolbarDrag();
     initToolbarResize();
