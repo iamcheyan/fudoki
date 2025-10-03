@@ -6,18 +6,7 @@
   box-sizing: border-box;
 }
 
-/* 桌面端样式 */
-@media (min-width: 769px) {
-  /* 隐藏移动端设置按钮（桌面用菜单项触发弹窗） */
-  .mobile-settings-btn {
-    display: none !important;
-  }
-  
-  /* 桌面端使用弹窗，不显示右侧浮动工具栏 */
-  .sidebar-right {
-    display: none !important;
-  }
-}
+/* 桌面端样式（已移除不必要的隐藏规则） */
 
 /* 主题变量 */
 :root {
@@ -141,99 +130,7 @@ body {
   display: inline-block;
 }
 
-/* 移动端菜单按钮 - 永远显示 */
-.collapse-menu-btn {
-  display: block;
-  position: absolute;
-  left: -48px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1000;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 8px;
-  color: var(--text);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.collapse-menu-btn:hover {
-  background-color: var(--elevated);
-}
-
-.collapse-menu-btn .menu-icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* 移动端播放按钮 */
-.mobile-play-btn {
-  display: none; /* 默认隐藏，只在移动端显示 */
-  position: absolute;
-  right: -96px; /* 位于设置按钮左侧 */
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1000;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 8px;
-  color: var(--text);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.mobile-play-btn:hover {
-  background-color: var(--elevated);
-}
-
-.mobile-play-btn .play-icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* 移动端设置按钮 */
-.mobile-settings-btn {
-  display: none; /* 默认隐藏，只在移动端显示 */
-  position: absolute;
-  right: -48px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1000;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 8px;
-  color: var(--text);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.mobile-settings-btn:hover {
-  background-color: var(--elevated);
-}
-
-.mobile-settings-btn .settings-icon {
-  width: 20px;
-  height: 20px;
-}
-
-@media (max-width: 768px) {
-  .collapse-menu-btn {
-    left: 10px;
-  }
-
-  .mobile-play-btn {
-    display: block;
-    right: 58px;
-  }
-
-  .mobile-settings-btn {
-    display: block;
-    right: 10px;
-  }
-}
+/* 移动端按钮样式已移除（collapse/mobile-play/mobile-settings） */
 
 .nav-menu {
   display: flex;
@@ -1140,240 +1037,7 @@ input:focus, textarea:focus, select:focus {
   flex: 1; /* 自动填充剩余空间 */
 }
 
-/* 顶部内嵌设置栏 */
-.inline-settings {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 12px;
-  padding: 8px 14px;
-  margin: 6px 12px 12px;
-  border-radius: 16px;
-  border: 1px solid var(--toolbar-border);
-  background: var(--toolbar-bg);
-  box-shadow: var(--toolbar-shadow);
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  backdrop-filter: saturate(150%) blur(8px);
-}
-
-.inline-settings .settings-section {
-  margin: 0;
-  padding: 0;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: nowrap;
-}
-
-.inline-settings .inline-primary {
-  flex: 1;
-  min-width: 260px;
-  gap: 10px;
-}
-
-.inline-settings .inline-toggles {
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.inline-settings .control-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  min-width: 0;
-}
-
-.inline-settings .control-group input[type="checkbox"] {
-  cursor: pointer;
-}
-
-.inline-settings .icon-chip,
-.inline-settings .icon-toggle {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: var(--toolbar-chip-neutral);
-  border: 1px solid var(--toolbar-chip-neutral-border);
-  color: var(--text);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.inline-settings .icon-chip:hover,
-.inline-settings .icon-toggle:hover {
-  transform: translateY(-1px);
-  background: var(--toolbar-chip-hover);
-}
-
-.inline-settings .icon-chip .icon,
-.inline-settings .icon-toggle .icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.inline-settings .icon-chip svg,
-.inline-settings .icon-toggle svg {
-  width: 18px;
-  height: 18px;
-}
-
-.inline-settings .icon-toggle {
-  background: transparent;
-  border: 1px solid var(--toolbar-chip-border);
-  color: var(--text);
-}
-
-.inline-settings .icon-toggle:has(input:checked) {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-contrast);
-  box-shadow: 0 12px 24px rgba(139, 105, 20, 0.24);
-}
-
-:root[data-theme="dark"] .inline-settings .icon-toggle:has(input:checked) {
-  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.48);
-}
-
-.inline-settings .icon-toggle input[type="checkbox"] {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.inline-settings select {
-  flex: 1;
-  min-width: 0;
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: 8px;
-  border: 1px solid var(--toolbar-chip-border);
-  background: var(--toolbar-chip-neutral);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 500;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.inline-settings select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
-}
-
-.inline-settings .speed-control {
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  background: var(--toolbar-chip-bg);
-  border: 1px solid var(--toolbar-chip-border);
-}
-
-.inline-settings .speed-control .icon-chip {
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  border: none;
-  transform: none;
-  color: var(--text);
-}
-
-.inline-settings .speed-control .icon-chip:hover {
-  background: transparent;
-}
-
-.inline-settings .speed-control input[type="range"] {
-  accent-color: var(--primary);
-  width: 120px;
-  height: 4px;
-}
-
-.inline-settings .speed-control:has(input:focus-visible) {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
-}
-
-.inline-settings .speed-display {
-  min-width: 46px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--toolbar-chip-neutral);
-  border: 1px solid var(--toolbar-chip-border);
-  border-radius: 10px;
-  padding: 2px 6px;
-}
-
-.inline-settings .play-all-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: none;
-  background: var(--primary);
-  color: var(--primary-contrast);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 12px 24px rgba(139, 105, 20, 0.28);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-}
-
-.inline-settings .play-all-btn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.05);
-}
-
-.inline-settings .play-all-btn:active {
-  transform: scale(0.94);
-}
-
-.inline-settings .play-all-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-.inline-settings .icon-chip:focus-visible,
-.inline-settings .icon-toggle:focus-visible,
-.inline-settings .play-all-btn:focus-visible,
-.inline-settings select:focus-visible,
-.inline-settings input[type="range"]:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-.inline-settings .icon-toggle:has(input:focus-visible) {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-@media (max-width: 860px) {
-  .inline-settings {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .inline-settings .inline-primary,
-  .inline-settings .inline-toggles {
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-  }
-
-  .inline-settings .inline-toggles {
-    justify-content: flex-start;
-  }
-}
+/* 顶部内嵌设置栏已移除 */
 
 /* 设置分组样式 */
 .settings-section {
@@ -2031,11 +1695,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   text-decoration: underline;
 }
 
-@media (max-width: 768px) {
-  .footer {
-    padding-bottom: 40px;
-  }
-}
+/* 移动端页脚规则已移除 */
 
 /* 播放高亮 */
 .token-pill.playing {
@@ -2346,9 +2006,6 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 #reading-mode .input-section,
 #reading-mode .settings-modal,
 #reading-mode .footer,
-#reading-mode .mobile-menu-btn,
-#reading-mode .mobile-play-btn,
-#reading-mode .mobile-settings-btn,
 #reading-mode .toolbar-resize-handle {
   display: none !important;
 }
@@ -2513,23 +2170,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   border-color: rgba(141, 106, 58, 0.5);
 }
 
-@media (max-width: 768px) {
-  .reading-mode-toggle {
-    bottom: 16px;
-    right: 16px;
-    width: 66px;
-    height: 66px;
-  }
-
-  #reading-mode .main-container {
-    margin: 40px auto 60px;
-    padding: 0 16px 64px 16px;
-  }
-
-  #reading-mode .content-area {
-    padding: 24px;
-  }
-}
+/* 移动端阅读模式媒体查询已移除 */
 /* （移除文件夹操作按钮样式） */
 /* 文档列表星标样式 */
 .doc-action-btn.favorite-btn {

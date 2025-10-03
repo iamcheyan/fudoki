@@ -901,8 +901,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
   let currentHighlightedToken = null; // 当前高亮的词汇元素
   let highlightTimeout = null; // 高亮定时器存储当前播放的文本用于重复播放
 
-  // 初始化速度滑块
-  speedSlider.value = String(rate);
+  // 初始化速度滑块（元素可能不存在）
+  if (speedSlider) speedSlider.value = String(rate);
 
   // 罗马音转换函数
   function getRomaji(kana) {
@@ -1033,22 +1033,24 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     return details.join('');
   }
-  speedValue.textContent = `${rate.toFixed(1)}x`;
+  if (speedValue) speedValue.textContent = `${rate.toFixed(1)}x`;
   
-  speedSlider.addEventListener('input', () => {
-    rate = Math.min(2, Math.max(0.5, parseFloat(speedSlider.value) || 1));
-    speedValue.textContent = `${rate.toFixed(1)}x`;
-    if (sidebarSpeedSlider) sidebarSpeedSlider.value = rate;
-    if (sidebarSpeedValue) sidebarSpeedValue.textContent = `${rate.toFixed(1)}x`;
-    localStorage.setItem(LS.rate, String(rate));
-  });
+  if (speedSlider) {
+    speedSlider.addEventListener('input', () => {
+      rate = Math.min(2, Math.max(0.5, parseFloat(speedSlider.value) || 1));
+      if (speedValue) speedValue.textContent = `${rate.toFixed(1)}x`;
+      if (sidebarSpeedSlider) sidebarSpeedSlider.value = rate;
+      if (sidebarSpeedValue) sidebarSpeedValue.textContent = `${rate.toFixed(1)}x`;
+      localStorage.setItem(LS.rate, String(rate));
+    });
+  }
 
   if (sidebarSpeedSlider) {
     sidebarSpeedSlider.addEventListener('input', () => {
       rate = Math.min(2, Math.max(0.5, parseFloat(sidebarSpeedSlider.value) || 1));
-      speedValue.textContent = `${rate.toFixed(1)}x`;
+      if (speedValue) speedValue.textContent = `${rate.toFixed(1)}x`;
       if (sidebarSpeedValue) sidebarSpeedValue.textContent = `${rate.toFixed(1)}x`;
-      speedSlider.value = rate;
+      if (speedSlider) speedSlider.value = rate;
       localStorage.setItem(LS.rate, String(rate));
     });
   }
@@ -1084,14 +1086,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }, 100);
         
         // 显示语音不可用选项
-        voiceSelect.innerHTML = '';
+        if (voiceSelect) voiceSelect.innerHTML = '';
         if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
         
         const opt = document.createElement('option');
         opt.textContent = t('noJapaneseVoice');
         opt.disabled = true;
         opt.selected = true;
-        voiceSelect.appendChild(opt);
+        if (voiceSelect) voiceSelect.appendChild(opt);
         
         if (sidebarVoiceSelect) {
           const sidebarOpt = opt.cloneNode(true);
@@ -1106,14 +1108,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
     };
     
     const populateVoiceSelects = () => {
-      voiceSelect.innerHTML = '';
+      if (voiceSelect) voiceSelect.innerHTML = '';
       if (sidebarVoiceSelect) sidebarVoiceSelect.innerHTML = '';
       
       voices.forEach((v, i) => {
         const opt = document.createElement('option');
         opt.value = v.voiceURI || v.name || String(i);
         opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (默认)' : ''}`;
-        voiceSelect.appendChild(opt);
+        if (voiceSelect) voiceSelect.appendChild(opt);
         
         if (sidebarVoiceSelect) {
           const sidebarOpt = opt.cloneNode(true);
@@ -1127,7 +1129,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       if (chosen) {
         currentVoice = chosen;
-        voiceSelect.value = chosen.voiceURI || chosen.name;
+        if (voiceSelect) voiceSelect.value = chosen.voiceURI || chosen.name;
         if (sidebarVoiceSelect) sidebarVoiceSelect.value = chosen.voiceURI || chosen.name;
       }
     };
@@ -1140,15 +1142,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
     window.speechSynthesis.onvoiceschanged = refreshVoices;
   }
 
-  voiceSelect.addEventListener('change', () => {
-    const uri = voiceSelect.value;
-    const v = voices.find(v => (v.voiceURI || v.name) === uri);
-    if (v) {
-      currentVoice = v;
-      localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
-      if (sidebarVoiceSelect) sidebarVoiceSelect.value = uri;
-    }
-  });
+  if (voiceSelect) {
+    voiceSelect.addEventListener('change', () => {
+      const uri = voiceSelect.value;
+      const v = voices.find(v => (v.voiceURI || v.name) === uri);
+      if (v) {
+        currentVoice = v;
+        localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
+        if (sidebarVoiceSelect) sidebarVoiceSelect.value = uri;
+      }
+    });
+  }
 
   if (sidebarVoiceSelect) {
     sidebarVoiceSelect.addEventListener('change', () => {
@@ -1157,7 +1161,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (v) {
         currentVoice = v;
         localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
-        voiceSelect.value = uri;
+        if (voiceSelect) voiceSelect.value = uri;
       }
     });
   }
@@ -2394,7 +2398,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
   }
 
-  playAllBtn.addEventListener('click', playAllText);
+  if (playAllBtn) playAllBtn.addEventListener('click', playAllText);
 
   if (sidebarPlayAllBtn) {
     sidebarPlayAllBtn.addEventListener('click', playAllText);
@@ -3050,91 +3054,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     restoreSidebarState();
   }
 
-  // 右侧边栏移动端控制功能
-  function initMobileSidebarRight() {
-    const sidebarRight = document.getElementById('sidebar-right');
-    const mobileSettingsBtn = document.getElementById('mobileSettingsBtn');
-    const mobilePlayBtn = document.getElementById('mobilePlayBtn');
-    const settingsModal = document.getElementById('settingsModal');
-    const settingsModalClose = document.getElementById('settingsModalClose');
-    const desktopSettingsBtn = null; // 顶部按钮已移除
-    
-    if (!settingsModal || !settingsModalClose) return;
-    
-    // 检测是否为移动端
-    function isMobile() {
-      return window.innerWidth <= 768;
-    }
-    
-    // 显示设置弹窗
-    function showSettingsModal() {
-      settingsModal.classList.add('show');
-      document.body.style.overflow = 'hidden'; // 防止背景滚动
-    }
-    
-    // 隐藏设置弹窗
-    function hideSettingsModal() {
-      settingsModal.classList.remove('show');
-      document.body.style.overflow = ''; // 恢复滚动
-    }
-    
-    // 移动端播放全文功能
-    function mobilePlayAll() {
-      if (isPlaying) {
-        stopSpeaking();
-        return;
-      }
-      
-      const text = textInput.value.trim();
-      if (text) {
-        speak(text);
-      } else {
-        showNotification(t('pleaseInputText'), 'warning');
-      }
-    }
-    
-    // 切换右侧边栏显示状态（保留原有逻辑用于兼容）
-    function toggleSidebarRight() {
-      if (isMobile()) {
-        showSettingsModal();
-      } else if (sidebarRight) {
-        sidebarRight.classList.toggle('show');
-      }
-    }
-    
-    // 响应窗口大小变化
-    function handleResize() {
-      // 桌面端也使用弹窗，不在此强制隐藏
-      if (sidebarRight) {
-        sidebarRight.classList.remove('show');
-      }
-    }
-    
-    // 绑定事件
-    if (mobileSettingsBtn) mobileSettingsBtn.addEventListener('click', toggleSidebarRight);
-    if (desktopSettingsBtn) desktopSettingsBtn.addEventListener('click', showSettingsModal);
-    if (mobilePlayBtn) {
-      mobilePlayBtn.addEventListener('click', mobilePlayAll);
-    }
-    settingsModalClose.addEventListener('click', hideSettingsModal);
-    window.addEventListener('resize', handleResize);
-    
-    // 点击弹窗背景关闭弹窗
-    settingsModal.addEventListener('click', function(e) {
-      if (e.target === settingsModal) {
-        hideSettingsModal();
-      }
-    });
-    
-    // 点击外部区域关闭右侧边栏（仅移动端，保留原有逻辑）
-    document.addEventListener('click', function(e) {
-      if (isMobile() && sidebarRight && sidebarRight.classList.contains('show')) {
-        if (!sidebarRight.contains(e.target) && !mobileSettingsBtn.contains(e.target)) {
-          sidebarRight.classList.remove('show');
-        }
-      }
-    });
-  }
+  // 右侧边栏移动端控制功能已移除
   
   // 右侧边栏自动收缩功能已完全移除
 
@@ -3282,14 +3202,88 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
   }
 
+  // 在模板注入后，重新绑定语音与速度控件事件，避免初次选择为空导致不生效
+  function initVoiceAndSpeedControls() {
+    const voiceSelectEl = document.getElementById('voiceSelect');
+    const sidebarVoiceSelectEl = document.getElementById('sidebarVoiceSelect');
+    const speedSliderEl = document.getElementById('speedRange');
+    const speedValueEl = document.getElementById('speedValue');
+    const sidebarSpeedSliderEl = document.getElementById('sidebarSpeedRange');
+    const sidebarSpeedValueEl = document.getElementById('sidebarSpeedValue');
+    const playAllBtnEl = document.getElementById('playAllBtn');
+    const sidebarPlayAllBtnEl = document.getElementById('sidebarPlayAllBtn');
+
+    // 初始化速度显示
+    if (speedSliderEl) speedSliderEl.value = String(rate);
+    if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
+    if (sidebarSpeedSliderEl) sidebarSpeedSliderEl.value = String(rate);
+    if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
+
+    // 绑定速度事件
+    if (speedSliderEl) {
+      speedSliderEl.addEventListener('input', () => {
+        rate = Math.min(2, Math.max(0.5, parseFloat(speedSliderEl.value) || 1));
+        if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
+        if (sidebarSpeedSliderEl) sidebarSpeedSliderEl.value = rate;
+        if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
+        localStorage.setItem(LS.rate, String(rate));
+      });
+    }
+
+    if (sidebarSpeedSliderEl) {
+      sidebarSpeedSliderEl.addEventListener('input', () => {
+        rate = Math.min(2, Math.max(0.5, parseFloat(sidebarSpeedSliderEl.value) || 1));
+        if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
+        if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
+        if (speedSliderEl) speedSliderEl.value = rate;
+        localStorage.setItem(LS.rate, String(rate));
+      });
+    }
+
+    // 绑定语音选择事件
+    if (voiceSelectEl) {
+      voiceSelectEl.addEventListener('change', () => {
+        const uri = voiceSelectEl.value;
+        const v = voices.find(v => (v.voiceURI || v.name) === uri);
+        if (v) {
+          currentVoice = v;
+          localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
+          if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.value = uri;
+        }
+      });
+    }
+
+    if (sidebarVoiceSelectEl) {
+      sidebarVoiceSelectEl.addEventListener('change', () => {
+        const uri = sidebarVoiceSelectEl.value;
+        const v = voices.find(v => (v.voiceURI || v.name) === uri);
+        if (v) {
+          currentVoice = v;
+          localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
+          if (voiceSelectEl) voiceSelectEl.value = uri;
+        }
+      });
+    }
+
+    // 绑定播放全文
+    if (playAllBtnEl) playAllBtnEl.addEventListener('click', playAllText);
+    if (sidebarPlayAllBtnEl) sidebarPlayAllBtnEl.addEventListener('click', playAllText);
+
+    // 模板注入后再刷新语音列表以填充选择框
+    if ('speechSynthesis' in window) {
+      try { refreshVoices(); } catch (_) {}
+    }
+  }
+
   // 确保DOM加载完成后初始化所有功能
   function initializeApp() {
     initSharedToolbarContent(); // 首先初始化共享工具栏内容
+    initVoiceAndSpeedControls(); // 绑定语音与速度控件事件
     initDisplayControls();
     initToolbarDrag();
     initToolbarResize();
     initSidebarToggle();
-    initMobileSidebarRight();
+    // 移动端右侧边栏初始化已移除
     initReadingModeToggle();
     initReadingModeInteractions();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
