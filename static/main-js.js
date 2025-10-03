@@ -888,16 +888,17 @@
     });
   }
 
-  // 点击页面其他地方隐藏详细信息
+  // 点击页面其他地方隐藏详细信息（允许在详情面板内操作）
   document.addEventListener('click', function(event) {
-    if (!event.target.closest('.token-pill')) {
-      document.querySelectorAll('.token-details').forEach(d => {
-        d.style.display = 'none';
-      });
-      document.querySelectorAll('.token-pill').forEach(p => {
-        p.classList.remove('active');
-      });
-    }
+    const inPill = event.target.closest && event.target.closest('.token-pill');
+    const inDetails = event.target.closest && event.target.closest('.token-details');
+    if (inPill || inDetails) return;
+    document.querySelectorAll('.token-details').forEach(d => {
+      d.style.display = 'none';
+    });
+    document.querySelectorAll('.token-pill').forEach(p => {
+      p.classList.remove('active');
+    });
   });
 
   // 默认文档配置
@@ -2171,7 +2172,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
             </div>
             <div class="token-details" style="display: none;">
               ${detailInfo}
-              <button class="play-token-btn" onclick="playToken('${surface}', event, ${JSON.stringify(token).replace(/'/g, '&apos;')})" title="${t('play')}">
+              <button class="play-token-btn" onclick="playToken('${surface}', event)" title="${t('play')}">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
@@ -2202,20 +2203,37 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (event) {
       event.stopPropagation();
     }
-    
+    // 若正在播放，先停止，再继续播放当前点击的词
     if (isPlaying) {
       stopSpeaking();
-      return;
     }
     
-    // 如果提供了tokenData，优先使用reading字段进行朗读
+    // 尝试从最近的 token-pill 的 data-token 中获取tokenData
+    let resolvedToken = tokenData;
+    if (!resolvedToken && event) {
+      const pill = event.target && event.target.closest ? event.target.closest('.token-pill') : null;
+      if (pill) {
+        const raw = pill.getAttribute('data-token');
+        if (raw) {
+          try {
+            // 将 &apos; 还原为 '
+            const normalized = raw.replace(/&apos;/g, "'");
+            resolvedToken = JSON.parse(normalized);
+          } catch (_) {
+            resolvedToken = null;
+          }
+        }
+      }
+    }
+
+    // 如果提供了或解析出了tokenData，优先使用reading字段进行朗读
     let textToSpeak = text;
-    if (tokenData && tokenData.reading) {
-      textToSpeak = tokenData.reading;
+    if (resolvedToken && resolvedToken.reading) {
+      textToSpeak = resolvedToken.reading;
     }
     
     // 特殊处理：助词"は"单字时读作"wa"
-    if (text === 'は' && tokenData && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
+    if (text === 'は' && resolvedToken && resolvedToken.pos && Array.isArray(resolvedToken.pos) && resolvedToken.pos[0] === '助詞') {
       textToSpeak = 'わ';
     }
     
@@ -2295,18 +2313,18 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
   };
 
-  // 当点击页面空白处关闭所有详情时，同时清除活动引用
+  // 当点击页面空白处关闭所有详情时，同时清除活动引用（允许在详情面板内操作）
   document.addEventListener('click', (e) => {
-    const isPill = e.target.closest && e.target.closest('.token-pill');
-    if (!isPill) {
-      // 关闭所有卡片
-      document.querySelectorAll('.token-details').forEach(d => {
-        d.style.display = 'none';
-      });
-      document.querySelectorAll('.token-pill').forEach(p => {
-        p.classList.remove('active');
-      });
-    }
+    const inPill = e.target.closest && e.target.closest('.token-pill');
+    const inDetails = e.target.closest && e.target.closest('.token-details');
+    if (inPill || inDetails) return;
+    // 关闭所有卡片
+    document.querySelectorAll('.token-details').forEach(d => {
+      d.style.display = 'none';
+    });
+    document.querySelectorAll('.token-pill').forEach(p => {
+      p.classList.remove('active');
+    });
   });
 
   // 加载翻译信息
