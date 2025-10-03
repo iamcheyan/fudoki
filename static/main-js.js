@@ -3238,13 +3238,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
   
   // 侧边栏折叠功能
   function initSidebarToggle() {
-    const sidebar = document.getElementById('sidebar-left');
+    const sidebarStack = document.getElementById('sidebarStack');
+    const mainContainer = document.querySelector('.main-container');
     const toggleBtn = document.getElementById('sidebarToggle');
     const collapseMenuBtn = document.getElementById('collapseMenuBtn');
-    const mainContainer = document.querySelector('.main-container');
-    const listPanel = document.getElementById('listPanel');
     
-    if (!sidebar || !mainContainer) return;
+    if (!sidebarStack || !mainContainer) return;
     
     let isCollapsed = false;
     
@@ -3255,73 +3254,44 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 切换侧边栏状态
     function toggleSidebar() {
-      if (isMobile()) {
-        // 移动端：统一抽屉开关（通过 main-container 上的类控制）
-        mainContainer.classList.toggle('mobile-menu-open');
-      } else {
-        // PC端：简单的收缩/展开切换
-        if (!isCollapsed) {
-          // 点击收缩：完全折叠边栏并改变布局
-          isCollapsed = true;
-          sidebar.classList.add('collapsed');
-          mainContainer.classList.add('sidebar-collapsed');
-          localStorage.setItem('sidebarCollapsed', true);
-          if (listPanel) listPanel.classList.add('collapsed');
-        } else {
-          // 点击展开：完全展开
-          isCollapsed = false;
-          sidebar.classList.remove('collapsed');
-          mainContainer.classList.remove('sidebar-collapsed');
-          localStorage.setItem('sidebarCollapsed', false);
-          if (listPanel) listPanel.classList.remove('collapsed');
-        }
-      }
+      // 统一折叠控制：仅在 .main-container 上切换 collapsed
+      isCollapsed = !isCollapsed;
+      mainContainer.classList.toggle('collapsed', isCollapsed);
+      localStorage.setItem('sidebarCollapsed', String(isCollapsed));
     }
     
     // 恢复桌面端折叠状态
     function restoreSidebarState() {
-      if (!isMobile()) {
-        const savedCollapsed = localStorage.getItem('sidebarCollapsed');
-        
-        if (savedCollapsed === 'true') {
-          isCollapsed = true;
-          sidebar.classList.add('collapsed');
-          mainContainer.classList.add('sidebar-collapsed');
-          if (listPanel) listPanel.classList.add('collapsed');
-        }
-      }
+      const savedCollapsed = localStorage.getItem('sidebarCollapsed');
+      isCollapsed = savedCollapsed === 'true';
+      mainContainer.classList.toggle('collapsed', isCollapsed);
     }
     
     // 响应窗口大小变化
     function handleResize() {
-      if (isMobile()) {
-        // 移动端：移除桌面端的折叠状态
-        sidebar.classList.remove('collapsed');
-        mainContainer.classList.remove('sidebar-collapsed');
-        if (listPanel) listPanel.classList.remove('collapsed');
-      } else {
-        // 桌面端：移除移动端的显示状态，恢复折叠状态
-        sidebar.classList.remove('show');
-        mainContainer.classList.remove('mobile-menu-open');
-        if (isCollapsed) {
-          sidebar.classList.add('collapsed');
-          mainContainer.classList.add('sidebar-collapsed');
-          if (listPanel) listPanel.classList.add('collapsed');
-        }
-        if (listPanel) listPanel.classList.remove('show');
-      }
+      // 保持状态一致，无需额外切换其他类
+      mainContainer.classList.toggle('collapsed', isCollapsed);
     }
     
     // 绑定事件 - 只有当按钮存在时才绑定
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', toggleSidebar);
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+    if (collapseMenuBtn) collapseMenuBtn.addEventListener('click', toggleSidebar);
+
+    // 移动端：点击/触摸 sidebar-stack 以外任意区域时收起菜单
+    function handleOutsideInteraction(e) {
+      try {
+        if (!isMobile()) return;
+        // 仅当当前为展开状态时处理
+        if (!isCollapsed && !sidebarStack.contains(e.target)) {
+          isCollapsed = true;
+          mainContainer.classList.add('collapsed');
+          localStorage.setItem('sidebarCollapsed', 'true');
+        }
+      } catch (_) {}
     }
-    
-    // 移动端菜单按钮事件 - 确保在所有设备上都能工作
-    if (collapseMenuBtn) {
-      collapseMenuBtn.addEventListener('click', toggleSidebar);
-    }
-    
+    document.addEventListener('click', handleOutsideInteraction, true);
+    document.addEventListener('touchstart', handleOutsideInteraction, { passive: true, capture: true });
+
     window.addEventListener('resize', handleResize);
     
     // 初始化

@@ -109,13 +109,14 @@ body {
 }
 
 .header-content {
-  max-width: 1000px;
+  max-width: 900px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   position: relative;
+
 }
 
 .logo {
@@ -142,7 +143,7 @@ body {
 
 .nav-menu {
   display: flex;
-  gap: 24px;
+  gap: 12px;
   align-items: center;
 }
 
@@ -226,7 +227,7 @@ body {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  margin-left: 8px;
+  /* margin-left: 8px; */
   padding-left: 8px;
   border-left: 1px solid var(--border);
 }
@@ -270,13 +271,14 @@ body {
   transition: grid-template-columns 0.3s ease;
 }
 
-/* 左侧边栏折叠时的布局 */
-.main-container.sidebar-collapsed {
+/* 桌面端：当主容器折叠时仅显示右侧内容 */
+.main-container.collapsed {
   grid-template-columns: 0 1fr;
 }
 
+
 /* 左侧边栏 - 文档管理 */
-.sidebar-left {
+.folder-management {
   background: var(--elevated);
   position: relative;
   transition: width 0.3s ease, transform 0.3s ease;
@@ -286,7 +288,7 @@ body {
 .sidebar-stack {
   border-right: 1px solid var(--border);
   display: grid;
-  grid-template-rows: 250px 1fr;
+  grid-template-columns: 250px 1fr; /* 左右排列：左侧250px，右侧自适应 */
 }
 /* 中间列表面板 */
 .list-panel {
@@ -329,38 +331,26 @@ body {
   transition: transform 0.3s ease;
 }
 
-/* 折叠状态 */
-.sidebar-left.collapsed {
-  width: 0 !important;
-  transform: translateX(-100%);
-}
-
-.sidebar-left.collapsed .sidebar-toggle-btn {
-  right: -36px;
-}
-
-.sidebar-left.collapsed .sidebar-toggle-btn .toggle-icon {
+/* 移除旧的 .folder-management 折叠类，统一使用 .main-container 控制 */
+/* 折叠图标旋转改为基于 .main-container 状态 */
+.main-container.collapsed .sidebar-toggle-btn .toggle-icon {
   transform: rotate(180deg);
 }
-
+.main-container.collapsed .content-main{
+  background-color: #fff;
+  position: relative;
+}
 /* 侧边栏内容 */
 .sidebar-content {
   padding: 16px 12px;
   height: 100%;
+  border-right: 1px solid var(--border);
 }
 
-.sidebar-left.collapsed .sidebar-content {
-  opacity: 0;
-}
 
-/* PC端sidebar-content折叠状态 */
-.sidebar-left.content-collapsed .sidebar-content {
-  transform: translateX(-100%);
-  opacity: 0;
-}
 
 /* PC端内容折叠时保持边栏宽度 */
-.sidebar-left.content-collapsed {
+.folder-management.content-collapsed {
   overflow: hidden;
 }
 
@@ -575,7 +565,7 @@ body {
 }
 
 /* 主内容区域 */
-.content-main {
+.collapsed .content-main {
   /* background: var(--bg); */
   display: flex;
   flex-direction: column;
@@ -588,7 +578,7 @@ body {
   background: var(--elevated);
   border-radius: 10px;
   margin: 10px;
-  max-width: 880px;
+  max-width: 860px;
 }
 
 .input-group {
@@ -2027,7 +2017,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 #reading-mode .list-panel,
 #reading-mode .header,
 #reading-mode .sidebar-stack,
-#reading-mode .sidebar-left,
+#reading-mode .folder-management,
 #reading-mode .sidebar-right,
 #reading-mode .input-section,
 #reading-mode .settings-modal,
@@ -2055,6 +2045,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 #reading-mode .content-main {
   width: 100%;
   display: block;
+  background-color: transparent;
 }
 
 #reading-mode .content-area {
@@ -2078,10 +2069,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   gap: 16px;
 }
 
-#reading-mode .reading-mode-toggle {
-  right: 36px;
-  bottom: 36px;
-}
+
 #reading-mode .line-container {
   width: 100%;
   padding: 0 10px;
@@ -2165,7 +2153,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 .doc-item.favorited .doc-action-btn.favorite-btn { color: #f5a623; }
 
 /* 深色主题：常用容器的质感增强 */
-[data-theme="dark"] .sidebar-left,
+[data-theme="dark"] .folder-management,
 [data-theme="dark"] .list-panel,
 [data-theme="dark"] .input-section,
 [data-theme="dark"] .content-area,
@@ -2199,7 +2187,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0));
 }
 
-[data-theme="dark"] .sidebar-left,
+[data-theme="dark"] .folder-management,
 [data-theme="dark"] .list-panel {
   background: rgba(28, 33, 41, 0.72);
   border: 1px solid rgba(255,255,255,0.08);
@@ -2306,6 +2294,7 @@ input[type="checkbox"] {
 
 /* 移动端适配：导航间距与LOGO文字隐藏 */
 @media (max-width: 768px) {
+  /* 移动端始终为单栏布局，折叠状态不改变主栅格 */
   .nav-menu { gap: 8px; }
   .logo-text { display: none !important; }
   /* 头部更紧凑 */
@@ -2317,8 +2306,7 @@ input[type="checkbox"] {
   /* 单栏布局，内容占满 */
   .main-container { grid-template-columns: 1fr; }
 
-
-  .sidebar-left.show { display: block; }
+.folder-management.show { display: block; }
 
   /* 折叠按钮在移动端不需要显示 */
   .sidebar-toggle-btn { display: none; }
@@ -2342,17 +2330,17 @@ input[type="checkbox"] {
     box-shadow: 0 12px 32px rgba(0,0,0,0.22);
     width: 80%;
   }
+  /* 展开时（main-container 不含 collapsed 类）侧滑进入 */
+  .main-container:not(.collapsed) #sidebarStack { transform: translateX(0); }
 
-  .main-container.mobile-menu-open .sidebar-stack { transform: translateX(0); }
-
-  .sidebar-stack .sidebar-left,
+.sidebar-stack .folder-management,
   .sidebar-stack .list-panel {
-    position: relative;
-    width: 100%;
-    border-right: none;
-  }
+  position: relative;
+  width: 100%;
+  border-right: none;
+}
 
-  .sidebar-stack .sidebar-left {
+  .sidebar-stack .folder-management {
     max-height: 40vh; /* 上：文件夹 */
     overflow: auto;
   }
@@ -2364,9 +2352,51 @@ input[type="checkbox"] {
   }
 }
 
+/* 移动端：抽屉子元素联动动画（随抽屉展开/收起一起滑动与淡入） */
+@media (max-width: 768px) {
+  .sidebar-stack .folder-management,
+  .sidebar-stack .list-panel,
+  .sidebar-stack .folder-management .sidebar-content,
+  .sidebar-stack .list-panel .list-content {
+    transition: transform 0.3s ease, opacity 0.25s ease;
+    will-change: transform, opacity;
+  }
+
+  #reading-mode .main-container{
+    margin: 10px;
+    padding: 0;
+  }
+  #reading-mode .content-area {
+    padding: 10px;
+  }
+
+  /* 抽屉收起：子元素轻微左移并透明（与容器侧滑叠加更自然） */
+  .main-container.collapsed #sidebarStack .folder-management,
+  .main-container.collapsed #sidebarStack .list-panel,
+  .main-container.collapsed #sidebarStack .folder-management .sidebar-content,
+  .main-container.collapsed #sidebarStack .list-panel .list-content {
+    transform: translateX(-16px);
+    opacity: 0;
+  }
+
+  /* 抽屉展开：子元素归位并淡入 */
+  .main-container:not(.collapsed) #sidebarStack .folder-management,
+  .main-container:not(.collapsed) #sidebarStack .list-panel,
+  .main-container:not(.collapsed) #sidebarStack .folder-management .sidebar-content,
+  .main-container:not(.collapsed) #sidebarStack .list-panel .list-content {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 /* 移动端：当抽屉展开时为内容区添加灰色透明遮罩以突出左侧菜单 */
 @media (max-width: 768px) {
-  .main-container.mobile-menu-open .content-main::after {
+  /* 展开时添加遮罩（基于 .main-container 的状态） */
+  .main-container.collapsed {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-container:not(.collapsed) .content-main::after {
     content: "";
     position: fixed;
     top: 57px; /* 与导航高度对齐，必要时调整 */
@@ -2382,9 +2412,4 @@ input[type="checkbox"] {
 }
 
 /* 列表面板收缩样式（与左侧边栏一致向左收起） */
-.list-panel.collapsed {
-  width: 0 !important;
-  transform: translateX(-100%);
-  transition: width 0.3s ease, transform 0.3s ease;
-  overflow: hidden;
-}
+/* 移除旧的 .list-panel 折叠类，统一由 #sidebarStack 控制 */
