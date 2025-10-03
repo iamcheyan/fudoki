@@ -12,6 +12,8 @@
   const documentList = $('documentList');
   const langSelect = $('langSelect');
   const themeSelect = document.getElementById('themeSelect');
+  const readingModeToggle = $('readingModeToggle');
+  const readingToggleText = $('readingToggleText');
   
   // 右侧边栏元素
   const sidebarVoiceSelect = $('sidebarVoiceSelect');
@@ -51,6 +53,22 @@
     theme: 'theme'
   };
 
+  let isReadingMode = false;
+  const initialUrlSearch = (() => {
+    try {
+      return new URL(window.location.href).searchParams;
+    } catch (_) {
+      return null;
+    }
+  })();
+
+  if (initialUrlSearch && initialUrlSearch.has('read')) {
+    isReadingMode = true;
+    if (document.body) {
+      document.body.classList.add('reading-mode');
+    }
+  }
+
   // 简易i18n词典（默认日语）
   const I18N = {
     ja: {
@@ -74,6 +92,10 @@
       showPos: '品詞を表示',
       autoRead: '自動読み上げ',
       repeatPlay: 'リピート再生',
+      readingToggleEnter: '読書モード',
+      readingToggleExit: '通常表示へ',
+      readingToggleTooltipEnter: '読書モードに入る',
+      readingToggleTooltipExit: '通常表示に戻る',
       systemTitle: 'システム設定',
       themeLabel: 'テーマモード',
       themeLight: 'ライトモード',
@@ -117,6 +139,10 @@
       showPos: 'Show POS',
       autoRead: 'Auto Read',
       repeatPlay: 'Repeat Play',
+      readingToggleEnter: 'Reading Mode',
+      readingToggleExit: 'Exit Reading',
+      readingToggleTooltipEnter: 'Enable reading mode',
+      readingToggleTooltipExit: 'Exit reading mode',
       systemTitle: 'System Settings',
       themeLabel: 'Theme Mode',
       themeLight: 'Light Mode',
@@ -160,6 +186,10 @@
       showPos: '显示词性',
       autoRead: '自动朗读',
       repeatPlay: '重复播放',
+      readingToggleEnter: '阅读模式',
+      readingToggleExit: '退出阅读',
+      readingToggleTooltipEnter: '进入阅读模式',
+      readingToggleTooltipExit: '退出阅读模式',
       systemTitle: '系统设置',
       themeLabel: '主题模式',
       themeLight: '浅色模式',
@@ -259,6 +289,68 @@
   function t(key) {
     const dict = I18N[currentLang] || I18N.ja;
     return dict[key] || key;
+  }
+
+  function updateReadingToggleLabels() {
+    if (!readingModeToggle) return;
+    const enterLabel = t('readingToggleEnter') || '阅读模式';
+    const exitLabel = t('readingToggleExit') || '退出阅读';
+    const enterTooltip = t('readingToggleTooltipEnter') || enterLabel;
+    const exitTooltip = t('readingToggleTooltipExit') || exitLabel;
+    const label = isReadingMode ? exitLabel : enterLabel;
+    const tooltip = isReadingMode ? exitTooltip : enterTooltip;
+
+    if (readingToggleText) {
+      readingToggleText.textContent = label;
+    } else {
+      readingModeToggle.textContent = label;
+    }
+    readingModeToggle.title = tooltip;
+    readingModeToggle.setAttribute('aria-label', tooltip);
+    readingModeToggle.setAttribute('aria-pressed', String(isReadingMode));
+    readingModeToggle.classList.toggle('is-active', isReadingMode);
+  }
+
+  function setReadingMode(enabled, options = {}) {
+    if (!document.body) return;
+    const shouldEnable = Boolean(enabled);
+    const updateUrl = options.updateUrl !== false;
+
+    const sameState = shouldEnable === isReadingMode;
+    if (sameState && !options.force) {
+      if (updateUrl) {
+        try {
+          const url = new URL(window.location.href);
+          if (shouldEnable) {
+            url.searchParams.set('read', '1');
+          } else {
+            url.searchParams.delete('read');
+          }
+          window.history.replaceState({}, '', url);
+        } catch (_) {}
+      }
+      return;
+    }
+
+    isReadingMode = shouldEnable;
+    document.body.classList.toggle('reading-mode', shouldEnable);
+    if (readingModeToggle) {
+      readingModeToggle.classList.toggle('is-active', shouldEnable);
+      readingModeToggle.setAttribute('aria-pressed', String(shouldEnable));
+    }
+    updateReadingToggleLabels();
+
+    if (updateUrl) {
+      try {
+        const url = new URL(window.location.href);
+        if (shouldEnable) {
+          url.searchParams.set('read', '1');
+        } else {
+          url.searchParams.delete('read');
+        }
+        window.history.replaceState({}, '', url);
+      } catch (_) {}
+    }
   }
 
   // 播放全文按钮的动态文案
@@ -403,6 +495,7 @@
       Array.from(sidebarLangSelect.options || []).forEach(opt => opt.selected = (opt.value === currentLang));
     }
     // 语言变化时刷新主题图标与aria标签
+    updateReadingToggleLabels();
     applyTheme(savedTheme);
   }
 
@@ -1630,7 +1723,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const isPunct = (pos[0] === '記号' || pos[0] === '補助記号');
         // 检查是否为常见的符号字符
         const isSymbol = /^[•·、。，！？；：""''（）【】《》〈〉「」『』〔〕〖〗〘〙〚〛\s\u00A0\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000]+$/.test(surface);
-        
+
         if (isPunct || isSymbol) {
           // 过滤掉符号，不显示
           return '';
@@ -2689,6 +2782,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
   
   // 右侧边栏自动收缩功能已完全移除
 
+  function initReadingModeToggle() {
+    if (!readingModeToggle) return;
+    setReadingMode(isReadingMode, { updateUrl: false, force: true });
+    readingModeToggle.addEventListener('click', () => {
+      setReadingMode(!isReadingMode);
+    });
+    window.addEventListener('popstate', () => {
+      try {
+        const url = new URL(window.location.href);
+        setReadingMode(url.searchParams.has('read'), { updateUrl: false, force: true });
+      } catch (_) {}
+    });
+  }
+
   // 创建共享工具栏内容HTML
   function createToolbarContentHTML(context) {
     const prefix = context === 'sidebar' ? 'sidebar' : '';
@@ -2801,6 +2908,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initToolbarResize();
     initSidebarToggle();
     initMobileSidebarRight();
+    initReadingModeToggle();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
   }
 
