@@ -9,6 +9,7 @@
   const speedValue = $('speedValue');
   const playAllBtn = $('playAllBtn');
   const headerPlayToggle = $('headerPlayToggle');
+  const headerDownloadBtn = $('headerDownloadBtn');
   const newDocBtn = $('newDocBtn');
   const documentList = $('documentList');
   const folderList = $('folderList');
@@ -35,6 +36,14 @@
   const showPosCheckbox = $('showPos');
   const autoReadCheckbox = $('autoRead');
   const repeatPlayCheckbox = $('repeatPlay');
+
+  const pwaToast = $('pwaInstallToast');
+  const pwaToastIcon = $('pwaInstallIcon');
+  const pwaToastTitle = $('pwaInstallTitle');
+  const pwaToastMessage = $('pwaInstallMessage');
+  const pwaToastProgress = $('pwaInstallProgress');
+  const pwaToastBar = $('pwaInstallProgressBar');
+  const pwaToastClose = $('pwaToastClose');
   
   // 侧边栏显示控制元素
   const sidebarShowKanaCheckbox = $('sidebarShowKana');
@@ -62,6 +71,19 @@
     showUnderline: 'showUnderline',
     readingScript: 'readingScript'
   };
+
+  const PWA_MANIFEST_URL = 'static/pwa-assets.json';
+  const PWA_STATE = {
+    installing: false,
+    requestId: null,
+    total: 0,
+    completed: 0,
+    failed: 0,
+    registration: null,
+    hideTimer: null,
+    lastError: ''
+  };
+  let pwaListenerAttached = false;
 
   let isReadingMode = false;
   let activeReadingLine = null;
@@ -204,7 +226,16 @@
       showDetails: '詳細を表示',
       readingScript: 'ふりがな表記',
       katakanaLabel: 'カタカナ',
-      hiraganaLabel: 'ひらがな'
+      hiraganaLabel: 'ひらがな',
+      pwaTitle: 'オフラインダウンロード',
+      pwaPreparing: 'オフライン用リソースを準備しています…',
+      pwaProgress: 'キャッシュ中 {completed}/{total} 件（{percent}%）',
+      pwaComplete: 'すべてのリソースを保存しました。オフラインでも利用できます。',
+      pwaPartial: '一部のファイルを保存できませんでした。{failed} 件失敗しました。',
+      pwaError: 'キャッシュに失敗しました: {message}',
+      pwaUnsupported: 'このブラウザーはオフラインインストールに対応していません。',
+      pwaAlreadyCaching: 'リソースをダウンロードしています…',
+      pwaDismiss: '閉じる'
     },
     en: {
       title: 'Fudoki',
@@ -274,7 +305,16 @@
       showUnderline: 'Show POS underline',
       readingScript: 'Reading script',
       katakanaLabel: 'Katakana',
-      hiraganaLabel: 'Hiragana'
+      hiraganaLabel: 'Hiragana',
+      pwaTitle: 'Offline Pack',
+      pwaPreparing: 'Preparing offline resources…',
+      pwaProgress: 'Caching {completed}/{total} files ({percent}%)',
+      pwaComplete: 'All resources cached. You can use Fudoki offline now.',
+      pwaPartial: '{failed} files could not be cached. Please retry.',
+      pwaError: 'Caching failed: {message}',
+      pwaUnsupported: 'This browser does not support offline installation.',
+      pwaAlreadyCaching: 'Download in progress…',
+      pwaDismiss: 'Dismiss'
     },
     zh: {
       title: 'Fudoki',
@@ -343,7 +383,16 @@
       showUnderline: '显示词性下划线',
       readingScript: '读音脚本',
       katakanaLabel: '片假名',
-      hiraganaLabel: '平假名'
+      hiraganaLabel: '平假名',
+      pwaTitle: '离线资源包',
+      pwaPreparing: '正在准备离线资源…',
+      pwaProgress: '正在缓存 {completed}/{total} 个文件（{percent}%）',
+      pwaComplete: '离线资源已就绪，可以断网使用。',
+      pwaPartial: '有 {failed} 个文件缓存失败，请稍后重试。',
+      pwaError: '缓存失败：{message}',
+      pwaUnsupported: '当前浏览器不支持离线安装。',
+      pwaAlreadyCaching: '正在下载离线资源…',
+      pwaDismiss: '关闭提示'
     }
   };
 
@@ -432,6 +481,14 @@
     return dict[key] || key;
   }
 
+  function formatMessage(key, params = {}) {
+    const template = String(t(key) || key);
+    return template.replace(/\{([^}]+)\}/g, (_, token) => {
+      const trimmed = token.trim();
+      return Object.prototype.hasOwnProperty.call(params, trimmed) ? String(params[trimmed]) : '';
+    });
+  }
+
   function clearReadingLineHighlight() {
     if (!activeReadingLine) return;
     const previous = activeReadingLine;
@@ -441,6 +498,252 @@
     if (previous.hasAttribute('aria-pressed')) {
       previous.setAttribute('aria-pressed', 'false');
     }
+  }
+
+  function setPwaIcon(kind) {
+    if (!pwaToastIcon) return;
+    const icons = {
+      download: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12" /><path d="M7 11l5 5 5-5" /><path d="M4 18h16" /></svg>',
+      success: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>',
+      error: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9 9l6 6" /><path d="M15 9l-6 6" /></svg>'
+    };
+    pwaToastIcon.innerHTML = icons[kind] || icons.download;
+  }
+
+  function updatePwaToast(state, { title, message, progress, icon } = {}) {
+    if (!pwaToast) return;
+    if (PWA_STATE.hideTimer) {
+      clearTimeout(PWA_STATE.hideTimer);
+      PWA_STATE.hideTimer = null;
+    }
+
+    if (icon) setPwaIcon(icon);
+
+    if (title && pwaToastTitle) {
+      pwaToastTitle.textContent = title;
+    }
+    if (message && pwaToastMessage) {
+      pwaToastMessage.textContent = message;
+    }
+
+    if (pwaToastProgress) {
+      if (typeof progress === 'number' && !Number.isNaN(progress)) {
+        const safe = Math.max(0, Math.min(1, progress));
+        pwaToastProgress.style.display = 'block';
+        pwaToastProgress.setAttribute('aria-valuenow', String(Math.round(safe * 100)));
+        if (pwaToastBar) {
+          pwaToastBar.style.width = `${Math.round(safe * 100)}%`;
+        }
+      } else {
+        pwaToastProgress.style.display = 'none';
+        if (pwaToastBar) {
+          pwaToastBar.style.width = '0%';
+        }
+      }
+    }
+
+    pwaToast.classList.remove('is-success', 'is-error');
+    if (state === 'success') {
+      pwaToast.classList.add('is-success');
+    } else if (state === 'error') {
+      pwaToast.classList.add('is-error');
+    }
+
+    pwaToast.removeAttribute('hidden');
+    requestAnimationFrame(() => {
+      pwaToast.classList.add('is-visible');
+    });
+  }
+
+  function hidePwaToast(delay = 0) {
+    if (!pwaToast) return;
+    if (delay) {
+      if (PWA_STATE.hideTimer) clearTimeout(PWA_STATE.hideTimer);
+      PWA_STATE.hideTimer = setTimeout(() => hidePwaToast(0), delay);
+      return;
+    }
+    pwaToast.classList.remove('is-visible');
+    PWA_STATE.hideTimer = setTimeout(() => {
+      pwaToast.setAttribute('hidden', 'hidden');
+      pwaToast.classList.remove('is-success', 'is-error');
+      if (pwaToastBar) pwaToastBar.style.width = '0%';
+      PWA_STATE.hideTimer = null;
+    }, 320);
+  }
+
+  function handleServiceWorkerMessage(event) {
+    const data = event.data;
+    if (!data || data.requestId && data.requestId !== PWA_STATE.requestId) {
+      return;
+    }
+
+    if (data.type === 'CACHE_PROGRESS') {
+      if (data.status === 'cached') {
+        PWA_STATE.completed = data.completed || PWA_STATE.completed;
+        const percentValue = PWA_STATE.total ? Math.round((PWA_STATE.completed / PWA_STATE.total) * 100) : 0;
+        const progressValue = PWA_STATE.total ? PWA_STATE.completed / PWA_STATE.total : 0;
+        updatePwaToast('progress', {
+          title: formatMessage('pwaTitle'),
+          message: formatMessage('pwaProgress', { completed: PWA_STATE.completed, total: PWA_STATE.total, percent: percentValue }),
+          progress: progressValue,
+          icon: 'download'
+        });
+      } else if (data.status === 'error') {
+        PWA_STATE.failed += 1;
+        PWA_STATE.lastError = data.message || '';
+        const percentValue = PWA_STATE.total ? Math.round((PWA_STATE.completed / PWA_STATE.total) * 100) : 0;
+        const progressValue = PWA_STATE.total ? PWA_STATE.completed / PWA_STATE.total : 0;
+        const combined = `${formatMessage('pwaProgress', { completed: PWA_STATE.completed, total: PWA_STATE.total, percent: percentValue })} · ${formatMessage('pwaError', { message: PWA_STATE.lastError })}`;
+        updatePwaToast('progress', {
+          title: formatMessage('pwaTitle'),
+          message: combined,
+          progress: progressValue,
+          icon: 'error'
+        });
+      }
+    }
+
+    if (data.type === 'CACHE_COMPLETE') {
+      PWA_STATE.installing = false;
+      PWA_STATE.requestId = null;
+      headerDownloadBtn?.classList.remove('is-loading');
+      const progressValue = data.total ? data.completed / data.total : 1;
+
+      if (PWA_STATE.failed > 0) {
+        updatePwaToast('error', {
+          title: formatMessage('pwaTitle'),
+          message: formatMessage('pwaPartial', { failed: PWA_STATE.failed }) || formatMessage('pwaError', { message: PWA_STATE.lastError || '' }),
+          progress: progressValue,
+          icon: 'error'
+        });
+      } else {
+        updatePwaToast('success', {
+          title: formatMessage('pwaTitle'),
+          message: formatMessage('pwaComplete'),
+          progress: progressValue,
+          icon: 'success'
+        });
+        hidePwaToast(5000);
+      }
+      PWA_STATE.failed = 0;
+      PWA_STATE.lastError = '';
+    }
+  }
+
+  async function startPwaDownload(event) {
+    if (event) event.preventDefault();
+
+    if (!('serviceWorker' in navigator) || !(window && 'caches' in window)) {
+      updatePwaToast('error', {
+        title: formatMessage('pwaTitle'),
+        message: formatMessage('pwaUnsupported'),
+        icon: 'error'
+      });
+      return;
+    }
+
+    if (PWA_STATE.installing) {
+      const progressValue = PWA_STATE.total ? PWA_STATE.completed / PWA_STATE.total : 0;
+      updatePwaToast('progress', {
+        title: formatMessage('pwaTitle'),
+        message: formatMessage('pwaAlreadyCaching'),
+        progress: progressValue,
+        icon: 'download'
+      });
+      return;
+    }
+
+    PWA_STATE.installing = true;
+    PWA_STATE.failed = 0;
+    PWA_STATE.lastError = '';
+    PWA_STATE.total = 0;
+    PWA_STATE.completed = 0;
+    headerDownloadBtn?.classList.add('is-loading');
+
+    updatePwaToast('progress', {
+      title: formatMessage('pwaTitle'),
+      message: formatMessage('pwaPreparing'),
+      progress: 0,
+      icon: 'download'
+    });
+
+    try {
+      const manifestResponse = await fetch(PWA_MANIFEST_URL, { cache: 'no-store' });
+      if (!manifestResponse.ok) {
+        throw new Error(`manifest ${manifestResponse.status}`);
+      }
+      const manifest = await manifestResponse.json();
+      const assets = Array.isArray(manifest.assets) ? manifest.assets : [];
+      if (!assets.length) {
+        throw new Error('no-assets');
+      }
+
+      const normalizedAssets = assets.map((asset) => {
+        if (typeof asset !== 'string') return '';
+        if (/^https?:/i.test(asset)) return asset;
+        return asset.startsWith('.') || asset.startsWith('/') ? asset : `./${asset}`;
+      }).filter(Boolean);
+
+      PWA_STATE.total = normalizedAssets.length;
+      const registration = await navigator.serviceWorker.register('./service-worker.js');
+      PWA_STATE.registration = registration;
+      const ready = await navigator.serviceWorker.ready;
+      const controller = navigator.serviceWorker.controller || ready.active || registration.active;
+      if (!controller) {
+        throw new Error('no-controller');
+      }
+
+      if (!pwaListenerAttached) {
+        navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+        pwaListenerAttached = true;
+      }
+
+      PWA_STATE.requestId = `pwa-${Date.now()}`;
+      controller.postMessage({
+        type: 'CACHE_ASSETS',
+        assets: normalizedAssets,
+        requestId: PWA_STATE.requestId
+      });
+
+      updatePwaToast('progress', {
+        title: formatMessage('pwaTitle'),
+        message: formatMessage('pwaProgress', { completed: 0, total: PWA_STATE.total, percent: 0 }),
+        progress: 0,
+        icon: 'download'
+      });
+    } catch (error) {
+      console.error('PWA cache failed', error);
+      PWA_STATE.installing = false;
+      headerDownloadBtn?.classList.remove('is-loading');
+      updatePwaToast('error', {
+        title: formatMessage('pwaTitle'),
+        message: formatMessage('pwaError', { message: error?.message || 'unknown' }),
+        progress: 0,
+        icon: 'error'
+      });
+    }
+  }
+
+  function setupPwaInstaller() {
+    if (!headerDownloadBtn) return;
+
+    if (pwaToastClose) {
+      pwaToastClose.addEventListener('click', () => hidePwaToast(0));
+    }
+
+    if (!('serviceWorker' in navigator) || !(window && 'caches' in window)) {
+      headerDownloadBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        updatePwaToast('error', {
+          title: formatMessage('pwaTitle'),
+          message: formatMessage('pwaUnsupported'),
+          icon: 'error'
+        });
+      });
+      return;
+    }
+
+    headerDownloadBtn.addEventListener('click', startPwaDownload);
   }
 
   function syncReadingLineAttributes(enabled) {
@@ -3594,6 +3897,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 移动端右侧边栏初始化已移除
     initReadingModeToggle();
     initReadingModeInteractions();
+    setupPwaInstaller();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
   }
 

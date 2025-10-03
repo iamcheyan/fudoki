@@ -1598,6 +1598,179 @@ select, input[type="range"] {
 .theme-icon-btn svg { fill: var(--text); }
 .theme-icon-btn:hover { background: rgba(0,0,0,0.06); }
 :root[data-theme="dark"] .theme-icon-btn:hover { background: rgba(255,255,255,0.06); }
+.theme-icon-btn.is-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.6;
+}
+.theme-icon-btn.is-loading svg {
+  opacity: 0;
+}
+.theme-icon-btn.is-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(139, 105, 20, 0.25);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: pwa-spin 0.8s linear infinite;
+}
+
+@keyframes pwa-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* PWA 安装提示 */
+.pwa-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1100;
+  min-width: 280px;
+  max-width: 360px;
+  display: flex;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(139, 105, 20, 0.18);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.96), rgba(139, 105, 20, 0.08));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  color: var(--text);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.pwa-toast[hidden] {
+  display: none;
+}
+
+.pwa-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pwa-toast.is-success {
+  border-color: rgba(76, 175, 80, 0.35);
+  background: linear-gradient(140deg, rgba(236, 255, 240, 0.95), rgba(76, 175, 80, 0.15));
+}
+
+.pwa-toast.is-error {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: linear-gradient(140deg, rgba(255, 241, 241, 0.96), rgba(244, 67, 54, 0.18));
+}
+
+:root[data-theme="dark"] .pwa-toast {
+  border-color: rgba(217, 179, 90, 0.3);
+  background: linear-gradient(140deg, rgba(24, 27, 35, 0.94), rgba(217, 179, 90, 0.12));
+  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="dark"] .pwa-toast.is-success {
+  border-color: rgba(76, 175, 80, 0.45);
+  background: linear-gradient(140deg, rgba(19, 29, 22, 0.94), rgba(76, 175, 80, 0.2));
+}
+
+:root[data-theme="dark"] .pwa-toast.is-error {
+  border-color: rgba(244, 67, 54, 0.4);
+  background: linear-gradient(140deg, rgba(35, 21, 21, 0.94), rgba(244, 67, 54, 0.2));
+}
+
+.pwa-toast__icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(139,105,20,0.35));
+  color: var(--primary);
+}
+
+.pwa-toast__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pwa-toast__title {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.pwa-toast__message {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.pwa-toast__progress {
+  display: none;
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+:root[data-theme="dark"] .pwa-toast__progress {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.pwa-toast__progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary), rgba(139, 105, 20, 0.45));
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+.pwa-toast__progress-value {
+  display: none;
+}
+
+.pwa-toast__close {
+  border: none;
+  background: rgba(0,0,0,0.05);
+  color: inherit;
+  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pwa-toast__close:hover {
+  background: rgba(0,0,0,0.12);
+}
+
+:root[data-theme="dark"] .pwa-toast__close {
+  background: rgba(255,255,255,0.08);
+}
+
+:root[data-theme="dark"] .pwa-toast__close:hover {
+  background: rgba(255,255,255,0.16);
+}
+
+@media (max-width: 640px) {
+  .pwa-toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}
 
 /* 控件通用外观 */
 select, input[type="text"], textarea, .btn, .new-doc-btn, .delete-doc-btn, .play-all-btn, .nav-item, .play-line-btn, .play-token-btn {

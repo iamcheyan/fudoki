@@ -58,6 +58,18 @@
     </div>
   </header>
 
+  <div id="pwaInstallToast" class="pwa-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <div class="pwa-toast__icon" id="pwaInstallIcon" aria-hidden="true"></div>
+    <div class="pwa-toast__content">
+      <div class="pwa-toast__title" id="pwaInstallTitle">离线资源包</div>
+      <div class="pwa-toast__message" id="pwaInstallMessage">正在准备离线资源…</div>
+      <div class="pwa-toast__progress" id="pwaInstallProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="pwa-toast__progress-bar" id="pwaInstallProgressBar"></div>
+      </div>
+    </div>
+    <button class="pwa-toast__close" id="pwaToastClose" type="button" aria-label="关闭提示">✕</button>
+  </div>
+
   <!-- 主要内容区域 -->
   <div class="main-container">
     <!-- 移动端抽屉：将左侧文件夹与文档列表上下堆叠展示 -->
