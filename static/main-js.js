@@ -518,12 +518,21 @@
       return;
     }
 
-    // 添加按钮点击动画
+    // 添加按钮点击动画 - 修复定位问题
     if (readingModeToggle && shouldEnable) {
-      readingModeToggle.style.transform = 'scale(0.95)';
+      // 使用 CSS 类而不是直接设置 transform，避免影响定位
+      readingModeToggle.classList.add('click-animation');
       setTimeout(() => {
-        readingModeToggle.style.transform = '';
+        readingModeToggle.classList.remove('click-animation');
       }, 150);
+    }
+
+    // 添加退出阅读模式的动画
+    if (readingModeToggle && !shouldEnable && isReadingMode) {
+      readingModeToggle.classList.add('exit-animation');
+      setTimeout(() => {
+        readingModeToggle.classList.remove('exit-animation');
+      }, 300);
     }
 
     isReadingMode = shouldEnable;
