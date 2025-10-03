@@ -1636,7 +1636,7 @@ select, input[type="range"] {
   padding: 18px 20px;
   border-radius: 18px;
   border: 1px solid rgba(139, 105, 20, 0.18);
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.96), rgba(139, 105, 20, 0.08));
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.98), rgba(139, 105, 20, 0.12));
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
   color: var(--text);
   transition: opacity 0.3s ease, transform 0.3s ease;
@@ -1654,29 +1654,29 @@ select, input[type="range"] {
 }
 
 .pwa-toast.is-success {
-  border-color: rgba(76, 175, 80, 0.35);
-  background: linear-gradient(140deg, rgba(236, 255, 240, 0.95), rgba(76, 175, 80, 0.15));
+  border-color: rgba(76, 175, 80, 0.45);
+  background: linear-gradient(140deg, rgba(236, 255, 240, 0.98), rgba(76, 175, 80, 0.2));
 }
 
 .pwa-toast.is-error {
-  border-color: rgba(244, 67, 54, 0.3);
-  background: linear-gradient(140deg, rgba(255, 241, 241, 0.96), rgba(244, 67, 54, 0.18));
+  border-color: rgba(244, 67, 54, 0.4);
+  background: linear-gradient(140deg, rgba(255, 241, 241, 0.98), rgba(244, 67, 54, 0.22));
 }
 
 :root[data-theme="dark"] .pwa-toast {
-  border-color: rgba(217, 179, 90, 0.3);
-  background: linear-gradient(140deg, rgba(24, 27, 35, 0.94), rgba(217, 179, 90, 0.12));
+  border-color: rgba(217, 179, 90, 0.4);
+  background: linear-gradient(140deg, rgba(24, 27, 35, 0.96), rgba(217, 179, 90, 0.16));
   box-shadow: 0 22px 46px rgba(0, 0, 0, 0.5);
 }
 
 :root[data-theme="dark"] .pwa-toast.is-success {
-  border-color: rgba(76, 175, 80, 0.45);
-  background: linear-gradient(140deg, rgba(19, 29, 22, 0.94), rgba(76, 175, 80, 0.2));
+  border-color: rgba(76, 175, 80, 0.5);
+  background: linear-gradient(140deg, rgba(19, 29, 22, 0.96), rgba(76, 175, 80, 0.25));
 }
 
 :root[data-theme="dark"] .pwa-toast.is-error {
-  border-color: rgba(244, 67, 54, 0.4);
-  background: linear-gradient(140deg, rgba(35, 21, 21, 0.94), rgba(244, 67, 54, 0.2));
+  border-color: rgba(244, 67, 54, 0.5);
+  background: linear-gradient(140deg, rgba(35, 21, 21, 0.96), rgba(244, 67, 54, 0.25));
 }
 
 .pwa-toast__icon {
