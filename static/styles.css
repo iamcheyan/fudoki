@@ -2483,3 +2483,14 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   }
 }
 /* （移除文件夹操作按钮样式） */
+/* Favorite button styles */
+.doc-action-btn.fav-btn {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.doc-action-btn.fav-btn.active { color: #f5a623; }
+.doc-action-btn.fav-btn:hover { color: var(--text); }

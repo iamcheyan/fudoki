@@ -1321,21 +1321,28 @@ Try Fudoki and enjoy Japanese language analysis!`;
           docItem.classList.add('active');
         }
         
+        const isFav = !!doc.favorite;
         docItem.innerHTML = `
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
           </svg>
           <div class="doc-item-title" title="${title}">${this.truncateTitle(title)}</div>
           <div class="doc-item-actions">
-            ${!doc.locked ? '<button class="doc-action-btn delete-btn" title="删除">×</button>' : ''}
+            <button class="doc-action-btn fav-btn ${isFav ? 'active' : ''}" title="${isFav ? '取消收藏' : '收藏'}">${isFav ? '★' : '☆'}</button>
           </div>
         `;
         
         // 点击文档项切换文档
         docItem.addEventListener('click', (e) => {
-          if (e.target.classList.contains('delete-btn')) {
+          if (e.target.classList.contains('fav-btn')) {
             e.stopPropagation();
-            this.deleteDocument(doc.id, false, docItem); // 传递docItem作为目标元素
+            const all = this.getAllDocuments();
+            const d = all.find(x => x.id === doc.id);
+            if (d) {
+              d.favorite = !d.favorite;
+              this.saveAllDocuments(all);
+              this.render();
+            }
           } else {
             this.switchToDocument(doc.id);
           }
