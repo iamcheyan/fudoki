@@ -3605,7 +3605,22 @@ Try Fudoki and enjoy Japanese language analysis!`;
       // 检查当前元素是否已经是活动状态
       const isCurrentActive = activeTokenDetails && activeTokenDetails.element === element;
       
-      // 先关闭所有卡片，保证只有一个打开
+      // 如果当前元素已经是活动状态，则关闭它
+      if (isCurrentActive) {
+        // 关闭当前卡片
+        details.style.display = 'none';
+        element.classList.remove('active');
+        // 如果详情面板在body中，移回原元素
+        if (details.parentNode === document.body) {
+          details.style.visibility = 'hidden';
+          try { element.appendChild(details); } catch (e) { /* 忽略 */ }
+        }
+        // 清除活动状态
+        activeTokenDetails = null;
+        return;
+      }
+      
+      // 先关闭所有其他卡片，保证只有一个打开
       document.querySelectorAll('.token-details').forEach(d => {
         d.style.display = 'none';
       });
@@ -3625,21 +3640,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }
       }
       
-      // 清除活动状态
-      activeTokenDetails = null;
-      
-      if (!isCurrentActive) {
-        // 设置位置并显示
-        details.style.display = 'block';
-        details.style.visibility = 'hidden';
-        positionTokenDetails(element, details);
-        details.style.visibility = 'visible';
-        element.classList.add('active');
-        // 记录当前活动弹层
-        activeTokenDetails = { element, details };
-        // 加载翻译信息
-        loadTranslation(element);
-      }
+      // 显示当前卡片
+      details.style.display = 'block';
+      details.style.visibility = 'hidden';
+      positionTokenDetails(element, details);
+      details.style.visibility = 'visible';
+      element.classList.add('active');
+      // 记录当前活动弹层
+      activeTokenDetails = { element, details };
+      // 加载翻译信息
+      loadTranslation(element);
     }
   };
 
