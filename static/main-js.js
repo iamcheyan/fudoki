@@ -83,7 +83,8 @@
     theme: 'theme',
     lightTheme: 'lightTheme',
     showUnderline: 'showUnderline',
-    readingScript: 'readingScript'
+    readingScript: 'readingScript',
+    haAsWa: 'haAsWa'
   };
 
   const PWA_MANIFEST_URL = 'static/pwa-assets.json';
@@ -302,6 +303,7 @@
       collapse: '折りたたむ',
       showUnderline: '品詞ラインを表示',
       showDetails: '詳細を表示',
+      haAsWaLabel: '助詞「は」を「わ」と読む',
       readingScript: 'ふりがな表記',
       katakanaLabel: 'カタカナ',
       hiraganaLabel: 'ひらがな',
@@ -354,6 +356,7 @@
       showRomaji: 'Show Romaji',
       showPos: 'Show POS',
       showDetails: 'Show token details',
+      haAsWaLabel: 'Read particle “は” as “わ”',
       showUnderline: 'POS underline color',
       autoRead: 'Auto Read',
       repeatPlay: 'Repeat Play',
@@ -458,6 +461,7 @@
       showRomaji: '显示罗马音',
       showPos: '显示词性',
       showDetails: '显示词汇详情',
+      haAsWaLabel: '助词“は”读作“わ”',
       autoRead: '自动朗读',
       repeatPlay: '重复播放',
       readingToggleEnter: '阅读模式',
@@ -1378,6 +1382,9 @@
     // 语言变化时刷新主题图标与aria标签
     updateReadingToggleLabels();
     applyTheme(savedThemePreference);
+
+    // 更新设置面板与（若存在）侧边栏的文案
+    try { updateSettingsLabels(); } catch (_) {}
   }
 
   // 刷新已打开的词汇详情卡片文本
@@ -1439,6 +1446,93 @@
     if (sidebarLangSelect) sidebarLangSelect.value = currentLang;
     applyI18n();
     refreshOpenCardTexts();
+  }
+
+  // 将所有设置项的标签文本同步为当前语言
+  function updateSettingsLabels() {
+    const setText = (id, key) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = t(key);
+    };
+    const setOptionText = (selectId, valueToI18nKeyMap) => {
+      const sel = document.getElementById(selectId);
+      if (!sel) return;
+      Object.entries(valueToI18nKeyMap || {}).forEach(([val, key]) => {
+        const opt = sel.querySelector(`option[value="${val}"]`);
+        if (opt) opt.textContent = t(key);
+      });
+    };
+
+    // 通用（modal）
+    setText('voiceSettingsTitle', 'voiceTitle');
+    setText('voiceSelectLabel', 'voiceSelectLabel');
+    // 保留“选择语音...”占位选项
+    const voiceSelect = document.getElementById('voiceSelect');
+    if (voiceSelect) {
+      const placeholder = voiceSelect.querySelector('option[value=""]');
+      if (placeholder) placeholder.textContent = t('selectVoice');
+    }
+    setText('speedLabel', 'speedLabel');
+    setText('displayTitle', 'displayTitle');
+    setText('showKanaLabel', 'showKana');
+    setText('showRomajiLabel', 'showRomaji');
+    setText('showPosLabel', 'showPos');
+    setText('showDetailsLabel', 'showDetails');
+    setText('showUnderlineLabel', 'showUnderline');
+    setText('autoReadLabel', 'autoRead');
+    setText('repeatPlayLabel', 'repeatPlay');
+    setText('haAsWaLabel', 'haAsWaLabel');
+    setText('readingScriptLabel', 'readingScript');
+    setText('readingScriptOptionKatakana', 'katakanaLabel');
+    setText('readingScriptOptionHiragana', 'hiraganaLabel');
+    setText('fontSizeLabel', 'fontSizeLabel');
+    // 系统设置
+    setText('systemTitle', 'systemTitle');
+    setText('themeLabel', 'themeLabel');
+    setOptionText('themeSelect', {
+      paper: 'themePaper',
+      sakura: 'themeSakura',
+      sticky: 'themeSticky',
+      green: 'themeGreen',
+      blue: 'themeBlue',
+      dark: 'themeDark',
+      auto: 'themeAuto'
+    });
+    setText('langLabel', 'langLabel');
+
+    // 侧边栏（如果存在）
+    setText('sidebarVoiceSettingsTitle', 'voiceTitle');
+    setText('sidebarVoiceSelectLabel', 'voiceSelectLabel');
+    const sidebarVoiceSelect = document.getElementById('sidebarVoiceSelect');
+    if (sidebarVoiceSelect) {
+      const placeholder2 = sidebarVoiceSelect.querySelector('option[value=""]');
+      if (placeholder2) placeholder2.textContent = t('selectVoice');
+    }
+    setText('sidebarSpeedLabel', 'speedLabel');
+    setText('sidebarDisplayTitle', 'displayTitle');
+    setText('sidebarShowKanaLabel', 'showKana');
+    setText('sidebarShowRomajiLabel', 'showRomaji');
+    setText('sidebarShowPosLabel', 'showPos');
+    setText('sidebarShowDetailsLabel', 'showDetails');
+    setText('sidebarShowUnderlineLabel', 'showUnderline');
+    setText('sidebarAutoReadLabel', 'autoRead');
+    setText('sidebarRepeatPlayLabel', 'repeatPlay');
+    setText('sidebarHaAsWaLabel', 'haAsWaLabel');
+    setText('sidebarReadingScriptLabel', 'readingScript');
+    setText('sidebarReadingScriptOptionKatakana', 'katakanaLabel');
+    setText('sidebarReadingScriptOptionHiragana', 'hiraganaLabel');
+    setText('sidebarSystemTitle', 'systemTitle');
+    setText('sidebarThemeLabel', 'themeLabel');
+    setText('sidebarLangLabel', 'langLabel');
+    setOptionText('sidebarThemeSelect', {
+      paper: 'themePaper',
+      sakura: 'themeSakura',
+      sticky: 'themeSticky',
+      green: 'themeGreen',
+      blue: 'themeBlue',
+      dark: 'themeDark',
+      auto: 'themeAuto'
+    });
   }
 
   if (langFlagJA) langFlagJA.addEventListener('click', () => setLanguage('ja'));
@@ -1827,6 +1921,18 @@ Try Fudoki and enjoy Japanese language analysis!`;
     return script === 'hiragana' ? toHiragana(text) : toKatakana(text);
   }
 
+  // 读取“助词は→わ”开关（主弹窗、侧边栏或本地存储），默认开启
+  function isHaParticleReadingEnabled() {
+    try {
+      const main = document.getElementById('haAsWa');
+      if (main && typeof main.checked !== 'undefined') return !!main.checked;
+      const sidebar = document.getElementById('sidebarHaAsWa');
+      if (sidebar && typeof sidebar.checked !== 'undefined') return !!sidebar.checked;
+    } catch (_) {}
+    const v = localStorage.getItem(LS.haAsWa);
+    return v === null ? true : v === 'true';
+  }
+
   // 根据设置格式化读音：处理助词"は"并按脚本转换
   function formatReading(token, script) {
     const surface = token && token.surface ? token.surface : '';
@@ -1834,7 +1940,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const readingRaw = token && token.reading ? token.reading : '';
     if (!readingRaw) return '';
     // 特例：助词"は"读作"わ/ワ"
-    if (surface === 'は' && posArr[0] === '助詞') {
+    if (surface === 'は' && posArr[0] === '助詞' && isHaParticleReadingEnabled()) {
       return script === 'hiragana' ? 'わ' : 'ワ';
     }
     const normalized = normalizeKanaByScript(readingRaw, script);
@@ -1902,7 +2008,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (token.reading && token.reading !== token.surface) {
       // 特殊处理：助词"は"单字时显示读音为"わ"
       let displayReading = token.reading;
-      if (token.surface === 'は' && token.pos && Array.isArray(token.pos) && token.pos[0] === '助詞') {
+      if (
+        token.surface === 'は' &&
+        token.pos && Array.isArray(token.pos) && token.pos[0] === '助詞' &&
+        isHaParticleReadingEnabled()
+      ) {
         displayReading = 'わ';
       }
       details.push(`<div class="detail-item"><strong>${t('lbl_reading') || '读音'}:</strong> ${displayReading}</div>`);
@@ -2984,16 +3094,27 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   function applyVoice(u) {
     try {
-      if (currentVoice) {
+      // 优先选择日语音色；如未显式选择，则自动挑选第一个日语音色
+      if (currentVoice && (currentVoice.lang || '').toLowerCase().startsWith('ja')) {
         u.voice = currentVoice;
         u.lang = currentVoice.lang || 'ja-JP';
         return;
       }
-      
+
+      const jaVoices = listVoicesFiltered();
+      if (jaVoices.length > 0) {
+        u.voice = jaVoices[0];
+        u.lang = jaVoices[0].lang || 'ja-JP';
+        return;
+      }
+
+      // 回退：使用默认音色，但强制语言为日语，避免非日语音色误读
       const all = window.speechSynthesis.getVoices?.() || [];
       const fb = all.find(v => v.default) || all[0];
       if (fb) {
         u.voice = fb;
+        const lang = (fb.lang || '').toLowerCase();
+        u.lang = lang.startsWith('ja') ? fb.lang : 'ja-JP';
       } else {
         u.lang = 'ja-JP';
       }
@@ -3071,9 +3192,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
     clearReadingLineHighlight();
 
-    // 展示层词块合并规则：动/形 + て/で（助词），动/形 + た（助动）
+    // 展示层词块合并规则：
+    // 1) 数字 + 年/月/日 合并为一个词，并应用专用读法
+    // 2) 动/形 + て/で（助词），动/形 + た（助动）
     const mergeTokensForDisplay = (tokens) => {
       const out = [];
+      const isDigits = (s) => /^[0-9０-９]+$/.test(s || '');
+      const toAsciiDigits = (s) => String(s || '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+      const monthMap = {
+        1: 'いち', 2: 'に', 3: 'さん', 4: 'し', 5: 'ご', 6: 'ろく', 7: 'しち', 8: 'はち', 9: 'く', 10: 'じゅう', 11: 'じゅういち', 12: 'じゅうに'
+      };
+      const dayMap = {
+        1: 'ついたち', 2: 'ふつか', 3: 'みっか', 4: 'よっか', 5: 'いつか', 6: 'むいか', 7: 'なのか', 8: 'ようか', 9: 'ここのか', 10: 'とおか',
+        14: 'じゅうよっか', 20: 'はつか', 24: 'にじゅうよっか'
+      };
       for (let i = 0; i < tokens.length; i++) {
         const cur = tokens[i];
         const next = tokens[i + 1];
@@ -3082,6 +3214,38 @@ Try Fudoki and enjoy Japanese language analysis!`;
           const p = Array.isArray(tok.pos) ? tok.pos : [tok.pos || ''];
           return p[0] || '';
         };
+        // 优先处理：数字 + 年/月/日 的合并与读音
+        if (next) {
+          const curSurface = cur.surface || '';
+          const nextSurface = next.surface || '';
+          if (isDigits(curSurface) && (nextSurface === '年' || nextSurface === '月' || nextSurface === '日')) {
+            const n = parseInt(toAsciiDigits(curSurface), 10);
+            let reading = '';
+            if (nextSurface === '年') {
+              // 若分词阶段已给出年份读法，则直接加「ねん」；否则使用数字读法 + ねん
+              const base = cur.reading || curSurface;
+              reading = base + 'ねん';
+            } else if (nextSurface === '月') {
+              const base = (cur.reading && cur.reading !== curSurface) ? cur.reading : (monthMap[n] || (cur.reading || curSurface));
+              reading = base + 'がつ';
+            } else if (nextSurface === '日') {
+              if (dayMap[n]) reading = dayMap[n];
+              else {
+                const base = cur.reading || curSurface;
+                reading = base + 'にち';
+              }
+            }
+            const merged = {
+              surface: curSurface + nextSurface,
+              reading,
+              lemma: cur.lemma || curSurface + nextSurface,
+              pos: Array.isArray(next.pos) ? next.pos.slice() : [next.pos || '名']
+            };
+            out.push(merged);
+            i++;
+            continue;
+          }
+        }
         if (next) {
           const curMain = getMainPos(cur);
           const nextMain = getMainPos(next);
@@ -3228,7 +3392,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
     
     // 特殊处理：助词"は"单字时读作"wa"
-    if (text === 'は' && resolvedToken && resolvedToken.pos && Array.isArray(resolvedToken.pos) && resolvedToken.pos[0] === '助詞') {
+    if (
+      text === 'は' &&
+      resolvedToken && resolvedToken.pos && Array.isArray(resolvedToken.pos) && resolvedToken.pos[0] === '助詞' &&
+      isHaParticleReadingEnabled()
+    ) {
       textToSpeak = 'わ';
     }
     
@@ -3514,7 +3682,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
             let textToSpeak = tokenData.reading || tokenData.surface || '';
             
             // 特殊处理：助词"は"单字时读作"wa"
-            if (tokenData.surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
+            if (
+              tokenData.surface === 'は' &&
+              tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞' &&
+              isHaParticleReadingEnabled()
+            ) {
               textToSpeak = 'わ';
             }
             
@@ -3556,7 +3728,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
               let textToSpeak = tokenData.reading || tokenData.surface || '';
               
               // 特殊处理：助词"は"单字时读作"wa"
-              if (tokenData.surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
+              if (
+                tokenData.surface === 'は' &&
+                tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞' &&
+                isHaParticleReadingEnabled()
+              ) {
                 textToSpeak = 'わ';
               }
               
@@ -3739,6 +3915,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (showUnderlineCheckbox) showUnderlineCheckbox.checked = getBool(LS.showUnderline, true);
     if (autoReadCheckbox) autoReadCheckbox.checked = getBool(LS.autoRead, false);
     if (repeatPlayCheckbox) repeatPlayCheckbox.checked = getBool(LS.repeatPlay, false);
+    // 新增：助词“は→わ”开关
+    const haAsWaCheckbox = document.getElementById('haAsWa');
+    const sidebarHaAsWaCheckbox = document.getElementById('sidebarHaAsWa');
+    if (haAsWaCheckbox) haAsWaCheckbox.checked = getBool(LS.haAsWa, true);
+    if (sidebarHaAsWaCheckbox) sidebarHaAsWaCheckbox.checked = getBool(LS.haAsWa, true);
     
     // 设置下拉初始值 - 主弹窗
     const getScript = () => {
@@ -3754,6 +3935,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (sidebarShowUnderlineCheckbox) sidebarShowUnderlineCheckbox.checked = getBool(LS.showUnderline, true);
     if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = getBool(LS.autoRead, false);
     if (sidebarRepeatPlayCheckbox) sidebarRepeatPlayCheckbox.checked = getBool(LS.repeatPlay, false);
+    if (sidebarHaAsWaCheckbox) sidebarHaAsWaCheckbox.checked = getBool(LS.haAsWa, true);
     // 设置下拉初始值 - 侧边栏
     if (sidebarReadingScriptSelect) sidebarReadingScriptSelect.value = getScript();
     
@@ -3814,6 +3996,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
         localStorage.setItem(LS.autoRead, autoReadCheckbox.checked);
         // 同步侧边栏状态
         if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = autoReadCheckbox.checked;
+      });
+    }
+
+    // 助词“は→わ”开关（主弹窗）
+    if (haAsWaCheckbox) {
+      haAsWaCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.haAsWa, haAsWaCheckbox.checked);
+        if (sidebarHaAsWaCheckbox) sidebarHaAsWaCheckbox.checked = haAsWaCheckbox.checked;
       });
     }
     
@@ -3893,6 +4083,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
         localStorage.setItem(LS.repeatPlay, sidebarRepeatPlayCheckbox.checked);
         // 同步主弹窗状态
         if (repeatPlayCheckbox) repeatPlayCheckbox.checked = sidebarRepeatPlayCheckbox.checked;
+      });
+    }
+    // 助词“は→わ”开关（侧边栏）
+    if (sidebarHaAsWaCheckbox) {
+      sidebarHaAsWaCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.haAsWa, sidebarHaAsWaCheckbox.checked);
+        if (haAsWaCheckbox) haAsWaCheckbox.checked = sidebarHaAsWaCheckbox.checked;
       });
     }
     // 侧边栏：读音脚本
@@ -4538,6 +4735,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
             <label class="control-label" id="${id('autoReadLabel')}">
               <input type="checkbox" id="${id('autoRead')}">
               ${t('autoRead')}
+            </label>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" id="${id('haAsWaLabel')}">
+              <input type="checkbox" id="${id('haAsWa')}" checked>
+              ${t('haAsWaLabel')}
             </label>
           </div>
           
