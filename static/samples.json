@@ -70,6 +70,22 @@
         "先生は論文をお読みになった。（尊敬）",
         "私は書類を拝見した。（謙譲）"
       ]
+    },
+    {
+      "id": "sample-07",
+      "lines": [
+        "KubernetesクラスタにおけるDeclarative ConfigurationとGitOps実装",
+        "マニフェストをKustomizeでオーバーレイし、Argo CDが継続的デプロイメントをトリガーする。",
+        "PodSecurityPolicyを廃止し、Pod Security StandardsとOPA Gatekeeperで準拠を担保。",
+        "HPAがCPU/カスタムメトリクスを基にレプリカをスケールし、Cluster Autoscalerがノードプールを水平拡張。",
+        "etcdのwrite-ahead logをSSDストレージクラスにマウントし、RAFTコンセンサスレイテンシを最適化。",
+        "Calico CNIでeBPF dataplaneを有効化し、iptablesのオーバーヘッドを回避してネットワークスループット向上。",
+        "Fluent Bitが/var/log/containers/*.logをtailし、Kafka経由でElasticsearchにストリーミングし、Grafana Lokiで可視化。",
+        "Prometheus OperatorがServiceMonitorをスクラップし、Thanos SidecarがS3互換ストレージに長期メトリクスを転送。",
+        "Istio Ingress GatewayでmTLSを強制し、SPIFFE IDによるワークロード間認証を実現。",
+        "CanaryリリースでFlaggerがTraefikのWeighted Round-Robinを制御し、99thパーセンタイルレイテンシを監視。",
+        "このサンプルは、クラウドネイティブなインフラを日本語・英語・カタカナ混在で解説した上級者向けコンテンツです。"
+      ]
     }
   ]
 }
