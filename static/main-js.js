@@ -3622,7 +3622,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
 
     // 详细信息显示逻辑
-    const details = element.querySelector('.token-details');
+    // 优先从活动状态获取details，如果不存在则从元素中查找
+    let details = null;
+    if (activeTokenDetails && activeTokenDetails.element === element && activeTokenDetails.details) {
+      details = activeTokenDetails.details;
+    } else {
+      details = element.querySelector('.token-details');
+    }
+    
     if (details) {
       // 检查当前元素是否已经是活动状态
       const isCurrentActive = activeTokenDetails && activeTokenDetails.element === element;
