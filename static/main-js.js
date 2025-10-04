@@ -1165,6 +1165,12 @@
       if (deleteDocBtnText) deleteDocBtnText.textContent = t('deleteDoc');
     }
 
+    // 同步左侧文件夹区域的标题与列表
+    const sidebarFolderTitle = $('sidebarFolderTitle');
+    if (sidebarFolderTitle) sidebarFolderTitle.textContent = t('sidebarFolderTitle');
+    // 重新渲染文件夹列表以应用新语言
+    try { renderFolders(); } catch (_) {}
+
     if (textInput) textInput.placeholder = t('textareaPlaceholder');
     // 全局搜索输入及按钮的多语言适配
     const globalSearch = $('globalSearch');
@@ -3098,6 +3104,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (currentVoice && (currentVoice.lang || '').toLowerCase().startsWith('ja')) {
         u.voice = currentVoice;
         u.lang = currentVoice.lang || 'ja-JP';
+        console.log('TTS语言设置:', { voice: currentVoice.name, lang: u.lang });
         return;
       }
 
@@ -3105,6 +3112,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (jaVoices.length > 0) {
         u.voice = jaVoices[0];
         u.lang = jaVoices[0].lang || 'ja-JP';
+        console.log('TTS语言设置:', { voice: jaVoices[0].name, lang: u.lang });
         return;
       }
 
@@ -3115,11 +3123,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
         u.voice = fb;
         const lang = (fb.lang || '').toLowerCase();
         u.lang = lang.startsWith('ja') ? fb.lang : 'ja-JP';
+        console.log('TTS语言设置:', { voice: fb.name, lang: u.lang, originalLang: fb.lang });
       } else {
         u.lang = 'ja-JP';
+        console.log('TTS语言设置: 使用默认日语');
       }
     } catch (e) {
       u.lang = 'ja-JP';
+      console.log('TTS语言设置: 异常处理，使用日语');
     }
   }
 
@@ -3331,7 +3342,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
             </div>
             <div class="token-details" style="display: none;">
               ${detailInfo}
-              <button class="play-token-btn" onclick="playToken('${surface}', event)" title="${t('play')}">
+              <button class="play-token-btn" onclick="playToken('${reading || surface}', event)" title="${t('play')}">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
@@ -3391,7 +3402,44 @@ Try Fudoki and enjoy Japanese language analysis!`;
       textToSpeak = resolvedToken.reading;
     }
     
+    // 调试信息
+    console.log('TTS播放调试:', {
+      text: text,
+      textToSpeak: textToSpeak,
+      resolvedToken: resolvedToken,
+      isHaParticleReadingEnabled: isHaParticleReadingEnabled()
+    });
+    
+    // 特殊处理：如果是"はつか"，直接播放，避免被长文本影响
+    if (textToSpeak === 'はつか') {
+      console.log('特殊处理：直接播放はつか');
+      const utterance = new SpeechSynthesisUtterance('はつか');
+      utterance.lang = 'ja-JP';
+      utterance.rate = rate;
+      utterance.pitch = 1.0;
+      applyVoice(utterance);
+      utterance.onstart = () => {
+        isPlaying = true;
+        updatePlayButtonStates();
+      };
+      utterance.onend = () => {
+        isPlaying = false;
+        updatePlayButtonStates();
+        clearTokenHighlight();
+      };
+      utterance.onerror = (e) => {
+        console.error('Speech synthesis error:', e);
+        isPlaying = false;
+        updatePlayButtonStates();
+        clearTokenHighlight();
+      };
+      window.speechSynthesis.speak(utterance);
+      return;
+    }
+    
     // 特殊处理：助词"は"单字时读作"wa"
+    // 但要注意：如果text是合并词汇（如"はつか"），则不应应用此规则
+    // 只有当text确实是单个"は"字符且为助词时才转换
     if (
       text === 'は' &&
       resolvedToken && resolvedToken.pos && Array.isArray(resolvedToken.pos) && resolvedToken.pos[0] === '助詞' &&
@@ -3433,6 +3481,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           if (isPlaying) stopSpeaking();
           highlightToken(surface, element);
           let textToSpeak = tokenData.reading || surface;
+          // 只有在surface确实是单个"は"字符且为助词时才转换
           if (surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
             textToSpeak = 'わ';
           }
@@ -3682,6 +3731,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
             let textToSpeak = tokenData.reading || tokenData.surface || '';
             
             // 特殊处理：助词"は"单字时读作"wa"
+            // 但要注意：如果surface是合并词汇（如"はつか"），则不应应用此规则
             if (
               tokenData.surface === 'は' &&
               tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞' &&
@@ -3728,6 +3778,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
               let textToSpeak = tokenData.reading || tokenData.surface || '';
               
               // 特殊处理：助词"は"单字时读作"wa"
+              // 但要注意：如果surface是合并词汇（如"はつか"），则不应应用此规则
               if (
                 tokenData.surface === 'は' &&
                 tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞' &&
