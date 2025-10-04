@@ -2104,6 +2104,14 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   line-height: 1.6;
   text-align: center;
 }
+.footer-inner { 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px; 
+  flex-wrap: wrap;
+}
+.footer-brand { color: var(--primary); font-weight: 500; }
 .footer a {
   color: var(--primary);
   text-decoration: none;
@@ -2114,6 +2122,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 .footer .theme-icon-btn {
   border:none
 }
+.footer-link { display: inline-flex; align-items: center; gap: 6px; }
+.footer-sep { color: var(--border); }
+.footer-copy { color: var(--control-muted); }
 /* 移动端页脚规则已移除 */
 
 /* 播放高亮 */
