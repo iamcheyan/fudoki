@@ -20,6 +20,8 @@
   const editorDocDate = document.getElementById('editorDocDate');
   const editorCharCount = document.getElementById('editorCharCount');
   const editorStarToggle = document.getElementById('editorStarToggle');
+  // 左侧列表底部按钮可能被移除，这里做安全获取
+  const deleteDocBtn = document.getElementById('deleteDocBtn');
   const editorNewBtn = document.getElementById('editorNewBtn');
   const editorDeleteBtn = document.getElementById('editorDeleteBtn');
   const themeToggleBtn = document.getElementById('theme-toggle');
@@ -246,7 +248,16 @@
       pwaError: 'キャッシュに失敗しました: {message}',
       pwaUnsupported: 'このブラウザーはオフラインインストールに対応していません。',
       pwaAlreadyCaching: 'リソースをダウンロードしています…',
-      pwaDismiss: '閉じる'
+      pwaDismiss: '閉じる',
+      delete: '削除',
+      cancel: 'キャンセル',
+      newDocument: '新規ドキュメント',
+      deleteDocument: 'ドキュメント削除',
+      applications: 'アプリケーション',
+      closeApplicationList: 'アプリケーションリストを閉じる',
+      close: '閉じる',
+      confirmExit: '終了しますか？',
+      exitInDevelopment: '終了機能は開発中です...'
     },
     en: {
       title: 'Fudoki',
@@ -325,7 +336,16 @@
       pwaError: 'Caching failed: {message}',
       pwaUnsupported: 'This browser does not support offline installation.',
       pwaAlreadyCaching: 'Download in progress…',
-      pwaDismiss: 'Dismiss'
+      pwaDismiss: 'Dismiss',
+      delete: 'Delete',
+      cancel: 'Cancel',
+      newDocument: 'New Document',
+      deleteDocument: 'Delete Document',
+      applications: 'Applications',
+      closeApplicationList: 'Close application list',
+      close: 'Close',
+      confirmExit: 'Are you sure you want to exit?',
+      exitInDevelopment: 'Exit feature is under development...'
     },
     zh: {
       title: 'Fudoki',
@@ -403,7 +423,16 @@
       pwaError: '缓存失败：{message}',
       pwaUnsupported: '当前浏览器不支持离线安装。',
       pwaAlreadyCaching: '正在下载离线资源…',
-      pwaDismiss: '关闭提示'
+      pwaDismiss: '关闭提示',
+      delete: '删除',
+      cancel: '取消',
+      newDocument: '新建文档',
+      deleteDocument: '删除文档',
+      applications: '应用程序',
+      closeApplicationList: '关闭应用程序列表',
+      close: '关闭',
+      confirmExit: '确定要退出吗？',
+      exitInDevelopment: '退出功能开发中...'
     }
   };
 
@@ -969,9 +998,15 @@
 
     const sidebarDocsTitle = $('sidebarDocsTitle');
     if (sidebarDocsTitle) sidebarDocsTitle.textContent = t('sidebarDocsTitle');
-    if (newDocBtn) newDocBtn.textContent = t('newDoc');
+    if (newDocBtn) {
+      const newDocBtnText = document.getElementById('newDocBtnText');
+      if (newDocBtnText) newDocBtnText.textContent = t('newDoc');
+    }
     const deleteDocBtn = $('deleteDocBtn');
-    if (deleteDocBtn) deleteDocBtn.textContent = t('deleteDoc');
+    if (deleteDocBtn) {
+      const deleteDocBtnText = document.getElementById('deleteDocBtnText');
+      if (deleteDocBtnText) deleteDocBtnText.textContent = t('deleteDoc');
+    }
 
     if (textInput) textInput.placeholder = t('textareaPlaceholder');
     if (analyzeBtn) analyzeBtn.textContent = t('analyzeBtn');
@@ -1145,6 +1180,13 @@
       langDropdownIcon.alt = cfg.alt;
       if (langDropdownBtn) langDropdownBtn.title = cfg.title;
     }
+    // 更新应用程序抽屉
+    const appDrawerTitle = document.getElementById('appDrawerTitle');
+    if (appDrawerTitle) appDrawerTitle.textContent = t('applications');
+    
+    const appDrawerClose = document.getElementById('appDrawerClose');
+    if (appDrawerClose) appDrawerClose.setAttribute('aria-label', t('closeApplicationList'));
+    
     // 语言变化时刷新主题图标与aria标签
     updateReadingToggleLabels();
     applyTheme(savedTheme);
@@ -1748,7 +1790,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     deleteConfirm.setAttribute('aria-labelledby', 'deleteConfirmTitle');
     deleteConfirm.innerHTML = `
       <div class="delete-confirm-header">
-        <div class="delete-confirm-title" id="deleteConfirmTitle">${t('delete') || '删除'}</div>
+        <div class="delete-confirm-title" id="deleteConfirmTitle">${t('delete')}</div>
         <button class="delete-confirm-close" aria-label="关闭">×</button>
       </div>
       <div class="delete-confirm-content">
@@ -1759,8 +1801,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
           <span class="delete-confirm-text">${message}</span>
         </div>
         <div class="delete-confirm-actions">
-          <button class="btn delete-confirm-cancel">${t('cancel') || '取消'}</button>
-          <button class="btn btn-danger delete-confirm-ok">${t('delete') || '删除'}</button>
+          <button class="btn delete-confirm-cancel">${t('cancel')}</button>
+          <button class="btn btn-danger delete-confirm-ok">${t('delete')}</button>
         </div>
       </div>
     `;
@@ -4346,8 +4388,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (logoutBtn) {
       logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (confirm('确定要退出吗？')) {
-          alert('退出功能开发中...');
+        if (confirm(t('confirmExit'))) {
+          alert(t('exitInDevelopment'));
           // 这里可以添加实际的退出逻辑
         }
       });

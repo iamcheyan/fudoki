@@ -2354,31 +2354,8 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   animation: fadeOut 0.3s ease-out forwards;
 }
 
-/* 阅读模式按钮在阅读模式下保持可见和固定位置 */
-#reading-mode .reading-mode-toggle {
-  display: inline-flex !important;
-  position: fixed !important;
-  bottom: 28px !important;
-  right: 28px !important;
-  z-index: 10050 !important;
-  /* 强制重置所有可能影响定位的属性 */
-  left: auto !important;
-  top: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  will-change: auto !important;
-}
 
-/* 额外的强制定位保护 */
-body#reading-mode .reading-mode-toggle {
-  position: fixed !important;
-  bottom: 28px !important;
-  right: 28px !important;
-  z-index: 10050 !important;
-  transform: none !important;
-  left: auto !important;
-  top: auto !important;
-}
+
 
 /* 阅读模式内容区域动画 */
 #reading-mode .content-area {
@@ -2641,12 +2618,6 @@ body#reading-mode .reading-mode-toggle {
 [data-theme="dark"] .content-area {
   background: rgba(32, 38, 49, 0.72);
   border: 1px solid rgba(255,255,255,0.08);
-}
-
-[data-theme="dark"] .line-container {
-  border-radius: 10px;
-  margin: 6px 0;
-  padding: 6px 8px;
 }
 
 [data-theme="dark"] .token-pill {
