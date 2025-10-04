@@ -38,7 +38,14 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('message', (event) => {
   const data = event.data;
-  if (!data || data.type !== 'CACHE_ASSETS') {
+  if (!data) return;
+
+  if (data.type === 'PWA_RESET') {
+    event.waitUntil(handleCacheReset(data, event.source));
+    return;
+  }
+
+  if (data.type !== 'CACHE_ASSETS') {
     return;
   }
 
@@ -47,6 +54,31 @@ self.addEventListener('message', (event) => {
 
   event.waitUntil(cacheAssetsSequentially(assets, requestId, event.source));
 });
+
+async function handleCacheReset(data, source) {
+  const requestId = data.requestId;
+  const prefix = typeof data.cachePrefix === 'string' && data.cachePrefix.length ? data.cachePrefix : null;
+  const client = source ? await getClient(source.id) : null;
+
+  try {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => {
+      if (!prefix) return true;
+      return key.startsWith(prefix);
+    }).map((key) => caches.delete(key)));
+
+    await notifyClient(client, {
+      type: 'PWA_RESET_DONE',
+      requestId
+    });
+  } catch (error) {
+    await notifyClient(client, {
+      type: 'PWA_RESET_FAILED',
+      requestId,
+      message: error?.message || 'reset failed'
+    });
+  }
+}
 
 async function cacheAssetsSequentially(assets, requestId, source) {
   const total = assets.length;

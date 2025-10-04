@@ -85,6 +85,7 @@
   };
 
   const PWA_MANIFEST_URL = 'static/pwa-assets.json';
+  const PWA_CACHE_PREFIX = 'fudoki-cache';
   const PWA_STATE = {
     installing: false,
     requestId: null,
@@ -97,6 +98,43 @@
     lastError: ''
   };
   let pwaListenerAttached = false;
+  const swResetResolvers = new Map();
+
+  function createRequestId(prefix = 'pwa') {
+    return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function requestServiceWorkerReset(controller, timeoutMs = 15000) {
+    return new Promise((resolve, reject) => {
+      const requestId = createRequestId('pwa-reset');
+      const timer = setTimeout(() => {
+        if (swResetResolvers.has(requestId)) {
+          swResetResolvers.delete(requestId);
+          reject(new Error('reset-timeout'));
+        }
+      }, timeoutMs);
+
+      swResetResolvers.set(requestId, {
+        resolve: () => {
+          clearTimeout(timer);
+          swResetResolvers.delete(requestId);
+          resolve();
+        },
+        reject: (error) => {
+          clearTimeout(timer);
+          swResetResolvers.delete(requestId);
+          const err = error instanceof Error ? error : new Error(error?.message || String(error));
+          reject(err);
+        }
+      });
+
+      controller.postMessage({
+        type: 'PWA_RESET',
+        requestId,
+        cachePrefix: PWA_CACHE_PREFIX
+      });
+    });
+  }
 
   let isReadingMode = false;
   let activeReadingLine = null;
@@ -255,6 +293,9 @@
       pwaUnsupported: 'このブラウザーはオフラインインストールに対応していません。',
       pwaAlreadyCaching: 'リソースをダウンロードしています…',
       pwaDismiss: '閉じる',
+      pwaResetting: '古いオフラインデータを整理しています…',
+      pwaResetFailed: 'キャッシュのリセットに失敗しました: {message}',
+      pwaOffline: 'ネットワークに接続してからダウンロードしてください。',
       delete: '削除',
       cancel: 'キャンセル',
       newDocument: '新規ドキュメント',
@@ -349,6 +390,9 @@
       pwaUnsupported: 'This browser does not support offline installation.',
       pwaAlreadyCaching: 'Download in progress…',
       pwaDismiss: 'Dismiss',
+      pwaResetting: 'Clearing old offline cache…',
+      pwaResetFailed: 'Reset failed: {message}',
+      pwaOffline: 'Connect to the internet before downloading.',
       delete: 'Delete',
       cancel: 'Cancel',
       newDocument: 'New Document',
@@ -442,6 +486,9 @@
       pwaUnsupported: '当前浏览器不支持离线安装。',
       pwaAlreadyCaching: '正在下载离线资源…',
       pwaDismiss: '关闭提示',
+      pwaResetting: '正在清理旧的离线缓存…',
+      pwaResetFailed: '清理缓存失败：{message}',
+      pwaOffline: '请联网后再下载离线资源。',
       delete: '删除',
       cancel: '取消',
       newDocument: '新建文档',
@@ -655,7 +702,23 @@
 
   function handleServiceWorkerMessage(event) {
     const data = event.data;
-    if (!data || data.requestId && data.requestId !== PWA_STATE.requestId) {
+    if (!data) return;
+
+    if (data.type === 'PWA_RESET_DONE' || data.type === 'PWA_RESET_FAILED') {
+      const resolver = data.requestId ? swResetResolvers.get(data.requestId) : null;
+      if (resolver) {
+        if (data.type === 'PWA_RESET_DONE') {
+          resolver.resolve();
+        } else {
+          resolver.reject(new Error(data.message || 'reset failed'));
+        }
+      } else if (data.type === 'PWA_RESET_FAILED') {
+        console.warn('[PWA] Reset failed without resolver', data.message);
+      }
+      return;
+    }
+
+    if (data.requestId && data.requestId !== PWA_STATE.requestId) {
       return;
     }
 
@@ -751,6 +814,15 @@
       return;
     }
 
+    if (navigator && 'onLine' in navigator && !navigator.onLine) {
+      updatePwaToast('error', {
+        title: formatMessage('pwaTitle'),
+        message: formatMessage('pwaOffline'),
+        icon: 'error'
+      });
+      return;
+    }
+
     if (PWA_STATE.installing) {
       const progressValue = PWA_STATE.total ? PWA_STATE.completed / PWA_STATE.total : 0;
       updatePwaToast('progress', {
@@ -768,7 +840,45 @@
     PWA_STATE.total = 0;
     PWA_STATE.completed = 0;
     PWA_STATE.failedAssets = [];
+    PWA_STATE.requestId = null;
     headerDownloadBtn?.classList.add('is-loading');
+
+    updatePwaToast('progress', {
+      title: formatMessage('pwaTitle'),
+      message: formatMessage('pwaResetting'),
+      progress: null,
+      icon: 'download'
+    });
+
+    let controller; 
+    let registration;
+    try {
+      registration = await navigator.serviceWorker.register('./service-worker.js');
+      PWA_STATE.registration = registration;
+      const ready = await navigator.serviceWorker.ready;
+      controller = navigator.serviceWorker.controller || ready.active || registration.active;
+      if (!controller) {
+        throw new Error('no-controller');
+      }
+
+      if (!pwaListenerAttached) {
+        navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+        pwaListenerAttached = true;
+      }
+
+      await requestServiceWorkerReset(controller);
+    } catch (error) {
+      console.error('PWA reset failed', error);
+      PWA_STATE.installing = false;
+      headerDownloadBtn?.classList.remove('is-loading');
+      updatePwaToast('error', {
+        title: formatMessage('pwaTitle'),
+        message: formatMessage('pwaResetFailed', { message: error?.message || 'unknown' }),
+        progress: 0,
+        icon: 'error'
+      });
+      return;
+    }
 
     updatePwaToast('progress', {
       title: formatMessage('pwaTitle'),
@@ -795,20 +905,8 @@
       }).filter(Boolean);
 
       PWA_STATE.total = normalizedAssets.length;
-      const registration = await navigator.serviceWorker.register('./service-worker.js');
-      PWA_STATE.registration = registration;
-      const ready = await navigator.serviceWorker.ready;
-      const controller = navigator.serviceWorker.controller || ready.active || registration.active;
-      if (!controller) {
-        throw new Error('no-controller');
-      }
 
-      if (!pwaListenerAttached) {
-        navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-        pwaListenerAttached = true;
-      }
-
-      PWA_STATE.requestId = `pwa-${Date.now()}`;
+      PWA_STATE.requestId = createRequestId('pwa');
       controller.postMessage({
         type: 'CACHE_ASSETS',
         assets: normalizedAssets,
@@ -824,6 +922,7 @@
     } catch (error) {
       console.error('PWA cache failed', error);
       PWA_STATE.installing = false;
+      PWA_STATE.requestId = null;
       headerDownloadBtn?.classList.remove('is-loading');
       updatePwaToast('error', {
         title: formatMessage('pwaTitle'),
