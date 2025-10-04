@@ -1665,6 +1665,14 @@ select, input[type="range"] {
   border: 1px solid var(--control-border);
 }
 .theme-icon-btn svg { fill: var(--text); }
+/* 仅针对顶部导航的新建文档按钮：路径采用描边渲染，避免 fill="none" 导致不可见 */
+#editorNewBtn svg path {
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
 .theme-icon-btn:hover { background: rgba(0,0,0,0.06); }
 :root[data-theme="dark"] .theme-icon-btn:hover { background: rgba(255,255,255,0.06); }
 .theme-icon-btn.is-loading {

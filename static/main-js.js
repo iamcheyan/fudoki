@@ -1973,6 +1973,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
 
       if (!skipConfirm) {
+        // 预先计算删除后的应激活文档：优先激活“上一个”文档；无上一个则激活“下一个”；都没有则清空
+        const nextActiveId = (() => {
+          if (index > 0) return docs[index - 1].id;           // 上一个
+          if (docs.length > 1) return docs[1].id;             // 下一个（被删的是第一个）
+          return '';
+        })();
+
         showDeleteConfirm((t('confirmDelete') || '').replace('{title}', this.getDocumentTitle(doc.content)), 
           () => {
             // 确认删除
@@ -1981,9 +1988,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
             // 如果删除的是当前活动文档，切换到第一个文档
             if (id === this.getActiveId()) {
-              const firstDoc = docs[0];
-              if (firstDoc) {
-                this.setActiveId(firstDoc.id);
+              if (nextActiveId) {
+                this.setActiveId(nextActiveId);
               } else {
                 this.setActiveId('');
               }
@@ -2003,14 +2009,18 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
       // 如果是skipConfirm模式，直接删除
       if (skipConfirm) {
+        const nextActiveId = (() => {
+          if (index > 0) return docs[index - 1].id;
+          if (docs.length > 1) return docs[1].id;
+          return '';
+        })();
         docs.splice(index, 1);
         this.saveAllDocuments(docs);
 
         // 如果删除的是当前活动文档，切换到第一个文档
         if (id === this.getActiveId()) {
-          const firstDoc = docs[0];
-          if (firstDoc) {
-            this.setActiveId(firstDoc.id);
+          if (nextActiveId) {
+            this.setActiveId(nextActiveId);
           } else {
             this.setActiveId('');
           }
