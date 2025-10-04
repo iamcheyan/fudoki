@@ -4824,15 +4824,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
       <div class="settings-section">
         <div class="sidebar-title" id="${id('voiceSettingsTitle')}">${t('voiceTitle')}</div>
         <div class="voice-controls">
-          <div class="control-group">
-            <label class="control-label" id="${id('voiceSelectLabel')}">${t('voiceSelectLabel')}</label>
+          <div class="control-group select-group">
+            <label class="control-label" id="${id('voiceSelectLabel')}"><span class="label-text">${t('voiceSelectLabel')}</span></label>
             <select id="${id('voiceSelect')}">
               <option value="">${t('selectVoice')}</option>
             </select>
           </div>
 
-          <div class="control-group">
-            <label class="control-label" id="${id('speedLabel')}">${t('speedLabel')}</label>
+          <div class="control-group full-width">
+            <label class="control-label" id="${id('speedLabel')}"><span class="label-text">${t('speedLabel')}</span></label>
             <input type="range" id="${id('speedRange')}" min="0.5" max="2" step="0.1" value="1">
             <div class="speed-display" id="${id('speedValue')}">1.0x</div>
           </div>
@@ -4843,71 +4843,71 @@ Try Fudoki and enjoy Japanese language analysis!`;
       <div class="settings-section">
         <div class="sidebar-title" id="${id('displayTitle')}">${t('displayTitle')}</div>
         <div class="display-controls">
-          <div class="control-group">
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('showKanaLabel')}">
               <input type="checkbox" id="${id('showKana')}" checked>
-              ${t('showKana')}
+              <span class="label-text">${t('showKana')}</span>
             </label>
           </div>
 
-          <div class="control-group">
-            <label class="control-label" id="${id('readingScriptLabel')}">${t('readingScript')}</label>
+          <div class="control-group select-group">
+            <label class="control-label" id="${id('readingScriptLabel')}"><span class="label-text">${t('readingScript')}</span></label>
             <select id="${id('readingScriptSelect')}">
               <option id="${id('readingScriptOptionKatakana')}" value="katakana">${t('katakanaLabel')}</option>
               <option id="${id('readingScriptOptionHiragana')}" value="hiragana">${t('hiraganaLabel')}</option>
             </select>
           </div>
           
-          <div class="control-group">
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('showRomajiLabel')}">
               <input type="checkbox" id="${id('showRomaji')}" checked>
-              ${t('showRomaji')}
+              <span class="label-text">${t('showRomaji')}</span>
             </label>
           </div>
           
-          <div class="control-group">
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('showPosLabel')}">
               <input type="checkbox" id="${id('showPos')}" checked>
-              ${t('showPos')}
+              <span class="label-text">${t('showPos')}</span>
             </label>
           </div>
 
-          <div class="control-group">
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('showDetailsLabel')}">
               <input type="checkbox" id="${id('showDetails')}" checked>
-              ${t('showDetails')}
+              <span class="label-text">${t('showDetails')}</span>
             </label>
           </div>
           
-          <div class="control-group">
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('showUnderlineLabel')}">
               <input type="checkbox" id="${id('showUnderline')}" checked>
-              ${t('showUnderline')}
+              <span class="label-text">${t('showUnderline')}</span>
             </label>
           </div>
           
-          <div class="control-group">
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('autoReadLabel')}">
               <input type="checkbox" id="${id('autoRead')}">
-              ${t('autoRead')}
+              <span class="label-text">${t('autoRead')}</span>
             </label>
           </div>
 
-          <div class="control-group">
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('haAsWaLabel')}">
               <input type="checkbox" id="${id('haAsWa')}" checked>
-              ${t('haAsWaLabel')}
+              <span class="label-text">${t('haAsWaLabel')}</span>
             </label>
           </div>
           
-          <div class="control-group">
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('repeatPlayLabel')}">
               <input type="checkbox" id="${id('repeatPlay')}">
-              ${t('repeatPlay')}
+              <span class="label-text">${t('repeatPlay')}</span>
             </label>
           </div>
-          <div class="control-group">
-            <label class="control-label" id="${id('fontSizeLabel')}">${t('fontSizeLabel')}</label>
+          <div class="control-group full-width">
+            <label class="control-label" id="${id('fontSizeLabel')}"><span class="label-text">${t('fontSizeLabel')}</span></label>
             <input type="range" id="${id('fontSizeRange')}" min="0.8" max="1.5" step="0.05" value="1">
             <div class="speed-display" id="${id('fontSizeValue')}">100%</div>
           </div>
@@ -4918,8 +4918,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       <div class="settings-section">
         <div class="sidebar-title" id="${id('systemTitle')}">${t('systemTitle')}</div>
         <div class="system-controls">
-          <div class="control-group">
-            <label class="control-label" id="${id('themeLabel')}">${t('themeLabel')}</label>
+          <div class="control-group select-group">
+            <label class="control-label" id="${id('themeLabel')}"><span class="label-text">${t('themeLabel')}</span></label>
             <select id="${id('themeSelect')}">
               <option value="paper">${t('themePaper')}</option>
               <option value="sakura">${t('themeSakura')}</option>
@@ -4930,8 +4930,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
               <option value="auto">${t('themeAuto')}</option>
             </select>
           </div>
-          <div class="control-group">
-            <label class="control-label" id="${id('langLabel')}">${t('langLabel')}</label>
+          <div class="control-group select-group">
+            <label class="control-label" id="${id('langLabel')}"><span class="label-text">${t('langLabel')}</span></label>
             <select id="${id('langSelect')}">
               <option value="ja">日本語</option>
               <option value="en">English</option>

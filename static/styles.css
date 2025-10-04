@@ -1269,33 +1269,48 @@ input:focus, textarea:focus, select:focus {
 .voice-controls,
 .display-controls {
   display: flex;
-  flex-direction: row;         /* 横向排列 */
-  flex-wrap: wrap;             /* 换行以适配窄屏 */
-  gap: 12px;                   /* 控件间距 */
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
   row-gap: 10px;
-  align-items: center;         /* 垂直居中对齐 */
+  align-items: center;
   min-height: 40px;
 }
 
 .control-group {
-  margin-bottom: 0;            /* 工具栏风格：去掉底部外边距 */
+  margin-bottom: 0;
   display: inline-flex;
-  align-items: center;         /* 组内元素垂直居中 */
+  align-items: center;
   gap: 8px;
   margin-right: 12px;
 }
 
+/* 两列整齐布局：每组占半行，窄屏自动换行 */
+.select-group {
+  flex: 1 1 calc(50% - 12px);
+  min-width: 240px;
+}
+.checkbox-group {
+  flex: 1 1 calc(33.333% - 12px);
+  min-width: 200px;
+}
+.control-group.full-width {
+  flex: 1 1 100%;
+  min-width: 100%;
+}
+
 .control-label {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   font-size: 12px;
   color: var(--muted);
   margin-bottom: 0;            /* 工具栏横排时不需要额外下边距 */
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;         /* 允许标签文本换行以适配更紧凑布局 */
 }
+.control-label .label-text { white-space: normal; }
 
 .control-label input[type="checkbox"] {
   margin: 0;
