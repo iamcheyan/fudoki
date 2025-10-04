@@ -437,7 +437,7 @@ body {
   grid-template-columns: 500px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
   gap: 1px;
   box-shadow: 0 10px 30px var(--border);
-  min-height: calc(100vh - 60px);
+  height: calc(100vh - 60px); /* 固定为视口高度（扣除顶部 60px） */
   /* border-radius: 20px; */
   overflow: hidden;
   transition: grid-template-columns 0.3s ease;
@@ -462,10 +462,14 @@ body {
   border-right: 1px solid var(--border);
   display: grid;
   grid-template-columns: 250px 1fr; /* 左右排列：左侧250px，右侧自适应 */
+  height: calc(100vh - 60px); /* 与视口同高，避免页面整体滚动 */
+  min-height: 0; /* 允许内部滚动容器收缩 */
 }
 /* 中间列表面板 */
 .list-panel {
   background: var(--bg);
+  overflow-y: auto; /* 列表独立滚动 */
+  min-height: 0;   /* 配合父容器高度，避免内容被裁切 */
 }
 
 .list-content {
@@ -511,6 +515,12 @@ body {
 }
 .main-container.collapsed .content-main{
   position: relative;
+}
+/* 右侧内容区域：与视口同高并可独立滚动 */
+.content-main {
+  height: calc(100vh - 60px);
+  min-height: 0;
+  overflow-y: auto;
 }
 /* 侧边栏内容 */
 .sidebar-content {
