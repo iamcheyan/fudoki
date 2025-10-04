@@ -765,6 +765,7 @@ input:focus, textarea:focus, select:focus {
   margin: 0 10px;
   overflow-y: auto;
   background: var(--bg);
+  padding-bottom: 50px;
 }
 
 /* 行容器 - 简洁线条风格 */
