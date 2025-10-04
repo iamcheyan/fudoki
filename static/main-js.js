@@ -16,11 +16,21 @@
   const langSelect = $('langSelect');
   const themeSelect = document.getElementById('themeSelect');
   const readingModeToggle = $('readingModeToggle');
+  const editorReadingToggle = document.getElementById('editorReadingToggle');
+  const editorDocDate = document.getElementById('editorDocDate');
+  const editorCharCount = document.getElementById('editorCharCount');
+  const editorStarToggle = document.getElementById('editorStarToggle');
+  const editorNewBtn = document.getElementById('editorNewBtn');
+  const editorDeleteBtn = document.getElementById('editorDeleteBtn');
   const themeToggleBtn = document.getElementById('theme-toggle');
   // 导航语言国旗按钮
   const langFlagJA = $('langFlagJA');
   const langFlagEN = $('langFlagEN');
   const langFlagZH = $('langFlagZH');
+  // 移动端语言下拉
+  const langDropdownBtn = $('langDropdownBtn');
+  const langDropdownMenu = $('langDropdownMenu');
+  const langDropdownIcon = $('langDropdownIcon');
   
   // 右侧边栏元素
   const sidebarVoiceSelect = $('sidebarVoiceSelect');
@@ -842,7 +852,6 @@
   }
 
   function updateReadingToggleLabels() {
-    if (!readingModeToggle) return;
     const enterLabel = t('readingToggleEnter') || '阅读模式';
     const exitLabel = t('readingToggleExit') || '退出阅读';
     const enterTooltip = t('readingToggleTooltipEnter') || enterLabel;
@@ -850,10 +859,13 @@
     const label = isReadingMode ? exitLabel : enterLabel;
     const tooltip = isReadingMode ? exitTooltip : enterTooltip;
 
-    readingModeToggle.title = tooltip;
-    readingModeToggle.setAttribute('aria-label', tooltip);
-    readingModeToggle.setAttribute('aria-pressed', String(isReadingMode));
-    readingModeToggle.classList.toggle('is-active', isReadingMode);
+    [readingModeToggle, editorReadingToggle].forEach((btn) => {
+      if (!btn) return;
+      btn.title = tooltip;
+      btn.setAttribute('aria-label', tooltip);
+      btn.setAttribute('aria-pressed', String(isReadingMode));
+      btn.classList.toggle('is-active', isReadingMode);
+    });
   }
 
   function setReadingMode(enabled, options = {}) {
@@ -900,10 +912,11 @@
     requestAnimationFrame(() => {
       document.body.id = shouldEnable ? 'reading-mode' : '';
       
-      if (readingModeToggle) {
-        readingModeToggle.classList.toggle('is-active', shouldEnable);
-        readingModeToggle.setAttribute('aria-pressed', String(shouldEnable));
-      }
+      [readingModeToggle, editorReadingToggle].forEach((btn) => {
+        if (!btn) return;
+        btn.classList.toggle('is-active', shouldEnable);
+        btn.setAttribute('aria-pressed', String(shouldEnable));
+      });
       
       updateReadingToggleLabels();
       
@@ -1120,6 +1133,18 @@
     const flagMap = { ja: langFlagJA, en: langFlagEN, zh: langFlagZH };
     Object.values(flagMap).forEach(btn => { if (btn) btn.classList.remove('active'); });
     if (flagMap[currentLang]) flagMap[currentLang].classList.add('active');
+    // 更新移动端下拉的当前国旗图标
+    if (langDropdownIcon) {
+      const iconCfg = {
+        ja: { src: 'static/flags/ja.svg', alt: '日本語', title: '日本語' },
+        en: { src: 'static/flags/en.svg', alt: 'English', title: 'English' },
+        zh: { src: 'static/flags/zh.svg', alt: '中文', title: '中文' }
+      };
+      const cfg = iconCfg[currentLang] || iconCfg.zh;
+      langDropdownIcon.src = cfg.src;
+      langDropdownIcon.alt = cfg.alt;
+      if (langDropdownBtn) langDropdownBtn.title = cfg.title;
+    }
     // 语言变化时刷新主题图标与aria标签
     updateReadingToggleLabels();
     applyTheme(savedTheme);
@@ -1189,6 +1214,47 @@
   if (langFlagJA) langFlagJA.addEventListener('click', () => setLanguage('ja'));
   if (langFlagEN) langFlagEN.addEventListener('click', () => setLanguage('en'));
   if (langFlagZH) langFlagZH.addEventListener('click', () => setLanguage('zh'));
+
+  // 语言下拉菜单交互（移动端）
+  function toggleLangDropdown(forceOpen) {
+    if (!langDropdownBtn) return;
+    const container = langDropdownBtn.parentElement;
+    if (!container) return;
+    const open = typeof forceOpen === 'boolean' ? forceOpen : !container.classList.contains('open');
+    container.classList.toggle('open', open);
+    langDropdownBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  if (langDropdownBtn) {
+    langDropdownBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleLangDropdown();
+    });
+  }
+
+  if (langDropdownMenu) {
+    const opts = langDropdownMenu.querySelectorAll('.lang-option');
+    opts.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const lang = btn.getAttribute('data-lang');
+        if (lang) setLanguage(lang);
+        toggleLangDropdown(false);
+        e.stopPropagation();
+      });
+    });
+  }
+
+  // 外部点击与 ESC 关闭下拉
+  document.addEventListener('click', (e) => {
+    if (!langDropdownBtn) return;
+    const container = langDropdownBtn.parentElement;
+    if (!container) return;
+    if (!container.classList.contains('open')) return;
+    if (!container.contains(e.target)) toggleLangDropdown(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') toggleLangDropdown(false);
+  });
 
   // 主题切换
   const THEME = { LIGHT: 'light', DARK: 'dark' };
@@ -1971,6 +2037,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       } else {
         textInput.value = '';
       }
+      // 更新顶部工具栏显示
+      try { updateEditorToolbar(); } catch (_) {}
     }
 
     // 渲染文档列表
@@ -2109,6 +2177,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
           saveTimeout = setTimeout(() => {
             this.saveCurrentDocument();
           }, 1000); // 1秒后自动保存
+          // 同步更新顶部工具栏字数
+          try { updateEditorToolbar(); } catch (_) {}
         });
       }
     }
@@ -3559,6 +3629,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
   } else {
     showEmptyState();
   }
+  // 初始化顶部编辑工具栏
+  try { initEditorToolbar(); } catch (_) {}
 
 // 高度调整功能
   function initToolbarResize() {
@@ -3634,6 +3706,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const mainContainer = document.querySelector('.main-container');
     const toggleBtn = document.getElementById('sidebarToggle');
     const collapseMenuBtn = document.getElementById('collapseMenuBtn');
+    const editorReadingToggle = document.getElementById('editorReadingToggle');
     
     if (!sidebarStack || !mainContainer) return;
     
@@ -3668,6 +3741,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 绑定事件 - 只有当按钮存在时才绑定
     if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
     if (collapseMenuBtn) collapseMenuBtn.addEventListener('click', toggleSidebar);
+    if (editorReadingToggle) editorReadingToggle.addEventListener('click', toggleSidebar);
 
     // 移动端：点击/触摸 sidebar-stack 以外任意区域时收起菜单
     function handleOutsideInteraction(e) {
@@ -3675,7 +3749,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (!isMobile()) return;
         // 忽略来自菜单按钮或侧边栏折叠按钮的点击/触摸
         const isToggleClick = (collapseMenuBtn && collapseMenuBtn.contains(e.target)) ||
-                              (toggleBtn && toggleBtn.contains(e.target));
+                              (toggleBtn && toggleBtn.contains(e.target)) ||
+                              (editorReadingToggle && editorReadingToggle.contains(e.target));
         if (isToggleClick) return;
 
         // 仅当抽屉已展开且点击在 sidebar-stack 以外时收起
@@ -3700,10 +3775,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
   // 右侧边栏自动收缩功能已完全移除
 
   function initReadingModeToggle() {
-    if (!readingModeToggle) return;
     setReadingMode(isReadingMode, { updateUrl: false, force: true });
-    readingModeToggle.addEventListener('click', () => {
-      setReadingMode(!isReadingMode);
+    [readingModeToggle, editorReadingToggle].forEach((btn) => {
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        setReadingMode(!isReadingMode);
+      });
     });
     window.addEventListener('popstate', () => {
       try {
@@ -3711,6 +3788,75 @@ Try Fudoki and enjoy Japanese language analysis!`;
         setReadingMode(url.searchParams.has('read'), { updateUrl: false, force: true });
       } catch (_) {}
     });
+  }
+
+  // 顶部编辑工具栏：日期、字数与星标
+  function updateEditorToolbar() {
+    try {
+      const docs = documentManager.getAllDocuments();
+      const activeId = documentManager.getActiveId();
+      const doc = docs.find(d => d.id === activeId);
+
+      if (editorDocDate) {
+        editorDocDate.textContent = doc ? documentManager.formatCreationTime(doc.createdAt) : '';
+      }
+      if (editorCharCount) {
+        const count = (textInput && textInput.value) ? textInput.value.length : 0;
+        editorCharCount.textContent = `共 ${count} 字`;
+      }
+      if (editorStarToggle) {
+        const isFav = !!(doc && doc.favorite);
+        editorStarToggle.classList.toggle('is-active', isFav);
+        editorStarToggle.setAttribute('aria-pressed', String(isFav));
+        editorStarToggle.textContent = isFav ? '★' : '☆';
+      }
+
+      // 更新删除按钮禁用态（无活动文档、仅剩一条或被锁定时禁用）
+      if (editorDeleteBtn) {
+        const disabled = !doc || docs.length <= 1 || !!(doc && doc.locked);
+        editorDeleteBtn.disabled = disabled;
+      }
+    } catch (_) {}
+  }
+
+  function initEditorToolbar() {
+    if (editorNewBtn) {
+      editorNewBtn.addEventListener('click', () => {
+        documentManager.createDocument('');
+        if (textInput) textInput.focus();
+        updateEditorToolbar();
+      });
+    }
+
+    if (editorDeleteBtn) {
+      editorDeleteBtn.addEventListener('click', () => {
+        const activeId = documentManager.getActiveId();
+        if (activeId) {
+          const activeDocItem = document.querySelector(`.doc-item[data-doc-id="${activeId}"]`);
+          documentManager.deleteDocument(activeId, false, activeDocItem);
+          updateEditorToolbar();
+        }
+      });
+    }
+
+    if (editorStarToggle) {
+      editorStarToggle.addEventListener('click', () => {
+        const docs = documentManager.getAllDocuments();
+        const activeId = documentManager.getActiveId();
+        const doc = docs.find(d => d.id === activeId);
+        if (!doc) return;
+        doc.favorite = !doc.favorite;
+        documentManager.saveAllDocuments(docs);
+        documentManager.render();
+        updateEditorToolbar();
+      });
+    }
+
+    if (textInput) {
+      textInput.addEventListener('input', () => updateEditorToolbar());
+    }
+
+    updateEditorToolbar();
   }
 
   function initReadingModeInteractions() {
@@ -4080,6 +4226,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
   } else {
     initializeApp();
   }
+  
+  // 初始化应用程序抽屉
+  initAppDrawer();
 
   // 全局键盘：在阅读模式下按 ESC 退出
   document.addEventListener('keydown', (e) => {
@@ -4088,5 +4237,114 @@ Try Fudoki and enjoy Japanese language analysis!`;
       setReadingMode(false);
     }
   });
+
+  // 初始化应用程序抽屉
+  function initAppDrawer() {
+    const appIcon = document.getElementById('appIcon');
+    const appDrawer = document.getElementById('appDrawer');
+    const appDrawerClose = document.getElementById('appDrawerClose');
+    const appDrawerBackdrop = document.getElementById('appDrawerBackdrop');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (!appIcon || !appDrawer || !appDrawerClose) return;
+
+    // 打开抽屉
+    appIcon.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      appDrawer.classList.add('show');
+      appDrawer.setAttribute('aria-hidden', 'false');
+      if (appDrawerBackdrop) {
+        appDrawerBackdrop.setAttribute('aria-hidden', 'false');
+      }
+    });
+
+    // 关闭抽屉
+    appDrawerClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      appDrawer.classList.remove('show');
+      appDrawer.setAttribute('aria-hidden', 'true');
+      if (appDrawerBackdrop) {
+        appDrawerBackdrop.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    // 点击遮罩关闭抽屉
+    document.addEventListener('click', (e) => {
+      if (appDrawer.classList.contains('show') && !appDrawer.contains(e.target) && !appIcon.contains(e.target)) {
+        appDrawer.classList.remove('show');
+        appDrawer.setAttribute('aria-hidden', 'true');
+        if (appDrawerBackdrop) {
+          appDrawerBackdrop.setAttribute('aria-hidden', 'true');
+        }
+      }
+    });
+
+    // 点击遮罩关闭抽屉
+    if (appDrawerBackdrop) {
+      appDrawerBackdrop.addEventListener('click', (e) => {
+        e.preventDefault();
+        appDrawer.classList.remove('show');
+        appDrawer.setAttribute('aria-hidden', 'true');
+        appDrawerBackdrop.setAttribute('aria-hidden', 'true');
+      });
+    }
+
+    // 应用程序项点击事件
+    const appItems = appDrawer.querySelectorAll('.app-item');
+    appItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const appName = item.dataset.app;
+        console.log('点击了应用程序:', appName);
+
+        // 打开对应站点（新标签页）
+        switch (appName) {
+          case 'fudoki':
+            window.open('https://fudoki.iamcheyan.com/', '_blank');
+            break;
+          case 'terebi':
+            window.open('https://terebi.iamcheyan.com/', '_blank');
+            break;
+          case 'kotoba':
+            window.open('https://kotoba.iamcheyan.com/', '_blank');
+            break;
+          default:
+            // 其他占位项（若存在）保持原有行为
+            break;
+        }
+
+        // 关闭抽屉
+        appDrawer.classList.remove('show');
+        appDrawer.setAttribute('aria-hidden', 'true');
+        if (appDrawerBackdrop) {
+          appDrawerBackdrop.setAttribute('aria-hidden', 'true');
+        }
+      });
+    });
+
+    // 退出按钮
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm('确定要退出吗？')) {
+          alert('退出功能开发中...');
+          // 这里可以添加实际的退出逻辑
+        }
+      });
+    }
+
+    // ESC键关闭抽屉
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && appDrawer.classList.contains('show')) {
+        appDrawer.classList.remove('show');
+        appDrawer.setAttribute('aria-hidden', 'true');
+        if (appDrawerBackdrop) {
+          appDrawerBackdrop.setAttribute('aria-hidden', 'true');
+        }
+      }
+    });
+  }
 
 })();

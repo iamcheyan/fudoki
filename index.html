@@ -11,8 +11,7 @@
   <!-- 顶部导航 -->
   <header class="header">
     <div class="header-content">
-      <div class="header-left">
-        <!-- 应用程序图标 -->
+      <!-- 应用程序图标 -->
         <button class="theme-icon-btn app-icon" id="appIcon" aria-label="应用程序" title="应用程序">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
             <circle cx="6" cy="6" r="2"/>
@@ -26,15 +25,11 @@
             <circle cx="18" cy="18" r="2"/>
           </svg>
         </button>
+      <div class="header-left">
+        
         <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
       </div>
       <nav class="nav-menu">
-        <!-- 移动端菜单按钮：用于展开/收起左侧边栏 -->
-        <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
-          </svg>
-        </button>
         <!-- 设置齿轮图标（位于主题切换按钮左侧） -->
         <button class="theme-icon-btn" id="settingsButton" aria-label="设置" title="设置">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
@@ -69,6 +64,26 @@
           <button class="lang-flag" id="langFlagZH" title="中文" aria-label="中文">
             <img src="static/flags/zh.svg" alt="中文" class="flag-icon">
           </button>
+          <!-- 移动端：单旗下拉菜单 -->
+          <div class="lang-dropdown" id="langDropdown">
+            <button class="lang-dropdown-btn" id="langDropdownBtn" aria-haspopup="true" aria-expanded="false" title="选择语言">
+              <img src="static/flags/ja.svg" alt="日本語" class="flag-icon" id="langDropdownIcon">
+            </button>
+            <div class="lang-dropdown-menu" id="langDropdownMenu" role="menu" aria-label="选择语言">
+              <button class="lang-option" data-lang="ja" role="menuitem" title="日本語">
+                <img src="static/flags/ja.svg" alt="日本語" class="flag-icon">
+                <span class="lang-name">日本語</span>
+              </button>
+              <button class="lang-option" data-lang="en" role="menuitem" title="English">
+                <img src="static/flags/en.svg" alt="English" class="flag-icon">
+                <span class="lang-name">English</span>
+              </button>
+              <button class="lang-option" data-lang="zh" role="menuitem" title="中文">
+                <img src="static/flags/zh.svg" alt="中文" class="flag-icon">
+                <span class="lang-name">中文</span>
+              </button>
+            </div>
+          </div>
         </div>
       </nav>
     </div>
@@ -127,7 +142,35 @@
 
     <!-- 右侧列 - 内容区域 -->
     <main class="content-main">
-      
+       <!-- 编辑工具栏：显示创建日期、字数、星标与阅读模式 -->
+      <section class="editor-toolbar" id="editorToolbar" aria-label="文档工具栏">
+        <div class="editor-toolbar-left">
+          <span class="editor-date" id="editorDocDate" title="创建日期"></span>
+          <span class="editor-count" id="editorCharCount" title="字数">0 字</span>
+        </div>
+        <div class="editor-toolbar-right">
+          <!-- 新增：删除与新建按钮 -->
+          <button type="button" class="editor-delete-btn" id="editorDeleteBtn" aria-pressed="false" title="删除" disabled>
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
+              <path d="M9 3h6a1 1 0 011 1v2h3v2h-1v11a2 2 0 01-2 2H7a2 2 0 01-2-2V8H4V6h3V4a1 1 0 011-1zm1 3h4V5h-4v1zm-2 4v9h10V10H8zm2 2h2v5h-2v-5zm4 0h2v5h-2v-5z"/>
+            </svg>
+          </button>
+          <button type="button" class="editor-new-btn" id="editorNewBtn" aria-pressed="false" title="新建">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
+              <path d="M13 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8l-5-5h-2zm0 2l5 5h-5V5zm-1 6v3H9v2h3v3h2v-3h3v-2h-3v-3h-2z"/>
+            </svg>
+          </button>
+          <button type="button" class="editor-star-toggle" id="editorStarToggle" aria-pressed="false" title="加星">☆</button>
+          <!-- 将阅读模式按钮改为“展开菜单”按钮，样式与功能一致 -->
+          <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
+              <!-- 三行横线菜单图标 -->
+              <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"></path>
+            </svg>
+          </button>
+        </div>
+      </section>
+
       <!-- 输入区域 -->
       <section class="input-section">
         <div class="input-group">
@@ -171,6 +214,62 @@
 
    <!-- 右侧边栏已移除，统一使用顶部齿轮打开的设置弹窗 -->
 
+  <!-- 应用程序列表侧边栏 -->
+  <div class="app-drawer" id="appDrawer" aria-hidden="true">
+    <div class="app-drawer-content">
+      <div class="app-drawer-header">
+        <h3 class="app-drawer-title">应用程序</h3>
+        <button class="app-drawer-close" id="appDrawerClose" aria-label="关闭应用程序列表">✕</button>
+      </div>
+      <div class="app-drawer-body">
+        <div class="app-list">
+          <div class="app-item" data-app="fudoki">
+            <div class="app-icon-large">
+              <img src="https://fudoki.iamcheyan.com/static/logo.png" alt="Fudoki" width="32" height="32" />
+            </div>
+            <div class="app-info">
+              <div class="app-name">Fudoki</div>
+              <div class="app-desc">日本語学習者や自然言語処理研究者向けの日本語テキスト分析ツール。</div>
+            </div>
+          </div>
+
+          <div class="app-item" data-app="terebi">
+            <div class="app-icon-large">
+              <img src="https://terebi.iamcheyan.com/img/svg/logo.svg" alt="Terebi" width="32" height="32" />
+            </div>
+            <div class="app-info">
+              <div class="app-name">Terebi</div>
+              <div class="app-desc">日本全国100以上のテレビ局の公開番組をオンラインで視聴可能。</div>
+            </div>
+          </div>
+
+          <div class="app-item" data-app="kotoba">
+            <div class="app-icon-large">
+              <img src="https://kotoba.iamcheyan.com/static/favicon.svg" alt="Kotoba" width="32" height="32" />
+            </div>
+            <div class="app-info">
+              <div class="app-name">Kotoba</div>
+              <div class="app-desc">オンライン日本語単語暗記ツール。辞書切替や各種補助表示設定に対応。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="app-drawer-footer">
+        <div class="user-profile">
+          <div class="user-avatar">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
+              <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+            </svg>
+          </div>
+          <div class="user-info">
+            <div class="user-email">iamcheyan.com</div>
+          </div>
+        </div>
+        <!-- <button class="logout-btn" id="logoutBtn">退出</button> -->
+      </div>
+    </div>
+  </div>
+  <div class="app-drawer-backdrop" id="appDrawerBackdrop" aria-hidden="true"></div>
     
   </div>
 
