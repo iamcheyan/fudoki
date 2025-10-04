@@ -461,7 +461,7 @@ body {
 .settings-modal.show .settings-modal-content { transform: scale(1); }
 
 .settings-modal-header {
-  background: linear-gradient(135deg, var(--primary), #463201);
+  background: var(--primary);
   color: white;
   padding: 5px 10px 2px 10px;
   display: flex;
@@ -3245,4 +3245,51 @@ input[type="checkbox"] {
 
 [data-theme="dark"] .delete-confirm {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
+}
+.editor-toolbar-right .theme-icon-btn {
+  color: var(--muted);
+  background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.75));
+  border-color: rgba(139,105,20,0.14);
+  box-shadow: 0 4px 10px rgba(139,105,20,0.08);
+  transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.editor-toolbar-right .theme-icon-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none !important;
+}
+
+.editor-toolbar-right .theme-icon-btn:hover {
+  color: var(--primary);
+  border-color: rgba(139,105,20,0.35);
+  box-shadow: 0 8px 18px rgba(139,105,20,0.16);
+  transform: translateY(-1px);
+}
+
+:root[data-theme="dark"] .editor-toolbar-right .theme-icon-btn {
+  background: linear-gradient(135deg, rgba(32,36,45,0.96), rgba(19,23,30,0.92));
+  border-color: rgba(217,179,90,0.24);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  color: rgba(217,179,90,0.75);
+}
+
+:root[data-theme="dark"] .editor-toolbar-right .theme-icon-btn:hover {
+  color: var(--primary);
+  border-color: rgba(217,179,90,0.38);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.45);
+}
+
+.editor-toolbar-right .theme-icon-btn.is-loading::after {
+  border-color: rgba(139, 105, 20, 0.2);
+  border-top-color: var(--primary);
+}
+
+:root[data-theme="dark"] .editor-toolbar-right .theme-icon-btn.is-loading::after {
+  border-color: rgba(217, 179, 90, 0.18);
+  border-top-color: var(--primary);
 }

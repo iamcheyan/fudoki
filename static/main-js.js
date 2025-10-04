@@ -20,6 +20,7 @@
   const editorDocDate = document.getElementById('editorDocDate');
   const editorCharCount = document.getElementById('editorCharCount');
   const editorStarToggle = document.getElementById('editorStarToggle');
+  const editorNewBtn = document.getElementById('editorNewBtn');
   const editorDeleteBtn = document.getElementById('editorDeleteBtn');
   const themeToggleBtn = document.getElementById('theme-toggle');
   // 导航语言国旗按钮
@@ -2165,6 +2166,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
       // 新建文档按钮：立即创建空文档并设为活动；若保持为空，保存时会自动删除
       if (newDocBtn) {
         newDocBtn.addEventListener('click', () => {
+          this.createDocument('');
+          if (textInput) textInput.focus();
+        });
+      }
+
+      // 顶部编辑工具栏“新建”按钮
+      if (editorNewBtn) {
+        editorNewBtn.addEventListener('click', () => {
           this.createDocument('');
           if (textInput) textInput.focus();
         });
