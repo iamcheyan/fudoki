@@ -245,6 +245,7 @@
       readingScript: 'ふりがな表記',
       katakanaLabel: 'カタカナ',
       hiraganaLabel: 'ひらがな',
+      fontSizeLabel: '文字サイズ',
       pwaTitle: 'オフラインダウンロード',
       pwaPreparing: 'オフライン用リソースを準備しています…',
       pwaProgress: 'キャッシュ中 {completed}/{total} 件（{percent}%）',
@@ -338,6 +339,7 @@
       readingScript: 'Reading script',
       katakanaLabel: 'Katakana',
       hiraganaLabel: 'Hiragana',
+      fontSizeLabel: 'Font Size',
       pwaTitle: 'Offline Pack',
       pwaPreparing: 'Preparing offline resources…',
       pwaProgress: 'Caching {completed}/{total} files ({percent}%)',
@@ -410,6 +412,7 @@
       ,lbl_field: '领域'
       ,lbl_note: '备注'
       ,lbl_chinese: '中文'
+      ,fontSizeLabel: '字号'
       ,folderAll: '全部',
       folderFavorites: '收藏',
       sidebarFolderTitle: '文件夹管理',
@@ -1122,6 +1125,8 @@
     if (sidebarVoiceSettingsTitle) sidebarVoiceSettingsTitle.textContent = t('voiceTitle');
     const sidebarDisplayTitle = $('sidebarDisplayTitle');
     if (sidebarDisplayTitle) sidebarDisplayTitle.textContent = t('displayTitle');
+    const fontSizeLabel = $('fontSizeLabel');
+    if (fontSizeLabel) fontSizeLabel.textContent = t('fontSizeLabel');
     const sidebarSystemTitle = $('sidebarSystemTitle');
     if (sidebarSystemTitle) sidebarSystemTitle.textContent = t('systemTitle');
     const sidebarVoiceSelectLabel = $('sidebarVoiceSelectLabel');
@@ -2989,6 +2994,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 显示详细翻译信息
   async function showDetailedTranslation(detailedInfo, container) {
+    // 隐藏所有词汇详情弹窗，避免冲突
+    document.querySelectorAll('.token-details').forEach(d => {
+      d.style.display = 'none';
+    });
+    document.querySelectorAll('.token-pill').forEach(p => {
+      p.classList.remove('active');
+    });
+    activeTokenDetails = null;
+    
     const modal = document.createElement('div');
     modal.className = 'translation-modal';
     
@@ -3017,12 +3031,68 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     document.body.appendChild(modal);
     
+    // 添加全局监听器，当翻译模态框出现时自动隐藏词汇详情弹窗
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE && node.classList && node.classList.contains('translation-modal')) {
+              // 翻译模态框出现时，隐藏所有词汇详情弹窗
+              document.querySelectorAll('.token-details').forEach(d => {
+                d.style.display = 'none';
+              });
+              document.querySelectorAll('.token-pill').forEach(p => {
+                p.classList.remove('active');
+              });
+              activeTokenDetails = null;
+            }
+          });
+        }
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // 当模态框被移除时，停止观察
+    const originalRemove = modal.remove;
+    modal.remove = function() {
+      observer.disconnect();
+      originalRemove.call(this);
+    };
+    
     // 点击模态框外部关闭
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.remove();
+        // 确保关闭翻译模态框时，词汇详情弹窗保持隐藏
+        document.querySelectorAll('.token-details').forEach(d => {
+          d.style.display = 'none';
+        });
+        document.querySelectorAll('.token-pill').forEach(p => {
+          p.classList.remove('active');
+        });
+        activeTokenDetails = null;
       }
     });
+    
+    // 监听关闭按钮点击
+    const closeBtn = modal.querySelector('.close-modal-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        modal.remove();
+        // 确保关闭翻译模态框时，词汇详情弹窗保持隐藏
+        document.querySelectorAll('.token-details').forEach(d => {
+          d.style.display = 'none';
+        });
+        document.querySelectorAll('.token-pill').forEach(p => {
+          p.classList.remove('active');
+        });
+        activeTokenDetails = null;
+      });
+    }
   }
 
   // 播放整行文本
@@ -3739,6 +3809,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
   // 初始语言应用（双重保障）
   applyI18n();
   setTimeout(applyI18n, 0);
+  // 初始化字号缩放（如有保存）
+  try { applyFontScaleFromStorage(); } catch (_) {}
 
   // 初始化文档管理器
   const documentManager = new DocumentManager();
@@ -4069,6 +4141,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
               ${t('repeatPlay')}
             </label>
           </div>
+          <div class="control-group">
+            <label class="control-label" id="${id('fontSizeLabel')}">${t('fontSizeLabel')}</label>
+            <input type="range" id="${id('fontSizeRange')}" min="0.8" max="1.5" step="0.05" value="1">
+            <div class="speed-display" id="${id('fontSizeValue')}">100%</div>
+          </div>
         </div>
       </div>
     `;
@@ -4114,6 +4191,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 绑定控件事件
     try { initVoiceAndSpeedControls(); } catch (_) {}
     try { initDisplayControls(); } catch (_) {}
+    try { initFontSizeControls(); } catch (_) {}
     try { applyI18n(); } catch (_) {}
     try { if ('speechSynthesis' in window) refreshVoices(); } catch (_) {}
   }
@@ -4446,3 +4524,55 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
 })();
+  // 字号缩放控制
+  function initFontSizeControls() {
+    const rangeEls = [
+      document.getElementById('fontSizeRange'),
+      document.getElementById('sidebarFontSizeRange')
+    ].filter(Boolean);
+    const valueEls = [
+      document.getElementById('fontSizeValue'),
+      document.getElementById('sidebarFontSizeValue')
+    ].filter(Boolean);
+
+    const applyScale = (v) => {
+      const scale = Math.max(0.8, Math.min(1.5, parseFloat(v) || 1));
+      document.documentElement.style.setProperty('--font-scale', String(scale));
+      valueEls.forEach(el => { el.textContent = `${Math.round(scale * 100)}%`; });
+      try { localStorage.setItem('app:fontScale', String(scale)); } catch (_) {}
+    };
+
+    // 初始值来源：localStorage
+    let initial = 1;
+    try {
+      const saved = localStorage.getItem('app:fontScale');
+      if (saved) initial = parseFloat(saved) || 1;
+    } catch (_) {}
+
+    // 赋初值并绑定两个滑块事件，保持同步
+    if (rangeEls.length > 0) {
+      rangeEls.forEach(r => { r.value = String(initial); });
+      rangeEls.forEach(r => {
+        const handler = () => {
+          const val = r.value;
+          applyScale(val);
+          // 同步其它滑块的值
+          rangeEls.forEach(other => { if (other !== r) other.value = val; });
+        };
+        r.addEventListener('input', handler);
+        r.addEventListener('change', handler);
+      });
+    }
+
+    applyScale(initial);
+  }
+
+  function applyFontScaleFromStorage() {
+    try {
+      const saved = localStorage.getItem('app:fontScale');
+      if (saved) {
+        const scale = Math.max(0.8, Math.min(1.5, parseFloat(saved) || 1));
+        document.documentElement.style.setProperty('--font-scale', String(scale));
+      }
+    } catch (_) {}
+  }

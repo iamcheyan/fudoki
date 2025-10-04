@@ -3274,3 +3274,18 @@ input[type="checkbox"] {
   border-color: rgba(217, 179, 90, 0.18);
   border-top-color: var(--primary);
 }
+
+/* ===== 字号缩放（全局） ===== */
+:root { --font-scale: 1; }
+
+/* 关键文本区域随缩放变化 */
+.token-pill { font-size: calc(13px * var(--font-scale)); }
+.token-details { font-size: calc(12px * var(--font-scale)); }
+/* 输入控件不跟随字号缩放，仅内容区文本缩放 */
+input[type="text"], textarea { font-size: 14px; }
+
+/* 可选：细节子元素的字号 */
+.token-kanji { font-size: calc(14px * var(--font-scale)); }
+.token-kana { font-size: calc(10px * var(--font-scale)); }
+.token-romaji { font-size: calc(9px * var(--font-scale)); }
+.pos-tag, .token-pos { font-size: calc(8px * var(--font-scale)); }
