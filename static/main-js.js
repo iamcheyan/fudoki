@@ -2413,6 +2413,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       docs.filter(doc => {
         // 文件夹过滤
         if (activeFolder === 'favorites' && !doc.favorite) return false;
+        // “全部”不显示示例文章
+        if (activeFolder === 'all' && doc.folder === 'samples') return false;
         if (activeFolder === 'samples' && doc.folder !== 'samples') return false;
         // 全局搜索过滤
         if (queryLower) {
