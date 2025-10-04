@@ -3056,7 +3056,7 @@ input[type="checkbox"] {
 .search-input-wrapper {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  /* gap: 0.5rem; */
   background: #ffffff;
   border-radius: 18px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
@@ -3091,6 +3091,7 @@ input[type="checkbox"] {
   background: transparent;
   color: #555;
   padding: 6px 0;
+  text-indent: 0.5em;
 }
 .search-clear {
   border: 1px solid rgba(160, 140, 100, 0.18);
