@@ -1458,7 +1458,30 @@
   function updateSettingsLabels() {
     const setText = (id, key) => {
       const el = document.getElementById(id);
-      if (el) el.textContent = t(key);
+      if (!el) return;
+      const text = t(key);
+
+      // 优先更新专用的文本容器，避免破坏内部结构
+      const span = el.querySelector('.label-text');
+      if (span) { span.textContent = text; return; }
+
+      // 如果该标签内包含复选框，保持输入控件不变，仅更新其后的文本
+      const cb = el.querySelector('input[type="checkbox"]');
+      if (cb) {
+        // 找到可更新的文本节点；若不存在则追加一个
+        const textNode = Array.from(el.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+        if (textNode) {
+          textNode.textContent = ' ' + text;
+        } else {
+          el.appendChild(document.createTextNode(' ' + text));
+        }
+        // 同步标题以提供悬浮提示
+        el.title = text;
+        return;
+      }
+
+      // 普通标签：安全地直接更新文本
+      el.textContent = text;
     };
     const setOptionText = (selectId, valueToI18nKeyMap) => {
       const sel = document.getElementById(selectId);
@@ -3352,8 +3375,33 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return out;
     }
 
+    // 将误判为单一助词的「を通じて／を通して」等拆成「を」+「通じて/通して」
+    function splitLeadingParticleVerbTeDe(tokens) {
+      const out = [];
+      for (const tok of tokens) {
+        const surface = tok && tok.surface ? tok.surface : '';
+        const posArr = Array.isArray(tok && tok.pos) ? tok.pos : [tok && tok.pos || ''];
+        const mainPos = posArr[0] || '';
+        if (mainPos === '助詞' && /^を.+[てで]$/.test(surface) && surface.length > 2) {
+          const readingFull = tok.reading || surface;
+          const headSurface = 'を';
+          const tailSurface = surface.slice(1);
+          const headReading = readingFull.slice(0, 1);
+          const tailReading = readingFull.slice(1);
+          // 「を」保留助词，后部按动词处理（用于着色/朗读逻辑）
+          out.push({ surface: headSurface, lemma: headSurface, reading: headReading, pos: ['助詞'] });
+          out.push({ surface: tailSurface, lemma: tok.lemma || tailSurface, reading: tailReading, pos: ['動詞'] });
+          continue;
+        }
+        out.push(tok);
+      }
+      return out;
+    }
+
     const html = nonEmptyLines.map((line, lineIndex) => {
-      const mergedTokens = mergeTokensForDisplay(line);
+      // 先把可能被合成成单一助词的结构拆开，再应用展示层合并与片假名拆分
+      const preSplit = splitLeadingParticleVerbTeDe(line);
+      const mergedTokens = mergeTokensForDisplay(preSplit);
       const tokensForDisplay = splitKatakanaCompounds(mergedTokens);
       const lineHtml = tokensForDisplay.map((token, tokenIndex) => {
         const surface = token.surface || '';
