@@ -802,7 +802,7 @@
     if (data.type === 'CACHE_COMPLETE') {
       PWA_STATE.installing = false;
       PWA_STATE.requestId = null;
-      headerDownloadBtn?.classList.remove('is-loading');
+      headerDownloadBtn?.classList.remove('is-loading', 'is-rotating');
       const progressValue = data.total ? data.completed / data.total : 1;
 
       if (PWA_STATE.failed > 0) {
@@ -877,7 +877,7 @@
     PWA_STATE.completed = 0;
     PWA_STATE.failedAssets = [];
     PWA_STATE.requestId = null;
-    headerDownloadBtn?.classList.add('is-loading');
+    headerDownloadBtn?.classList.add('is-loading', 'is-rotating');
 
     updatePwaToast('progress', {
       title: formatMessage('pwaTitle'),
@@ -906,7 +906,7 @@
     } catch (error) {
       console.error('PWA reset failed', error);
       PWA_STATE.installing = false;
-      headerDownloadBtn?.classList.remove('is-loading');
+      headerDownloadBtn?.classList.remove('is-loading', 'is-rotating');
       updatePwaToast('error', {
         title: formatMessage('pwaTitle'),
         message: formatMessage('pwaResetFailed', { message: error?.message || 'unknown' }),
@@ -959,7 +959,7 @@
       console.error('PWA cache failed', error);
       PWA_STATE.installing = false;
       PWA_STATE.requestId = null;
-      headerDownloadBtn?.classList.remove('is-loading');
+      headerDownloadBtn?.classList.remove('is-loading', 'is-rotating');
       updatePwaToast('error', {
         title: formatMessage('pwaTitle'),
         message: formatMessage('pwaError', { message: error?.message || 'unknown' }),
@@ -2543,6 +2543,31 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
     }
 
+    // 清空示例文章缓存（移除所有 folder 为 'samples' 的文档）
+    clearSampleDocuments() {
+      const all = this.getAllDocuments();
+      const remaining = all.filter(d => d.folder !== 'samples');
+      const activeId = this.getActiveId();
+      const activeDoc = all.find(d => d.id === activeId);
+      const activeWasSample = !!(activeDoc && activeDoc.folder === 'samples');
+      this.saveAllDocuments(remaining);
+
+      // 如果当前活动文档是示例，被清除后需要切换到第一个剩余文档或清空输入框
+      if (activeWasSample) {
+        const firstDoc = remaining[0];
+        if (firstDoc) {
+          this.setActiveId(firstDoc.id);
+          this.loadActiveDocument();
+        } else {
+          this.setActiveId('');
+          if (textInput) textInput.value = '';
+        }
+      }
+
+      // 渲染列表以反映变更
+      this.render();
+    }
+
     // 绑定事件
     bindEvents() {
       // 新建文档按钮：立即创建空文档并设为活动；若保持为空，保存时会自动删除
@@ -2561,12 +2586,22 @@ Try Fudoki and enjoy Japanese language analysis!`;
         });
       }
 
-      // 顶部“同步”按钮：强制刷新样例并重绘列表，按钮显示加载圆环
+      // 顶部“同步”按钮：清空示例缓存并强制从 JSON 重新注入；点击时SVG居中旋转3圈
       if (syncBtn) {
         syncBtn.addEventListener('click', async () => {
-          syncBtn.classList.add('is-loading');
+          syncBtn.classList.add('is-loading', 'rotate-3');
+          const svg = syncBtn.querySelector('svg');
+          const onEnd = () => {
+            syncBtn.classList.remove('rotate-3');
+            svg && svg.removeEventListener('animationend', onEnd);
+          };
+          if (svg) svg.addEventListener('animationend', onEnd);
           try {
+            // 1) 清空示例文章缓存
+            this.clearSampleDocuments();
+            // 2) 强制从 samples.json 重新加载示例
             await this.seedSampleDocumentsIfNeeded(true);
+            // 3) 刷新列表
             this.render();
           } finally {
             syncBtn.classList.remove('is-loading');

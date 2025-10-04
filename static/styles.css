@@ -767,7 +767,6 @@ body {
   resize: vertical;
   min-height: 88px;
   border-radius: 2px;
-  /* background: var(--bg); */
   color: var(--text);
 }
 
@@ -967,7 +966,7 @@ input:focus, textarea:focus, select:focus {
 
 .token-pill.active,
 .token-pill.playing {
-  background: linear-gradient(135deg, #fffdeb, #f0e12f);
+  background: linear-gradient(135deg, #ffffff, #fffac0);
   border-color: #4CAF50;
   /* color: white !important; */
   /* transform: scale(1.05); */
@@ -1791,28 +1790,28 @@ select, input[type="range"] {
   pointer-events: none;
   opacity: 0.9;
 }
+/* 加载时保持图标可见；统一采用旋转样式 */
 .theme-icon-btn.is-loading svg {
-  opacity: 0;
+  opacity: 1;
 }
 /* 按照“下载”按钮的加载样式优化：外环轨道 + 旋转进度弧 */
-.theme-icon-btn.is-loading::before {
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid rgba(139, 105, 20, 0.18); /* 轨道 */
-}
+/* 去除进度圆环显示，仅保留图标旋转 */
+.theme-icon-btn.is-loading::before,
 .theme-icon-btn.is-loading::after {
   content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  border-top-color: var(--primary);
-  border-right-color: var(--primary); /* 制造更明显的弧形 */
-  animation: pwa-spin 0.9s linear infinite;
+  display: none;
+}
+
+/* 同步按钮：点击时让内部 SVG 反方向（逆时针）旋转 */
+.theme-icon-btn.is-rotating svg {
+  animation: pwa-spin 0.9s linear infinite reverse;
+}
+
+/* 同步按钮示例：点击后居中逆时针旋转3圈 */
+.theme-icon-btn.rotate-3 svg {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: pwa-spin 0.6s linear 3 reverse;
 }
 
 @keyframes pwa-spin {
@@ -2013,7 +2012,6 @@ select, input[type="text"], textarea, .btn, .new-doc-btn, .delete-doc-btn, .play
 
 /* 输入/选择/文本域 */
 select, textarea, input[type="text"] {
-  background: var(--control-bg);
   color: var(--control-text);
   border: 1px solid var(--control-border);
 }
