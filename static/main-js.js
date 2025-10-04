@@ -182,6 +182,11 @@
       textareaPlaceholder: 'ここに日本語テキストを入力して解析…',
       analyzeBtn: '解析する',
       emptyText: '上の入力欄に日本語を入力すると、自動的に解析します',
+      // グローバル検索（多言語）
+      globalSearchAria: 'グローバル検索',
+      globalSearchInputAria: 'すべてのドキュメントを検索',
+      globalSearchPlaceholder: 'キーワードを素早く検索',
+      globalSearchClear: '検索をクリア',
       voiceTitle: '音声設定',
       voiceSelectLabel: '音声を選択',
       selectVoice: '音声を選択...',
@@ -270,6 +275,11 @@
       textareaPlaceholder: 'Enter Japanese text here for analysis…',
       analyzeBtn: 'Analyze',
       emptyText: 'Type Japanese above; analysis runs automatically',
+      // Global search (i18n)
+      globalSearchAria: 'Global Search',
+      globalSearchInputAria: 'Search all documents',
+      globalSearchPlaceholder: 'Quickly search keywords',
+      globalSearchClear: 'Clear search',
       voiceTitle: 'Voice Settings',
       voiceSelectLabel: 'Voice',
       selectVoice: 'Select voice...',
@@ -358,6 +368,11 @@
       textareaPlaceholder: '在此输入日语文本进行分析...',
       analyzeBtn: '分析文本',
       emptyText: '请在上方输入日语文本，系统会自动分析',
+      // 全局搜索（多语言）
+      globalSearchAria: '全局搜索',
+      globalSearchInputAria: '搜索全部文档',
+      globalSearchPlaceholder: '快速搜索关键词',
+      globalSearchClear: '清除搜索',
       voiceTitle: '语音设置',
       voiceSelectLabel: '语音选择',
       selectVoice: '选择语音...',
@@ -1009,6 +1024,19 @@
     }
 
     if (textInput) textInput.placeholder = t('textareaPlaceholder');
+    // 全局搜索输入及按钮的多语言适配
+    const globalSearch = $('globalSearch');
+    if (globalSearch) globalSearch.setAttribute('aria-label', t('globalSearchAria'));
+    const globalSearchInput = $('globalSearchInput');
+    if (globalSearchInput) {
+      globalSearchInput.placeholder = t('globalSearchPlaceholder');
+      globalSearchInput.setAttribute('aria-label', t('globalSearchInputAria'));
+    }
+    const globalSearchClear = $('globalSearchClear');
+    if (globalSearchClear) {
+      globalSearchClear.setAttribute('aria-label', t('globalSearchClear'));
+      globalSearchClear.title = t('globalSearchClear');
+    }
     if (analyzeBtn) analyzeBtn.textContent = t('analyzeBtn');
 
     // 工具栏头部标题
