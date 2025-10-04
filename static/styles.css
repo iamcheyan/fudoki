@@ -515,7 +515,7 @@ body {
 /* 侧边栏内容 */
 .sidebar-content {
   padding: 0 12px;
-  height: 100%;
+  /* height: 100%; */
 }
 
 
@@ -2866,7 +2866,7 @@ input[type="checkbox"] {
     z-index: 1100; /* 提升层级：抽屉位于遮罩之上 */
     display: flex;
     flex-direction: column;
-    background: #fff;
+    background: var(--bg);
     border-right: 1px solid var(--border);
     box-shadow: 0 12px 32px rgba(0,0,0,0.22);
     width: 80%;
@@ -3297,7 +3297,7 @@ input[type="checkbox"] {
 
 /* 左侧边栏中的搜索区样式调整 */
 .folder-management .search-section {
-  padding: 12px;
+  padding: 10px 30px 10px 10px;
   display: block;
 }
 :root[data-theme="dark"] .token-pill.search-hit { background: #3b2f26; box-shadow: 0 0 0 2px #c49a6c55; }
