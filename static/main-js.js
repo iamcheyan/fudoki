@@ -193,6 +193,19 @@
     favItem.addEventListener('click', () => { selectFolder('favorites'); });
     folderList.appendChild(favItem);
 
+    // 示例文章（多语言）
+    const samplesItem = document.createElement('div');
+    samplesItem.className = 'folder-item' + (activeId === 'samples' ? ' active' : '');
+    samplesItem.dataset.folderId = 'samples';
+    samplesItem.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M4 4h16v2H4V4m0 4h16v12H4V8m2 2v8h12v-8H6z"/>
+      </svg>
+      <div>${t('folderSamples')}</div>
+    `;
+    samplesItem.addEventListener('click', () => { selectFolder('samples'); });
+    folderList.appendChild(samplesItem);
+
     // 同步左侧标题（冗余设置，确保语言切换后与首次渲染都正确）
     const folderTitleEl = $('sidebarFolderTitle');
     if (folderTitleEl) folderTitleEl.textContent = t('sidebarFolderTitle');
@@ -270,6 +283,8 @@
       ,lbl_chinese: '中文'
       ,folderAll: 'すべて',
       folderFavorites: 'お気に入り',
+      folderSamples: 'サンプル記事',
+      reloadSamples: 'サンプル再読み込み',
       sidebarFolderTitle: 'フォルダー管理',
       favorite: 'お気に入り',
       unfavorite: 'お気に入り解除',
@@ -373,6 +388,8 @@
       ,lbl_chinese: 'Chinese'
       ,folderAll: 'All',
       folderFavorites: 'Favorites',
+      folderSamples: 'Sample Articles',
+      reloadSamples: 'Reload samples',
       sidebarFolderTitle: 'Folders',
       favorite: 'Favorite',
       unfavorite: 'Unfavorite',
@@ -475,6 +492,8 @@
       ,fontSizeLabel: '字号'
       ,folderAll: '全部',
       folderFavorites: '收藏',
+      folderSamples: '示例文章',
+      reloadSamples: '重新加载示例',
       sidebarFolderTitle: '文件夹管理',
       favorite: '收藏',
       unfavorite: '取消收藏',
@@ -2394,6 +2413,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       docs.filter(doc => {
         // 文件夹过滤
         if (activeFolder === 'favorites' && !doc.favorite) return false;
+        if (activeFolder === 'samples' && doc.folder !== 'samples') return false;
         // 全局搜索过滤
         if (queryLower) {
           const text = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
@@ -2479,6 +2499,43 @@ Try Fudoki and enjoy Japanese language analysis!`;
         };
         this.saveAllDocuments([defaultDoc]);
         this.setActiveId(defaultDoc.id);
+      }
+    }
+
+    // 注入示例文章（增量追加：仅追加缺失的样例）
+    async seedSampleDocumentsIfNeeded() {
+      try {
+        const docs = this.getAllDocuments();
+        const resp = await fetch('/static/samples.json');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (!data || !Array.isArray(data.articles)) return;
+        const now = Date.now();
+        // 以标题作为唯一键，避免重复追加
+        const existingSampleTitles = new Set(
+          docs.filter(d => d.folder === 'samples').map(d => this.getDocumentTitle(d.content))
+        );
+        const newDocs = [];
+        for (const a of data.articles) {
+          const title = String(a.title || 'サンプル');
+          if (existingSampleTitles.has(title)) continue;
+          const contentArr = Array.isArray(a.lines)
+            ? [title, '', ...a.lines]
+            : [title, '', String(a.text || '')];
+          newDocs.push({
+            id: this.generateId(),
+            content: contentArr,
+            createdAt: now,
+            updatedAt: now,
+            locked: true,
+            folder: 'samples'
+          });
+        }
+        if (newDocs.length > 0) {
+          this.saveAllDocuments(docs.concat(newDocs));
+        }
+      } catch (_) {
+        // 静默失败
       }
     }
 
@@ -2946,6 +3003,44 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
     clearReadingLineHighlight();
 
+    // 展示层词块合并规则：动/形 + て/で（助词），动/形 + た（助动）
+    const mergeTokensForDisplay = (tokens) => {
+      const out = [];
+      for (let i = 0; i < tokens.length; i++) {
+        const cur = tokens[i];
+        const next = tokens[i + 1];
+        const getMainPos = (tok) => {
+          if (!tok) return '';
+          const p = Array.isArray(tok.pos) ? tok.pos : [tok.pos || ''];
+          return p[0] || '';
+        };
+        if (next) {
+          const curMain = getMainPos(cur);
+          const nextMain = getMainPos(next);
+          const nextSurface = next.surface || '';
+          const isVerbOrAdj = (curMain === '動詞' || curMain === '形容詞');
+          const ruleTeDe = isVerbOrAdj && nextMain === '助詞' && (nextSurface === 'て' || nextSurface === 'で');
+          const ruleTa = isVerbOrAdj && nextMain === '助動詞' && (nextSurface === 'た');
+          if (ruleTeDe || ruleTa) {
+            const surface = (cur.surface || '') + nextSurface;
+            const reading = (cur.reading || '') + (next.reading || nextSurface);
+            const lemma = cur.lemma || cur.surface || surface;
+            const merged = {
+              surface,
+              reading,
+              lemma,
+              pos: Array.isArray(cur.pos) ? cur.pos.slice() : [cur.pos || '動詞']
+            };
+            out.push(merged);
+            i++;
+            continue;
+          }
+        }
+        out.push(cur);
+      }
+      return out;
+    };
+
     // 按行显示分词结果，先过滤掉空行和只有标点符号的行
     const nonEmptyLines = result.lines.filter(line => {
       if (!Array.isArray(line) || line.length === 0) return false;
@@ -2960,8 +3055,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
     
     const html = nonEmptyLines.map((line, lineIndex) => {
-      
-      const lineHtml = line.map((token, tokenIndex) => {
+      const mergedTokens = mergeTokensForDisplay(line);
+      const lineHtml = mergedTokens.map((token, tokenIndex) => {
         const surface = token.surface || '';
         const reading = token.reading || '';
         const lemma = token.lemma || surface;
@@ -4050,6 +4145,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 初始化文档管理器
   const documentManager = new DocumentManager();
+
+  // 注入示例文章（异步），然后刷新列表以反映“示例文章”文件夹
+  try {
+    documentManager.seedSampleDocumentsIfNeeded().then(() => {
+      documentManager.render();
+    });
+  } catch (_) {}
 
   // 全局函数，供其他地方调用
   window.analyzeText = analyzeText;
