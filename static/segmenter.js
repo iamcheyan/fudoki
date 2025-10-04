@@ -124,6 +124,89 @@ class JapaneseSegmenter {
   }
 
   /**
+   * 一般数字读法（0 以上，支持到万位）
+   */
+  numberReading(num) {
+    if (typeof num !== 'number' || !isFinite(num)) return String(num);
+    num = Math.floor(Math.abs(num));
+    if (num === 0) return 'ゼロ';
+
+    const one = {
+      0: '', 1: 'いち', 2: 'に', 3: 'さん', 4: 'よん', 5: 'ご',
+      6: 'ろく', 7: 'なな', 8: 'はち', 9: 'きゅう'
+    };
+
+    const th_map = {
+      0: '', 1: 'せん', 2: 'にせん', 3: 'さんぜん', 4: 'よんせん', 5: 'ごせん',
+      6: 'ろくせん', 7: 'ななせん', 8: 'はっせん', 9: 'きゅうせん'
+    };
+
+    const h_map = {
+      0: '', 1: 'ひゃく', 2: 'にひゃく', 3: 'さんびゃく', 4: 'よんひゃく',
+      5: 'ごひゃく', 6: 'ろっぴゃく', 7: 'ななひゃく', 8: 'はっぴゃく', 9: 'きゅうひゃく'
+    };
+
+    const t_map = {
+      0: '', 1: 'じゅう', 2: 'にじゅう', 3: 'さんじゅう', 4: 'よんじゅう',
+      5: 'ごじゅう', 6: 'ろくじゅう', 7: 'ななじゅう', 8: 'はちじゅう', 9: 'きゅうじゅう'
+    };
+
+    const buildUnder10000 = (n) => {
+      const d_th = Math.floor(n / 1000);
+      const d_h = Math.floor((n / 100) % 10);
+      const d_t = Math.floor((n / 10) % 10);
+      const d_o = n % 10;
+      const parts = [th_map[d_th], h_map[d_h], t_map[d_t], one[d_o]];
+      return parts.filter(Boolean).join('');
+    };
+
+    if (num < 10000) {
+      return buildUnder10000(num);
+    }
+
+    const man = Math.floor(num / 10000);
+    const rest = num % 10000;
+    const manPart = buildUnder10000(man) + 'まん';
+    const restPart = rest ? buildUnder10000(rest) : '';
+    return manPart + restPart;
+  }
+
+  /**
+   * 月份数字的特殊读法（1-12）
+   * 例：4月 -> し（+ がつ）
+   */
+  monthNumberReading(num) {
+    const map = {
+      1: 'いち', 2: 'に', 3: 'さん', 4: 'し', 5: 'ご',
+      6: 'ろく', 7: 'しち', 8: 'はち', 9: 'く', 10: 'じゅう',
+      11: 'じゅういち', 12: 'じゅうに'
+    };
+    return map[num] || '';
+  }
+
+  /**
+   * 英文缩写读法（A–Z）按字母名转片假名
+   * 例：IT -> アイティー, AI -> エーアイ, CPU -> シーピーユー
+   */
+  englishAbbreviationReading(word) {
+    if (!word || typeof word !== 'string') return '';
+    const map = {
+      'A': 'エー', 'B': 'ビー', 'C': 'シー', 'D': 'ディー', 'E': 'イー',
+      'F': 'エフ', 'G': 'ジー', 'H': 'エイチ', 'I': 'アイ', 'J': 'ジェイ',
+      'K': 'ケイ', 'L': 'エル', 'M': 'エム', 'N': 'エヌ', 'O': 'オー',
+      'P': 'ピー', 'Q': 'キュー', 'R': 'アール', 'S': 'エス', 'T': 'ティー',
+      'U': 'ユー', 'V': 'ブイ', 'W': 'ダブリュー', 'X': 'エックス', 'Y': 'ワイ', 'Z': 'ズィー'
+    };
+    const chars = word.toUpperCase().split('');
+    const parts = [];
+    for (const ch of chars) {
+      if (map[ch]) parts.push(map[ch]);
+      else return word; // 非纯字母，返回原文
+    }
+    return parts.join('');
+  }
+
+  /**
    * 简化的分词备用方案
    */
   simpleSegment(text) {
@@ -210,16 +293,54 @@ class JapaneseSegmenter {
         
         const tokenResults = [];
 
-        for (const token of tokens) {
+        for (let i = 0; i < tokens.length; i++) {
+          const token = tokens[i];
+          const nextToken = tokens[i + 1] || null;
           const surface = token.surface_form || token.surface || '';
           const lemma = token.basic_form || token.lemma || surface;
-          let reading = token.reading || surface;
+          let reading = token.__override_reading || token.reading || surface;
           
           // 特殊处理四位年份
           if (surface.match(/^\d{4}$/)) {
             try {
               const year = parseInt(surface);
               reading = this.yearReading(year);
+            } catch (e) {
+              // 保持原reading
+            }
+          }
+
+          // 一般数字（半角/全角）读法
+          if (/^[0-9０-９]+$/.test(surface)) {
+            try {
+              const normalized = surface.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+              const num = parseInt(normalized, 10);
+              if (!isNaN(num)) {
+                reading = this.numberReading(num);
+                // 若后续为「月」，应用月份特殊读法并将「月」读作「がつ」
+                if (nextToken) {
+                  const nextSurface = nextToken.surface_form || nextToken.surface || '';
+                  if (nextSurface === '月') {
+                    const monthR = this.monthNumberReading(num);
+                    if (monthR) {
+                      reading = monthR; // 仅数字部分使用月份读法
+                      nextToken.__override_reading = 'がつ';
+                    }
+                  }
+                }
+              }
+            } catch (e) {
+              // 保持原reading
+            }
+          }
+
+          // 英文缩写（纯字母）读法
+          if (/^[A-Za-z]+$/.test(surface)) {
+            try {
+              const katakana = this.englishAbbreviationReading(surface);
+              if (katakana && katakana !== surface) {
+                reading = katakana;
+              }
             } catch (e) {
               // 保持原reading
             }
