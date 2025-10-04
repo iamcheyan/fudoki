@@ -9,7 +9,8 @@
 /* 桌面端样式（已移除不必要的隐藏规则） */
 
 /* 主题变量 */
-:root {
+:root,
+:root[data-theme="paper"] {
   --bg: #ffffff;
   --text: #333333;
   --muted: #666666;
@@ -24,6 +25,84 @@
   --toolbar-chip-hover: rgba(139, 105, 20, 0.12);
   --toolbar-chip-neutral: rgba(255, 255, 255, 0.92);
   --toolbar-chip-neutral-border: rgba(139, 105, 20, 0.16);
+  --header-shadow-strong: rgba(180, 150, 80, 0.13);
+  --header-shadow-soft: rgba(120, 100, 40, 0.08);
+}
+
+:root[data-theme="sakura"] {
+  --bg: #fff6f9;
+  --text: #4e2b36;
+  --muted: #8f5b6a;
+  --border: #f3d3e0;
+  --elev: #ffeeF5;
+  --primary: #d97ea8;
+  --toolbar-bg: linear-gradient(135deg, rgba(255, 241, 248, 0.95), rgba(217, 126, 168, 0.22));
+  --toolbar-border: rgba(217, 126, 168, 0.32);
+  --toolbar-shadow: 0 14px 32px rgba(217, 126, 168, 0.18);
+  --toolbar-chip-bg: rgba(255, 239, 246, 0.9);
+  --toolbar-chip-border: rgba(217, 126, 168, 0.25);
+  --toolbar-chip-hover: rgba(217, 126, 168, 0.16);
+  --toolbar-chip-neutral: rgba(255, 245, 249, 0.94);
+  --toolbar-chip-neutral-border: rgba(217, 126, 168, 0.22);
+  --header-shadow-strong: rgba(217, 126, 168, 0.18);
+  --header-shadow-soft: rgba(217, 126, 168, 0.1);
+}
+
+:root[data-theme="sticky"] {
+  --bg: #fbf1dc;
+  --text: #463828;
+  --muted: #8a7153;
+  --border: #ead5b2;
+  --elev: #fef7e6;
+  --primary: #c58b3b;
+  --toolbar-bg: linear-gradient(135deg, rgba(255, 245, 225, 0.96), rgba(197, 139, 59, 0.24));
+  --toolbar-border: rgba(197, 139, 59, 0.32);
+  --toolbar-shadow: 0 14px 32px rgba(197, 139, 59, 0.18);
+  --toolbar-chip-bg: rgba(253, 244, 223, 0.9);
+  --toolbar-chip-border: rgba(197, 139, 59, 0.24);
+  --toolbar-chip-hover: rgba(197, 139, 59, 0.16);
+  --toolbar-chip-neutral: rgba(254, 246, 229, 0.96);
+  --toolbar-chip-neutral-border: rgba(197, 139, 59, 0.22);
+  --header-shadow-strong: rgba(197, 139, 59, 0.18);
+  --header-shadow-soft: rgba(197, 139, 59, 0.12);
+}
+
+:root[data-theme="green"] {
+  --bg: #f1f7f2;
+  --text: #294235;
+  --muted: #5d7666;
+  --border: #d1e4d7;
+  --elev: #f7fbf6;
+  --primary: #4aa96d;
+  --toolbar-bg: linear-gradient(135deg, rgba(236, 249, 240, 0.96), rgba(74, 169, 109, 0.2));
+  --toolbar-border: rgba(74, 169, 109, 0.26);
+  --toolbar-shadow: 0 14px 34px rgba(74, 169, 109, 0.16);
+  --toolbar-chip-bg: rgba(237, 248, 240, 0.9);
+  --toolbar-chip-border: rgba(74, 169, 109, 0.23);
+  --toolbar-chip-hover: rgba(74, 169, 109, 0.15);
+  --toolbar-chip-neutral: rgba(244, 252, 246, 0.96);
+  --toolbar-chip-neutral-border: rgba(74, 169, 109, 0.2);
+  --header-shadow-strong: rgba(74, 169, 109, 0.16);
+  --header-shadow-soft: rgba(74, 169, 109, 0.1);
+}
+
+:root[data-theme="blue"] {
+  --bg: #f0f6ff;
+  --text: #1f3658;
+  --muted: #546784;
+  --border: #c6d9f2;
+  --elev: #f6f9ff;
+  --primary: #5188dd;
+  --toolbar-bg: linear-gradient(135deg, rgba(240, 248, 255, 0.96), rgba(81, 136, 221, 0.2));
+  --toolbar-border: rgba(81, 136, 221, 0.28);
+  --toolbar-shadow: 0 14px 32px rgba(81, 136, 221, 0.16);
+  --toolbar-chip-bg: rgba(237, 245, 255, 0.9);
+  --toolbar-chip-border: rgba(81, 136, 221, 0.24);
+  --toolbar-chip-hover: rgba(81, 136, 221, 0.14);
+  --toolbar-chip-neutral: rgba(244, 249, 255, 0.96);
+  --toolbar-chip-neutral-border: rgba(81, 136, 221, 0.2);
+  --header-shadow-strong: rgba(81, 136, 221, 0.18);
+  --header-shadow-soft: rgba(81, 136, 221, 0.1);
 }
 
 :root[data-theme="dark"] {
@@ -41,13 +120,36 @@
   --toolbar-chip-hover: rgba(217, 179, 90, 0.2);
   --toolbar-chip-neutral: rgba(30, 36, 46, 0.94);
   --toolbar-chip-neutral-border: rgba(217, 179, 90, 0.24);
+  --header-shadow-strong: rgba(0, 0, 0, 0.55);
+  --header-shadow-soft: rgba(0, 0, 0, 0.35);
 }
 
 /* 滚动条主题变量（简约风格） */
-:root {
+:root,
+:root[data-theme="paper"] {
   --scroll-track: rgba(0,0,0,0.06);      /* 轻浅轨道 */
   --scroll-thumb: rgba(0,0,0,0.28);      /* 默认拇指 */
   --scroll-thumb-hover: rgba(0,0,0,0.38);/* 悬停拇指 */
+}
+:root[data-theme="sakura"] {
+  --scroll-track: rgba(217,126,168,0.12);
+  --scroll-thumb: rgba(217,126,168,0.34);
+  --scroll-thumb-hover: rgba(217,126,168,0.44);
+}
+:root[data-theme="sticky"] {
+  --scroll-track: rgba(197,139,59,0.12);
+  --scroll-thumb: rgba(197,139,59,0.32);
+  --scroll-thumb-hover: rgba(197,139,59,0.42);
+}
+:root[data-theme="green"] {
+  --scroll-track: rgba(74,169,109,0.12);
+  --scroll-thumb: rgba(74,169,109,0.3);
+  --scroll-thumb-hover: rgba(74,169,109,0.42);
+}
+:root[data-theme="blue"] {
+  --scroll-track: rgba(81,136,221,0.12);
+  --scroll-thumb: rgba(81,136,221,0.32);
+  --scroll-thumb-hover: rgba(81,136,221,0.44);
 }
 :root[data-theme="dark"] {
   --scroll-track: rgba(255,255,255,0.06);
@@ -103,7 +205,7 @@ body {
   left: 0;
   right: 0;
   z-index: 1000;
-  box-shadow: 0 4px 18px rgba(180, 150, 80, 0.13), 0 1.5px 6px rgba(120, 100, 40, 0.08);
+  box-shadow: 0 4px 18px var(--header-shadow-strong), 0 1.5px 6px var(--header-shadow-soft);
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
 }

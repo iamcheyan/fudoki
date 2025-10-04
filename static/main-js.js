@@ -80,6 +80,7 @@
     repeatPlay: 'repeatPlay',
     lang: 'lang',
     theme: 'theme',
+    lightTheme: 'lightTheme',
     showUnderline: 'showUnderline',
     readingScript: 'readingScript'
   };
@@ -244,6 +245,11 @@
       systemTitle: 'システム設定',
       themeLabel: 'テーマモード',
       themeLight: 'ライトモード',
+      themePaper: '紙の白',
+      themeSakura: '桜色',
+      themeSticky: 'メモの黄',
+      themeGreen: '目にやさしい緑',
+      themeBlue: '爽やかな青',
       themeDark: 'ダークモード',
       themeAuto: 'システムに従う',
       langLabel: 'インターフェース言語',
@@ -342,6 +348,11 @@
       systemTitle: 'System Settings',
       themeLabel: 'Theme Mode',
       themeLight: 'Light Mode',
+      themePaper: 'Paper White',
+      themeSakura: 'Sakura Pink',
+      themeSticky: 'Sticky Note Yellow',
+      themeGreen: 'Eye-Care Green',
+      themeBlue: 'Fresh Breeze Blue',
       themeDark: 'Dark Mode',
       themeAuto: 'Follow System',
       langLabel: 'Interface Language',
@@ -438,6 +449,11 @@
       systemTitle: '系统设置',
       themeLabel: '主题模式',
       themeLight: '浅色模式',
+      themePaper: '纸张白',
+      themeSakura: '樱花粉',
+      themeSticky: '便签黄',
+      themeGreen: '护眼绿',
+      themeBlue: '清新蓝',
       themeDark: '深色模式',
       themeAuto: '跟随系统',
       langLabel: '界面语言',
@@ -1265,22 +1281,42 @@
 
     // 更新主题选择选项的文本
     if (themeSelect) {
-      const lightOption = themeSelect.querySelector('option[value="light"]');
+      const paperOption = themeSelect.querySelector('option[value="paper"]');
+      const sakuraOption = themeSelect.querySelector('option[value="sakura"]');
+      const stickyOption = themeSelect.querySelector('option[value="sticky"]');
+      const greenOption = themeSelect.querySelector('option[value="green"]');
+      const blueOption = themeSelect.querySelector('option[value="blue"]');
       const darkOption = themeSelect.querySelector('option[value="dark"]');
       const autoOption = themeSelect.querySelector('option[value="auto"]');
-      if (lightOption) lightOption.textContent = t('themeLight');
+      if (paperOption) paperOption.textContent = t('themePaper');
+      if (sakuraOption) sakuraOption.textContent = t('themeSakura');
+      if (stickyOption) stickyOption.textContent = t('themeSticky');
+      if (greenOption) greenOption.textContent = t('themeGreen');
+      if (blueOption) blueOption.textContent = t('themeBlue');
       if (darkOption) darkOption.textContent = t('themeDark');
       if (autoOption) autoOption.textContent = t('themeAuto');
     }
 
     // 更新侧边栏主题选择选项的文本
     if (sidebarThemeSelect) {
-      const sidebarLightOption = sidebarThemeSelect.querySelector('option[value="light"]');
+      const sidebarPaperOption = sidebarThemeSelect.querySelector('option[value="paper"]');
+      const sidebarSakuraOption = sidebarThemeSelect.querySelector('option[value="sakura"]');
+      const sidebarStickyOption = sidebarThemeSelect.querySelector('option[value="sticky"]');
+      const sidebarGreenOption = sidebarThemeSelect.querySelector('option[value="green"]');
+      const sidebarBlueOption = sidebarThemeSelect.querySelector('option[value="blue"]');
       const sidebarDarkOption = sidebarThemeSelect.querySelector('option[value="dark"]');
       const sidebarAutoOption = sidebarThemeSelect.querySelector('option[value="auto"]');
-      if (sidebarLightOption) sidebarLightOption.textContent = t('themeLight');
+      if (sidebarPaperOption) sidebarPaperOption.textContent = t('themePaper');
+      if (sidebarSakuraOption) sidebarSakuraOption.textContent = t('themeSakura');
+      if (sidebarStickyOption) sidebarStickyOption.textContent = t('themeSticky');
+      if (sidebarGreenOption) sidebarGreenOption.textContent = t('themeGreen');
+      if (sidebarBlueOption) sidebarBlueOption.textContent = t('themeBlue');
       if (sidebarDarkOption) sidebarDarkOption.textContent = t('themeDark');
       if (sidebarAutoOption) sidebarAutoOption.textContent = t('themeAuto');
+    }
+
+    if (themeSelect || sidebarThemeSelect) {
+      syncThemeSelects(savedThemePreference);
     }
 
     const emptyText = $('emptyText');
@@ -1321,7 +1357,7 @@
     
     // 语言变化时刷新主题图标与aria标签
     updateReadingToggleLabels();
-    applyTheme(savedTheme);
+    applyTheme(savedThemePreference);
   }
 
   // 刷新已打开的词汇详情卡片文本
@@ -1431,53 +1467,99 @@
   });
 
   // 主题切换
-  const THEME = { LIGHT: 'light', DARK: 'dark' };
-  function applyTheme(theme) {
-    const t = (theme === THEME.DARK) ? THEME.DARK : THEME.LIGHT;
-    document.documentElement.setAttribute('data-theme', t === THEME.DARK ? 'dark' : 'light');
-    if (themeSelect) {
-      themeSelect.value = t === THEME.DARK ? 'dark' : 'light';
+  const THEME = {
+    PAPER: 'paper',
+    SAKURA: 'sakura',
+    STICKY: 'sticky',
+    GREEN: 'green',
+    BLUE: 'blue',
+    DARK: 'dark',
+    AUTO: 'auto'
+  };
+  const LIGHT_THEMES = [THEME.PAPER, THEME.SAKURA, THEME.STICKY, THEME.GREEN, THEME.BLUE];
+
+  function normalizeThemeValue(value) {
+    if (!value) return THEME.PAPER;
+    if (value === 'light') return THEME.PAPER;
+    if (LIGHT_THEMES.includes(value)) return value;
+    if (value === THEME.DARK || value === THEME.AUTO) return value;
+    return THEME.PAPER;
+  }
+
+  let savedThemePreference = normalizeThemeValue(localStorage.getItem(LS.theme));
+  let lastLightTheme = normalizeThemeValue(localStorage.getItem(LS.lightTheme));
+  if (!LIGHT_THEMES.includes(lastLightTheme)) lastLightTheme = THEME.PAPER;
+  if (!LIGHT_THEMES.includes(savedThemePreference) && savedThemePreference !== THEME.DARK && savedThemePreference !== THEME.AUTO) {
+    savedThemePreference = THEME.PAPER;
+  }
+  if (!localStorage.getItem(LS.lightTheme)) {
+    try { localStorage.setItem(LS.lightTheme, lastLightTheme); } catch (_) {}
+  }
+
+  const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function resolveTheme(pref) {
+    if (pref === THEME.AUTO) {
+      const prefersDark = prefersDarkQuery.matches;
+      return prefersDark ? THEME.DARK : (LIGHT_THEMES.includes(lastLightTheme) ? lastLightTheme : THEME.PAPER);
     }
-    if (sidebarThemeSelect) {
-      sidebarThemeSelect.value = t === THEME.DARK ? 'dark' : 'light';
-    }
-    // 同步顶部主题按钮图标与标签（显示"切换到"目标主题）
+    if (pref === THEME.DARK) return THEME.DARK;
+    if (LIGHT_THEMES.includes(pref)) return pref;
+    return THEME.PAPER;
+  }
+
+  function syncThemeSelects(pref) {
+    if (themeSelect) themeSelect.value = pref;
+    if (sidebarThemeSelect) sidebarThemeSelect.value = pref;
+  }
+
+  function applyTheme(pref) {
+    const resolved = resolveTheme(pref);
+    document.documentElement.setAttribute('data-theme', resolved);
+    syncThemeSelects(pref);
+
     if (themeToggleBtn) {
-      const next = (t === THEME.DARK) ? THEME.LIGHT : THEME.DARK;
+      const nextTheme = resolved === THEME.DARK ? (LIGHT_THEMES.includes(lastLightTheme) ? lastLightTheme : THEME.PAPER) : THEME.DARK;
       const icon = themeToggleBtn.querySelector('.theme-icon');
-      if (icon) icon.textContent = (next === THEME.DARK) ? '🌙' : '☀️';
-      themeToggleBtn.setAttribute('aria-label', next === THEME.DARK ? labelSwitchToDark() : labelSwitchToLight());
-      themeToggleBtn.title = themeToggleBtn.getAttribute('aria-label');
+      if (icon) icon.textContent = nextTheme === THEME.DARK ? '🌙' : '☀️';
+      const label = nextTheme === THEME.DARK ? labelSwitchToDark() : labelSwitchToLight();
+      themeToggleBtn.setAttribute('aria-label', label);
+      themeToggleBtn.title = label;
     }
   }
-  let savedTheme = localStorage.getItem(LS.theme) || THEME.LIGHT;
-  applyTheme(savedTheme);
+
+  function setThemePreference(pref) {
+    const normalized = normalizeThemeValue(pref);
+    savedThemePreference = normalized;
+    if (LIGHT_THEMES.includes(normalized)) {
+      lastLightTheme = normalized;
+      try { localStorage.setItem(LS.lightTheme, lastLightTheme); } catch (e) {}
+    }
+    try { localStorage.setItem(LS.theme, savedThemePreference); } catch (e) {}
+    applyTheme(savedThemePreference);
+  }
+
+  applyTheme(savedThemePreference);
+
   if (themeSelect) {
     themeSelect.addEventListener('change', () => {
-      const selectedValue = themeSelect.value;
-      if (selectedValue === 'auto') {
-        // 跟随系统主题
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? THEME.DARK : THEME.LIGHT;
-        savedTheme = systemTheme;
-      } else {
-        savedTheme = selectedValue === 'dark' ? THEME.DARK : THEME.LIGHT;
-      }
-      try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
-      if (sidebarThemeSelect) sidebarThemeSelect.value = selectedValue;
-      applyTheme(savedTheme);
-    });
-    
-    // 监听系统主题变化（当选择跟随系统时）
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (themeSelect.value === 'auto') {
-        savedTheme = e.matches ? THEME.DARK : THEME.LIGHT;
-        try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
-        applyTheme(savedTheme);
-      }
+      setThemePreference(themeSelect.value);
     });
   }
 
-  // 顶部主题按钮：浅色/深色快速切换（不涉及跟随系统）
+  if (sidebarThemeSelect) {
+    sidebarThemeSelect.addEventListener('change', () => {
+      setThemePreference(sidebarThemeSelect.value);
+    });
+  }
+
+  prefersDarkQuery.addEventListener('change', () => {
+    if (savedThemePreference === THEME.AUTO) {
+      applyTheme(savedThemePreference);
+    }
+  });
+
+  // 顶部主题按钮：浅色/深色快速切换
   function labelSwitchToDark() {
     switch (currentLang) {
       case 'ja': return 'ダークモードに切り替え';
@@ -1494,24 +1576,13 @@
   }
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
-      savedTheme = (savedTheme === THEME.DARK) ? THEME.LIGHT : THEME.DARK;
-      try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
-      applyTheme(savedTheme);
-    });
-  }
-  if (sidebarThemeSelect) {
-    sidebarThemeSelect.addEventListener('change', () => {
-      const selectedValue = sidebarThemeSelect.value;
-      if (selectedValue === 'auto') {
-        // 跟随系统主题
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? THEME.DARK : THEME.LIGHT;
-        savedTheme = systemTheme;
+      const resolved = resolveTheme(savedThemePreference);
+      if (resolved === THEME.DARK) {
+        const target = LIGHT_THEMES.includes(lastLightTheme) ? lastLightTheme : THEME.PAPER;
+        setThemePreference(target);
       } else {
-        savedTheme = selectedValue === 'dark' ? THEME.DARK : THEME.LIGHT;
+        setThemePreference(THEME.DARK);
       }
-      try { localStorage.setItem(LS.theme, savedTheme); } catch (e) {}
-      if (themeSelect) themeSelect.value = selectedValue;
-      applyTheme(savedTheme);
     });
   }
 
@@ -1570,60 +1641,126 @@ Try Fudoki and enjoy Japanese language analysis!`;
   // 初始化速度滑块（元素可能不存在）
   if (speedSlider) speedSlider.value = String(rate);
 
-  // 罗马音转换函数
+  // 罗马字转换（Hepburn）：支持拗音、促音、长音、ん的同化
   function getRomaji(kana) {
     if (!kana) return '';
-    
-    const kanaToRomaji = {
-      'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
-      'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
-      'が': 'ga', 'ぎ': 'gi', 'ぐ': 'gu', 'げ': 'ge', 'ご': 'go',
-      'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so',
-      'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo',
-      'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to',
-      'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'で': 'de', 'ど': 'do',
-      'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no',
-      'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
-      'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
-      'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po',
-      'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
-      'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
-      'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
-      'わ': 'wa', 'ゐ': 'wi', 'ゑ': 'we', 'を': 'wo', 'ん': 'n',
-      // 片假名
-      'ア': 'a', 'イ': 'i', 'ウ': 'u', 'エ': 'e', 'オ': 'o',
-      'カ': 'ka', 'キ': 'ki', 'ク': 'ku', 'ケ': 'ke', 'コ': 'ko',
-      'ガ': 'ga', 'ギ': 'gi', 'グ': 'gu', 'ゲ': 'ge', 'ゴ': 'go',
-      'サ': 'sa', 'シ': 'shi', 'ス': 'su', 'セ': 'se', 'ソ': 'so',
-      'ザ': 'za', 'ジ': 'ji', 'ズ': 'zu', 'ゼ': 'ze', 'ゾ': 'zo',
-      'タ': 'ta', 'チ': 'chi', 'ツ': 'tsu', 'テ': 'te', 'ト': 'to',
-      'ダ': 'da', 'ヂ': 'ji', 'ヅ': 'zu', 'デ': 'de', 'ド': 'do',
-      'ナ': 'na', 'ニ': 'ni', 'ヌ': 'nu', 'ネ': 'ne', 'ノ': 'no',
-      'ハ': 'ha', 'ヒ': 'hi', 'フ': 'fu', 'ヘ': 'he', 'ホ': 'ho',
-      'バ': 'ba', 'ビ': 'bi', 'ブ': 'bu', 'ベ': 'be', 'ボ': 'bo',
-      'パ': 'pa', 'ピ': 'pi', 'プ': 'pu', 'ペ': 'pe', 'ポ': 'po',
-      'マ': 'ma', 'ミ': 'mi', 'ム': 'mu', 'メ': 'me', 'モ': 'mo',
-      'ヤ': 'ya', 'ユ': 'yu', 'ヨ': 'yo',
-      'ラ': 'ra', 'リ': 'ri', 'ル': 'ru', 'レ': 're', 'ロ': 'ro',
-      'ワ': 'wa', 'ヰ': 'wi', 'ヱ': 'we', 'ヲ': 'wo', 'ン': 'n',
-      // 长音符号
-      'ー': '-',
-      // 小字符
-      'ゃ': 'ya', 'ゅ': 'yu', 'ょ': 'yo',
-      'ャ': 'ya', 'ュ': 'yu', 'ョ': 'yo',
-      'っ': 'tsu', 'ッ': 'tsu'
-    };
-    
-    let romaji = '';
-    for (let i = 0; i < kana.length; i++) {
-      const char = kana[i];
-      if (kanaToRomaji[char]) {
-        romaji += kanaToRomaji[char];
-      } else {
-        romaji += char;
+
+    // 将片假名统一转为平假名，便于规则运算
+    const toHiraganaLocal = (text) => {
+      let out = '';
+      for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        if (code >= 0x30A1 && code <= 0x30FA) { // Katakana
+          out += String.fromCharCode(code - 0x60);
+        } else {
+          out += text[i];
+        }
       }
+      return out;
+    };
+
+    const macron = (v) => ({ a: 'ā', i: 'ī', u: 'ū', e: 'ē', o: 'ō' }[v] || v);
+
+    // 基础映射（平假名）
+    const base = {
+      'あ':'a','い':'i','う':'u','え':'e','お':'o',
+      'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
+      'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go',
+      'さ':'sa','し':'shi','す':'su','せ':'se','そ':'so',
+      'ざ':'za','じ':'ji','ず':'zu','ぜ':'ze','ぞ':'zo',
+      'た':'ta','ち':'chi','つ':'tsu','て':'te','と':'to',
+      'だ':'da','ぢ':'ji','づ':'zu','で':'de','ど':'do',
+      'な':'na','に':'ni','ぬ':'nu','ね':'ne','の':'no',
+      'は':'ha','ひ':'hi','ふ':'fu','へ':'he','ほ':'ho',
+      'ば':'ba','び':'bi','ぶ':'bu','べ':'be','ぼ':'bo',
+      'ぱ':'pa','ぴ':'pi','ぷ':'pu','ぺ':'pe','ぽ':'po',
+      'ま':'ma','み':'mi','む':'mu','め':'me','も':'mo',
+      'や':'ya','ゆ':'yu','よ':'yo',
+      'ら':'ra','り':'ri','る':'ru','れ':'re','ろ':'ro',
+      'わ':'wa','ゐ':'wi','ゑ':'we','を':'wo','ん':'n',
+      'ゔ':'vu',
+      // 小元音（常用于外来语拓展）：按基础元音处理
+      'ぁ':'a','ぃ':'i','ぅ':'u','ぇ':'e','ぉ':'o'
+    };
+
+    // 拗音可组合的辅音簇
+    const yoonCluster = {
+      'き':'ky','ぎ':'gy','し':'sh','じ':'j','ち':'ch','ぢ':'j',
+      'に':'ny','ひ':'hy','び':'by','ぴ':'py','み':'my','り':'ry','ゔ':'vy'
+    };
+
+    const text = toHiraganaLocal(kana);
+    let romaji = '';
+    let pendingSokuon = false; // 促音标记
+
+    // 预取下一个音节的罗马字，用于处理「ん」同化
+    const peekChunk = (s, idx) => {
+      const ch = s[idx];
+      if (!ch) return '';
+      if (ch === 'っ') return ''; // 下一个若为促音，再往后看
+      const next = s[idx + 1];
+      if ((next === 'ゃ' || next === 'ゅ' || next === 'ょ') && yoonCluster[ch]) {
+        const v = next === 'ゃ' ? 'a' : (next === 'ゅ' ? 'u' : 'o');
+        return yoonCluster[ch] + v;
+      }
+      return base[ch] || '';
+    };
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+
+      // 促音：标记加倍下一音节首辅音
+      if (ch === 'っ') { pendingSokuon = true; continue; }
+
+      // 长音符号（通常来自片假名）：将前一元音加上长音符（macron）
+      if (ch === 'ー') {
+        const m = romaji.match(/[aeiou]$/i);
+        if (m) romaji = romaji.slice(0, -1) + macron(m[0].toLowerCase());
+        continue;
+      }
+
+      // ん 的同化规则
+      if (ch === 'ん') {
+        // 跳过连续促音，获取下一音节的起始字母
+        let j = i + 1;
+        while (text[j] === 'っ') j++;
+        const nextChunk = peekChunk(text, j);
+        const init = (nextChunk[0] || '').toLowerCase();
+        if (/^[bmp]$/.test(init)) {
+          romaji += 'm';
+        } else if (/^[aeiouy]$/.test(init)) {
+          romaji += "n'";
+        } else {
+          romaji += 'n';
+        }
+        continue;
+      }
+
+      // 拗音组合：X + (ゃ/ゅ/ょ)
+      const next = text[i + 1];
+      if ((next === 'ゃ' || next === 'ゅ' || next === 'ょ') && yoonCluster[ch]) {
+        const v = next === 'ゃ' ? 'a' : (next === 'ゅ' ? 'u' : 'o');
+        let chunk = yoonCluster[ch] + v; // 如 ky + a → kya, sh + u → shu
+        if (pendingSokuon) {
+          pendingSokuon = false;
+          const fc = chunk[0];
+          if (/^[bcdfghjklmnpqrstvwxyz]$/i.test(fc)) romaji += fc.toLowerCase();
+        }
+        romaji += chunk;
+        i++; // 消耗拗音的第二字符
+        continue;
+      }
+
+      // 常规音节
+      let chunk = base[ch] || ch;
+      if (pendingSokuon) {
+        pendingSokuon = false;
+        const fc = chunk[0] || '';
+        if (/^[bcdfghjklmnpqrstvwxyz]$/i.test(fc)) romaji += fc.toLowerCase();
+      }
+      romaji += chunk;
     }
-    
+
     return romaji;
   }
 
@@ -4159,7 +4296,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const isSidebar = context === 'sidebar';
     const id = (base) => isSidebar ? `sidebar${base.charAt(0).toUpperCase()}${base.slice(1)}` : base;
     
-    // 移除"系统设置"（主题/语言）区块，仅保留语音与显示设置
+    // 包含语音、显示与系统设置（主题/语言）
     return `
       <!-- 语音设置 -->
       <div class="settings-section">
@@ -4244,6 +4381,33 @@ Try Fudoki and enjoy Japanese language analysis!`;
             <label class="control-label" id="${id('fontSizeLabel')}">${t('fontSizeLabel')}</label>
             <input type="range" id="${id('fontSizeRange')}" min="0.8" max="1.5" step="0.05" value="1">
             <div class="speed-display" id="${id('fontSizeValue')}">100%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 系统设置 -->
+      <div class="settings-section">
+        <div class="sidebar-title" id="${id('systemTitle')}">${t('systemTitle')}</div>
+        <div class="system-controls">
+          <div class="control-group">
+            <label class="control-label" id="${id('themeLabel')}">${t('themeLabel')}</label>
+            <select id="${id('themeSelect')}">
+              <option value="paper">${t('themePaper')}</option>
+              <option value="sakura">${t('themeSakura')}</option>
+              <option value="sticky">${t('themeSticky')}</option>
+              <option value="green">${t('themeGreen')}</option>
+              <option value="blue">${t('themeBlue')}</option>
+              <option value="dark">${t('themeDark')}</option>
+              <option value="auto">${t('themeAuto')}</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label class="control-label" id="${id('langLabel')}">${t('langLabel')}</label>
+            <select id="${id('langSelect')}">
+              <option value="ja">日本語</option>
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+            </select>
           </div>
         </div>
       </div>
