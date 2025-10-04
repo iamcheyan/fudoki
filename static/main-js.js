@@ -23,6 +23,7 @@
   // 左侧列表底部按钮可能被移除，这里做安全获取
   const deleteDocBtn = document.getElementById('deleteDocBtn');
   const editorNewBtn = document.getElementById('editorNewBtn');
+  const syncBtn = document.getElementById('syncBtn');
   const editorDeleteBtn = document.getElementById('editorDeleteBtn');
   const themeToggleBtn = document.getElementById('theme-toggle');
   // 导航语言国旗按钮
@@ -2505,10 +2506,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
 
     // 注入示例文章（增量追加：仅追加缺失的样例）
-    async seedSampleDocumentsIfNeeded() {
+    async seedSampleDocumentsIfNeeded(force = false) {
       try {
         const docs = this.getAllDocuments();
-        const resp = await fetch('/static/samples.json');
+        const url = force ? `/static/samples.json?v=${Date.now()}` : '/static/samples.json';
+        const resp = await fetch(url, { cache: force ? 'no-store' : 'default' });
         if (!resp.ok) return;
         const data = await resp.json();
         if (!data || !Array.isArray(data.articles)) return;
@@ -2556,6 +2558,19 @@ Try Fudoki and enjoy Japanese language analysis!`;
         editorNewBtn.addEventListener('click', () => {
           this.createDocument('');
           if (textInput) textInput.focus();
+        });
+      }
+
+      // 顶部“同步”按钮：强制刷新样例并重绘列表，按钮显示加载圆环
+      if (syncBtn) {
+        syncBtn.addEventListener('click', async () => {
+          syncBtn.classList.add('is-loading');
+          try {
+            await this.seedSampleDocumentsIfNeeded(true);
+            this.render();
+          } finally {
+            syncBtn.classList.remove('is-loading');
+          }
         });
       }
 

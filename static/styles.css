@@ -1776,25 +1776,43 @@ select, input[type="range"] {
   stroke-linejoin: round;
   fill: none;
 }
+/* 顶部同步按钮采用同样的描边风格 */
+#syncBtn svg path {
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
 .theme-icon-btn:hover { background: rgba(0,0,0,0.06); }
 :root[data-theme="dark"] .theme-icon-btn:hover { background: rgba(255,255,255,0.06); }
 .theme-icon-btn.is-loading {
   position: relative;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.9;
 }
 .theme-icon-btn.is-loading svg {
   opacity: 0;
 }
+/* 按照“下载”按钮的加载样式优化：外环轨道 + 旋转进度弧 */
+.theme-icon-btn.is-loading::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(139, 105, 20, 0.18); /* 轨道 */
+}
 .theme-icon-btn.is-loading::after {
   content: '';
   position: absolute;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(139, 105, 20, 0.25);
-  border-top-color: var(--primary);
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  animation: pwa-spin 0.8s linear infinite;
+  border: 2px solid transparent;
+  border-top-color: var(--primary);
+  border-right-color: var(--primary); /* 制造更明显的弧形 */
+  animation: pwa-spin 0.9s linear infinite;
 }
 
 @keyframes pwa-spin {
