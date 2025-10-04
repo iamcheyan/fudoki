@@ -882,7 +882,7 @@ input:focus, textarea:focus, select:focus {
 .content-area {
   flex: 1;
   margin: 0 10px;
-  overflow-y: auto;
+  /* overflow-y: auto; */
   background: var(--bg);
   padding-bottom: 50px;
 }
@@ -2871,7 +2871,7 @@ input[type="checkbox"] {
   /* 单栏布局，内容占满 */
   .main-container { grid-template-columns: 1fr; }
 
-.folder-management.show { display: block; }
+.folder-management.show { display: block;  }
 
   /* 折叠按钮在移动端不需要显示 */
   .sidebar-toggle-btn { display: none; }
@@ -2903,6 +2903,7 @@ input[type="checkbox"] {
   position: relative;
   width: 100%;
   border-right: none;
+  padding-top: 0;
 }
 
   .sidebar-stack .folder-management {
