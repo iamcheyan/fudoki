@@ -974,6 +974,7 @@ input:focus, textarea:focus, select:focus {
   /* transform: scale(1.05); */
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   animation: pulse-playing 1.5s ease-in-out infinite;
+  z-index: 9999;
 }
 /* .token-pill.active .token-content *,
 .token-pill.playing .token-content * {

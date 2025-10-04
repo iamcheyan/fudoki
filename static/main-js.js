@@ -3297,23 +3297,52 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return !allPunct; // 如果整行都是标点符号，则过滤掉
     });
     
-    // 片假名复合词拆分（如「スマートフォンアプリ」→「スマートフォン」「アプリ」）
+    // 片假名复合词拆分（如「スマート フォン アプリ」）
     const isKatakana = (s) => /^[\u30A0-\u30FFー・]+$/.test(String(s || ''));
     function splitKatakanaCompounds(tokens) {
       const suffixes = ['アプリ', 'サイト', 'サービス', 'システム', 'インターフェース'];
+      // 常见内部拆分映射：键为需要进一步拆分的前缀整体
+      const innerSplits = {
+        'スマートフォン': ['スマート', 'フォン']
+      };
       const out = [];
       for (const tok of tokens) {
         const surface = tok && tok.surface ? tok.surface : '';
         const posArr = Array.isArray(tok && tok.pos) ? tok.pos : [tok && tok.pos || ''];
         const mainPos = posArr[0] || '';
         if (mainPos === '名詞' && isKatakana(surface)) {
+          const readingFull = tok.reading || surface;
+
+          // 情况A：整词命中内部拆分
+          const directInner = innerSplits[surface];
+          if (directInner) {
+            const left = directInner[0];
+            const right = directInner[1];
+            const leftReading = readingFull.slice(0, left.length);
+            const rightReading = readingFull.slice(left.length);
+            out.push({ surface: left, lemma: tok.lemma || left, reading: leftReading, pos: tok.pos });
+            out.push({ surface: right, lemma: right, reading: rightReading, pos: tok.pos });
+            continue;
+          }
+
+          // 情况B：命中后缀，先拆分前缀+后缀；前缀再做内部拆分
           const suf = suffixes.find(sf => surface.endsWith(sf) && surface.length > sf.length);
           if (suf) {
             const prefix = surface.slice(0, surface.length - suf.length);
-            const readingFull = tok.reading || surface;
             const prefixReading = readingFull.slice(0, prefix.length);
             const suffixReading = readingFull.slice(prefix.length);
-            out.push({ surface: prefix, lemma: tok.lemma || prefix, reading: prefixReading, pos: tok.pos });
+
+            const inner = innerSplits[prefix];
+            if (inner) {
+              const left = inner[0];
+              const right = inner[1];
+              const leftReading = prefixReading.slice(0, left.length);
+              const rightReading = prefixReading.slice(left.length);
+              out.push({ surface: left, lemma: tok.lemma || left, reading: leftReading, pos: tok.pos });
+              out.push({ surface: right, lemma: right, reading: rightReading, pos: tok.pos });
+            } else {
+              out.push({ surface: prefix, lemma: tok.lemma || prefix, reading: prefixReading, pos: tok.pos });
+            }
             out.push({ surface: suf, lemma: suf, reading: suffixReading || suf, pos: tok.pos });
             continue;
           }
