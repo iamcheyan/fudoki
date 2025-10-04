@@ -261,8 +261,11 @@ body {
   display: block;
 }
 
-/* 移动端单旗下拉样式 */
-.lang-dropdown { display: none; position: relative; }
+/* 统一：顶部仅使用移动端单旗下拉，隐藏多旗按钮 */
+.nav-lang .lang-flag { display: none; }
+
+/* 单旗下拉样式（桌面与移动统一使用） */
+.lang-dropdown { display: inline-flex; position: relative; }
 .lang-dropdown-btn {
   line-height: 1;
   background: none;
