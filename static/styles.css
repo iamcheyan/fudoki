@@ -116,7 +116,12 @@ body {
   justify-content: space-between;
   padding: 0 16px;
   position: relative;
+}
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .logo {
@@ -283,6 +288,7 @@ body {
   position: relative;
   transition: width 0.3s ease, transform 0.3s ease;
   overflow: hidden;
+  border-right: 1px solid var(--border);
 }
 
 .sidebar-stack {
@@ -342,9 +348,8 @@ body {
 }
 /* 侧边栏内容 */
 .sidebar-content {
-  padding: 16px 12px;
+  padding: 0 12px;
   height: 100%;
-  border-right: 1px solid var(--border);
 }
 
 
@@ -2735,3 +2740,127 @@ input[type="checkbox"] {
 
 /* 列表面板收缩样式（与左侧边栏一致向左收起） */
 /* 移除旧的 .list-panel 折叠类，统一由 #sidebarStack 控制 */
+/* 应用程序图标样式 */
+.app-icon {
+  /* 与 nav-menu 中的按钮保持一致，继承 theme-icon-btn 样式 */
+}
+
+.app-icon:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 快速搜索栏样式 */
+.search-section {
+  padding: 0.5rem 1rem 0.75rem;
+}
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 0 5px;
+  max-width: 520px;
+}
+.search-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #9c6b4f;
+  font-size: 0; /* 隐藏 span 内的文本内容 */
+  line-height: 1;
+  position: relative;
+}
+.search-icon::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%226%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat center / contain;
+}
+.search-input-wrapper:hover .search-icon { color: #8d5f43; }
+:root[data-theme="dark"] .search-icon { color: #c49a6c; opacity: 0.95; }
+.search-input-wrapper input#quickSearchInput,
+.search-input-wrapper input#globalSearchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #555;
+  padding: 6px 0;
+}
+.search-clear {
+  border: 1px solid rgba(160, 140, 100, 0.18);
+  background: linear-gradient(180deg, #f9f7f3 0%, #f2eee8 100%);
+  color: #9aa3ad;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.85);
+  transition: background 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.05s ease;
+}
+.search-clear:hover {
+  background: linear-gradient(180deg, #fffdfa 0%, #f6f2eb 100%);
+  color: #7c8791;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.95);
+}
+.search-clear:active {
+  transform: scale(0.96);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.16);
+}
+.search-clear:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(78,161,255,0.35), 0 2px 6px rgba(0,0,0,0.12);
+}
+.search-info {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* 搜索高亮 */
+.token-pill.search-hit {
+  box-shadow: 0 0 0 2px #c49a6c55;
+  background: #fff7ea;
+}
+
+:root[data-theme="dark"] .search-input-wrapper {
+  background: #2b2b2b;
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+:root[data-theme="dark"] .search-input-wrapper input#quickSearchInput,
+:root[data-theme="dark"] .search-input-wrapper input#globalSearchInput { color: #ddd; }
+:root[data-theme="dark"] .search-info { color: #aaa; }
+:root[data-theme="dark"] .token-pill.search-hit { background: #3b2f26; box-shadow: 0 0 0 2px #c49a6c55; }
+
+/* 深色模式下的圆形清除按钮 */
+:root[data-theme="dark"] .search-clear {
+  border-color: rgba(255,255,255,0.12);
+  background: linear-gradient(180deg, #3a3a3a 0%, #333333 100%);
+  color: #cbd3dd;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+:root[data-theme="dark"] .search-clear:hover {
+  background: linear-gradient(180deg, #424242 0%, #393939 100%);
+  color: #e0e6ec;
+}
+
+/* 左侧边栏中的搜索区样式调整 */
+.folder-management .search-section {
+  padding: 12px;
+  display: block;
+}
+:root[data-theme="dark"] .token-pill.search-hit { background: #3b2f26; box-shadow: 0 0 0 2px #c49a6c55; }

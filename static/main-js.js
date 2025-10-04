@@ -1732,6 +1732,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     constructor() {
       this.storageKey = LS.texts;
       this.activeIdKey = LS.activeId;
+      this.searchQuery = '';
       this.init();
     }
 
@@ -1977,14 +1978,22 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const docs = this.getAllDocuments();
       const activeId = this.getActiveId();
       const activeFolder = getActiveFolderId();
+      const queryLower = String(this.searchQuery || '').toLowerCase();
       
       if (!documentList) return;
       
       documentList.innerHTML = '';
       
       docs.filter(doc => {
-        if (activeFolder === 'all') return true;
-        if (activeFolder === 'favorites') return !!doc.favorite;
+        // 文件夹过滤
+        if (activeFolder === 'favorites' && !doc.favorite) return false;
+        // 全局搜索过滤
+        if (queryLower) {
+          const text = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
+          const title = this.getDocumentTitle(doc.content);
+          const combined = (title + '\n' + text).toLowerCase();
+          if (!combined.includes(queryLower)) return false;
+        }
         return true;
       }).forEach(doc => {
         const title = this.getDocumentTitle(doc.content);
@@ -3951,7 +3960,118 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initReadingModeToggle();
     initReadingModeInteractions();
     setupPwaInstaller();
+    initGlobalSearch();
+    initQuickSearch();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
+  }
+
+  // 简易防抖
+  function debounce(fn, delay = 200) {
+    let timer = null;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
+  // 初始化全局搜索（针对全部文档）
+  function initGlobalSearch() {
+    const input = document.getElementById('globalSearchInput');
+    const clearBtn = document.getElementById('globalSearchClear');
+    const info = document.getElementById('globalSearchInfo');
+    if (!input) return;
+
+    const runSearch = (q) => {
+      const query = String(q || '').trim();
+      if (typeof documentManager !== 'undefined') {
+        documentManager.searchQuery = query;
+        documentManager.render();
+      }
+
+      if (!info) return;
+      if (!query) { info.textContent = ''; return; }
+      try {
+        const docs = documentManager.getAllDocuments();
+        const ql = query.toLowerCase();
+        const hits = docs.filter(doc => {
+          const text = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
+          const title = documentManager.getDocumentTitle(doc.content);
+          return (title + '\n' + text).toLowerCase().includes(ql);
+        });
+        info.textContent = hits.length > 0 ? `匹配文档：${hits.length}` : '未找到匹配文档';
+      } catch (_) {
+        info.textContent = '';
+      }
+    };
+
+    const debounced = debounce(runSearch, 200);
+    input.addEventListener('input', (e) => debounced(e.target.value));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        runSearch(input.value);
+      }
+    });
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        input.value = '';
+        runSearch('');
+        input.focus();
+      });
+    }
+  }
+
+  // 初始化快速搜索
+  function initQuickSearch() {
+    const input = document.getElementById('quickSearchInput');
+    const clearBtn = document.getElementById('quickSearchClear');
+    const info = document.getElementById('quickSearchInfo');
+    const contentArea = document.getElementById('content');
+    if (!input || !contentArea) return;
+
+    const runSearch = (q, opts = {}) => {
+      const query = String(q || '').trim();
+      // 清理旧高亮
+      document.querySelectorAll('.token-pill.search-hit').forEach(el => el.classList.remove('search-hit'));
+      if (!query) {
+        if (info) info.textContent = '';
+        return;
+      }
+      // 搜索 token-pill
+      const pills = contentArea.querySelectorAll('.token-pill');
+      let count = 0;
+      let firstHit = null;
+      pills.forEach(pill => {
+        const text = pill.textContent || '';
+        if (text.toLowerCase().includes(query.toLowerCase())) {
+          pill.classList.add('search-hit');
+          if (!firstHit) firstHit = pill;
+          count++;
+        } else {
+          pill.classList.remove('search-hit');
+        }
+      });
+      if (info) {
+        info.textContent = count > 0 ? `找到 ${count} 个匹配` : '未找到匹配';
+      }
+      if (opts.scroll !== false && firstHit) {
+        try { firstHit.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+      }
+    };
+
+    const debounced = debounce(runSearch, 200);
+    input.addEventListener('input', (e) => debounced(e.target.value));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        runSearch(input.value, { scroll: true });
+      }
+    });
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        input.value = '';
+        runSearch('');
+        input.focus();
+      });
+    }
   }
 
   // 如果DOM已经加载完成，立即初始化

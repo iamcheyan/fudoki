@@ -11,7 +11,23 @@
   <!-- 顶部导航 -->
   <header class="header">
     <div class="header-content">
-      <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
+      <div class="header-left">
+        <!-- 应用程序图标 -->
+        <button class="theme-icon-btn app-icon" id="appIcon" aria-label="应用程序" title="应用程序">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
+            <circle cx="6" cy="6" r="2"/>
+            <circle cx="12" cy="6" r="2"/>
+            <circle cx="18" cy="6" r="2"/>
+            <circle cx="6" cy="12" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="18" cy="12" r="2"/>
+            <circle cx="6" cy="18" r="2"/>
+            <circle cx="12" cy="18" r="2"/>
+            <circle cx="18" cy="18" r="2"/>
+          </svg>
+        </button>
+        <a href="#" class="logo"><img src="static/logo.png" alt="Fudoki" class="logo-icon"><span class="logo-text" id="logoText">Fudoki</span></a>
+      </div>
       <nav class="nav-menu">
         <!-- 移动端菜单按钮：用于展开/收起左侧边栏 -->
         <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
@@ -74,8 +90,18 @@
   <div class="main-container">
     <!-- 移动端抽屉：将左侧文件夹与文档列表上下堆叠展示 -->
     <div class="sidebar-stack" id="sidebarStack">
+      
       <!-- 最上层：文件夹管理 -->
       <aside class="folder-management" id="sidebar-left">
+        <!-- 全局搜索（位于文件夹管理上方） -->
+        <section class="search-section" id="globalSearch" aria-label="全局搜索">
+          <div class="search-input-wrapper">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="text" id="globalSearchInput" placeholder="快速搜索关键词" autocomplete="off" aria-label="搜索全部文档">
+            <button type="button" id="globalSearchClear" class="search-clear" aria-label="清除搜索">×</button>
+          </div>
+          <div class="search-info" id="globalSearchInfo"></div>
+        </section>
         <div class="sidebar-content">
           <div class="sidebar-title" id="sidebarFolderTitle">文件夹管理</div>
           <div class="folder-list" id="folderList">
@@ -109,6 +135,8 @@
           <!-- 移除分析按钮：改为在文本域失去焦点且结构变化时自动解析 -->
         </div>
       </section>
+
+      
 
       <!-- 结果显示区域 -->
       <section class="content-area" id="content">
