@@ -1,4 +1,24 @@
-const CACHE_NAME = 'fudoki-cache-v1';
+// 通过版本化缓存名确保每次发布都能清理旧缓存
+const SW_VERSION = 'v2025-10-04';
+const CACHE_NAME = `fudoki-cache-${SW_VERSION}`;
+
+// 判定是否为页面导航或核心资源（必须优先走网络以获取最新逻辑）
+function isNavigationRequest(request) {
+  const accept = request.headers && request.headers.get('accept');
+  return request.mode === 'navigate' || (accept && accept.includes('text/html'));
+}
+
+function isCoreAsset(urlStr) {
+  try {
+    const url = new URL(urlStr);
+    const p = url.pathname;
+    return p === '/' || p.endsWith('/index.html') ||
+           p.endsWith('/static/main-js.js') ||
+           p.endsWith('/static/styles.css');
+  } catch (_) {
+    return false;
+  }
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
@@ -17,22 +37,46 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 页面与核心脚本样式：优先网络，失败回退缓存
+  if (isNavigationRequest(event.request) || isCoreAsset(event.request.url)) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const response = await fetch(new Request(event.request, { cache: 'reload' }));
+        if (response && response.status === 200) {
+          cache.put(event.request, response.clone());
+        }
+        return response;
+      } catch (error) {
+        const cached = await cache.match(event.request, { ignoreSearch: true });
+        if (cached) return cached;
+        throw error;
+      }
+    })());
+    return;
+  }
+
+  // 其它静态资源：stale-while-revalidate（先用缓存，同时后台更新）
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(event.request, { ignoreSearch: true });
-    if (cached) {
-      return cached;
-    }
-    try {
-      const response = await fetch(event.request);
-      if (response && response.status === 200 && response.type === 'basic') {
+    const networkPromise = fetch(event.request).then((response) => {
+      if (response && response.status === 200 && response.type !== 'opaque') {
         cache.put(event.request, response.clone());
       }
       return response;
-    } catch (error) {
-      if (cached) return cached;
-      throw error;
+    }).catch(() => null);
+
+    if (cached) {
+      // 后台更新，不阻塞当前响应
+      event.waitUntil(networkPromise);
+      return cached;
     }
+
+    const network = await networkPromise;
+    if (network) return network;
+    // 没有网络且没有缓存，返回失败响应
+    return cached || Response.error();
   })());
 });
 

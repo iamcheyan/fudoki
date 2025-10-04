@@ -795,7 +795,8 @@
       }).filter(Boolean);
 
       PWA_STATE.total = normalizedAssets.length;
-      const registration = await navigator.serviceWorker.register('./service-worker.js');
+      const registration = await navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' });
+      try { await registration.update(); } catch (_) {}
       PWA_STATE.registration = registration;
       const ready = await navigator.serviceWorker.ready;
       const controller = navigator.serviceWorker.controller || ready.active || registration.active;

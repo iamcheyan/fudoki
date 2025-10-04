@@ -3092,6 +3092,7 @@ input[type="checkbox"] {
   color: #555;
   padding: 6px 0;
   text-indent: 0.5em;
+  font-size: 0.8em;
 }
 .search-clear {
   border: 1px solid rgba(160, 140, 100, 0.18);
