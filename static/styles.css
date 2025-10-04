@@ -469,7 +469,7 @@ body {
 }
 
 .list-content {
-  padding: 16px 12px;
+  /* padding: 16px 12px; */
   height: 100%;
 }
 
@@ -581,10 +581,13 @@ body {
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
-  margin-bottom: 12px;
-  padding-bottom: 6px;
+  /* margin-bottom: 12px; */
+  padding: 10px;
 }
 
+.list-panel .sidebar-title  {
+  display: none;
+}
 /* 文件夹列表样式 */
 .folder-list { margin-top: 4px; }
 .folder-item {
@@ -627,6 +630,7 @@ body {
   align-items: center;
   gap: 8px;
   position: relative;
+  border-bottom: 1px solid var(--border);
 }
 
 .doc-item:hover {
@@ -2076,9 +2080,6 @@ select:focus, textarea:focus, input[type="text"]:focus {
 .sidebar-btn { background: var(--control-bg); border: 1px solid var(--control-border); color: var(--control-text); }
 .sidebar-btn.active { background: rgba(78,161,255,0.12); border-color: var(--primary); color: var(--primary); }
 
-/* 文档项外观（深色兼容） */
-.doc-item { background: transparent; border: 1px solid transparent; }
-.doc-item:hover { background: var(--control-elev); }
 
 /* 滑块控件 */
 input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; }

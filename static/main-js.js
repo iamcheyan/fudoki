@@ -2654,9 +2654,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const data = await resp.json();
         if (!data || !Array.isArray(data.articles)) return;
         const now = Date.now();
-        // 以标题作为唯一键，避免重复追加
+        // 以标题/ID作为唯一键，避免重复追加
         const existingSampleTitles = new Set(
           docs.filter(d => d.folder === 'samples').map(d => this.getDocumentTitle(d.content))
+        );
+        const existingSampleIds = new Set(
+          docs.filter(d => d.folder === 'samples').map(d => String(d.id))
         );
         const newDocs = [];
         for (const a of data.articles) {
@@ -2681,11 +2684,30 @@ Try Fudoki and enjoy Japanese language analysis!`;
             contentArr = [title, '', ...(Array.isArray(a.lines) ? a.lines : [String(a.text || '')])];
           }
           if (existingSampleTitles.has(title)) continue;
+          // 从 a.id 解析时间戳，ID 优先使用 a.id（格式：yyyyMMdd-HHmmss）
+          const rawId = String((a && a.id) || '').trim();
+          let createdAtTs = now;
+          const tsMatch = rawId.match(/^(\d{8})-(\d{6})$/);
+          if (tsMatch) {
+            const ymd = tsMatch[1];
+            const hms = tsMatch[2];
+            const year = parseInt(ymd.slice(0, 4), 10);
+            const month = parseInt(ymd.slice(4, 6), 10) - 1; // JS 月份从 0 开始
+            const day = parseInt(ymd.slice(6, 8), 10);
+            const hour = parseInt(hms.slice(0, 2), 10);
+            const minute = parseInt(hms.slice(2, 4), 10);
+            const second = parseInt(hms.slice(4, 6), 10);
+            createdAtTs = new Date(year, month, day, hour, minute, second).getTime();
+          }
+
+          const docId = rawId || this.generateId();
+          if (existingSampleIds.has(docId)) continue;
+
           newDocs.push({
-            id: this.generateId(),
+            id: docId,
             content: contentArr,
-            createdAt: now,
-            updatedAt: now,
+            createdAt: createdAtTs,
+            updatedAt: createdAtTs,
             locked: true,
             folder: 'samples'
           });
