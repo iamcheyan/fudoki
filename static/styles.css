@@ -961,7 +961,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .token-pill:hover {
-  background: rgb(230, 230, 230);
+  /* background: rgb(230, 230, 230); */
   border-color: var(--border);
   box-shadow: 0 4px 12px rgba(189, 189, 189, 0.3);
 }
