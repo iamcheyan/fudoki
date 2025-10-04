@@ -3159,7 +3159,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   /* gap: 0.5rem; */
-  background: #ffffff;
+  /* background: #ffffff; */
   border-radius: 18px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
   border: 1px solid rgba(0,0,0,0.08);

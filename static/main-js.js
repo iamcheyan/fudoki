@@ -4457,6 +4457,37 @@ Try Fudoki and enjoy Japanese language analysis!`;
     try { initFontSizeControls(); } catch (_) {}
     try { applyI18n(); } catch (_) {}
     try { if ('speechSynthesis' in window) refreshVoices(); } catch (_) {}
+    // 动态挂载的主题选择器需要在此处重新绑定事件
+    try {
+      const modalThemeSelect = document.getElementById('themeSelect');
+      if (modalThemeSelect) {
+        // 同步当前偏好到下拉
+        modalThemeSelect.value = savedThemePreference;
+        Array.from(modalThemeSelect.options || []).forEach(opt => {
+          opt.selected = (opt.value === savedThemePreference);
+        });
+        // 绑定切换事件
+        modalThemeSelect.addEventListener('change', () => {
+          setThemePreference(modalThemeSelect.value);
+        });
+      }
+    } catch (_) {}
+
+    // 动态挂载的语言选择器需要在此处重新绑定事件
+    try {
+      const modalLangSelect = document.getElementById('langSelect');
+      if (modalLangSelect) {
+        // 同步当前语言到下拉
+        modalLangSelect.value = currentLang;
+        Array.from(modalLangSelect.options || []).forEach(opt => {
+          opt.selected = (opt.value === currentLang);
+        });
+        // 绑定切换事件
+        modalLangSelect.addEventListener('change', () => {
+          setLanguage(modalLangSelect.value);
+        });
+      }
+    } catch (_) {}
   }
 
   // 在模板注入后，重新绑定语音与速度控件事件，避免初次选择为空导致不生效
