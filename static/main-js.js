@@ -2521,11 +2521,27 @@ Try Fudoki and enjoy Japanese language analysis!`;
         );
         const newDocs = [];
         for (const a of data.articles) {
-          const title = String(a.title || 'サンプル');
+          let title = 'サンプル';
+          let contentArr = [];
+          if (Array.isArray(a.lines) && a.lines.length > 0) {
+            title = String(a.lines[0]).trim() || 'サンプル';
+            const bodyLines = a.lines.map(l => String(l));
+            // 避免重复首行标题
+            if (String(bodyLines[0]).trim() === title) {
+              contentArr = [title, '', ...bodyLines.slice(1)];
+            } else {
+              contentArr = [title, '', ...bodyLines];
+            }
+          } else if (typeof a.text === 'string') {
+            const textStr = String(a.text);
+            title = textStr.split('\n')[0].trim() || 'サンプル';
+            contentArr = [title, '', textStr];
+          } else {
+            // 兼容旧结构（有 title 字段）
+            title = String(a.title || 'サンプル');
+            contentArr = [title, '', ...(Array.isArray(a.lines) ? a.lines : [String(a.text || '')])];
+          }
           if (existingSampleTitles.has(title)) continue;
-          const contentArr = Array.isArray(a.lines)
-            ? [title, '', ...a.lines]
-            : [title, '', String(a.text || '')];
           newDocs.push({
             id: this.generateId(),
             content: contentArr,
