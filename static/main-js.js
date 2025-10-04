@@ -1726,76 +1726,86 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
   });
 
-  // 自定义确认对话框 - 支持动态定位
-  function showDeleteConfirm(message, onConfirm, onCancel, targetElement) {
-    // 移除之前的确认对话框
+  // 居中模态确认对话框 + 磨砂遮罩
+  function showDeleteConfirm(message, onConfirm, onCancel) {
+    // 移除之前的确认内容与遮罩
     const existingConfirm = document.querySelector('.delete-confirm');
-    if (existingConfirm) {
-      existingConfirm.remove();
-    }
-    
-    // 创建新的确认对话框
+    const existingBackdrop = document.querySelector('.modal-backdrop');
+    if (existingConfirm) existingConfirm.remove();
+    if (existingBackdrop) existingBackdrop.remove();
+
+    // 创建遮罩
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.setAttribute('aria-hidden', 'false');
+
+    // 创建对话框
     const deleteConfirm = document.createElement('div');
     deleteConfirm.className = 'delete-confirm';
+    deleteConfirm.setAttribute('role', 'dialog');
+    deleteConfirm.setAttribute('aria-modal', 'true');
+    deleteConfirm.setAttribute('aria-labelledby', 'deleteConfirmTitle');
     deleteConfirm.innerHTML = `
+      <div class="delete-confirm-header">
+        <div class="delete-confirm-title" id="deleteConfirmTitle">${t('delete') || '删除'}</div>
+        <button class="delete-confirm-close" aria-label="关闭">×</button>
+      </div>
       <div class="delete-confirm-content">
         <div class="delete-confirm-message">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="delete-confirm-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="delete-confirm-icon">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
           </svg>
           <span class="delete-confirm-text">${message}</span>
         </div>
         <div class="delete-confirm-actions">
-          <button class="btn delete-confirm-cancel">取消</button>
-          <button class="btn btn-danger delete-confirm-ok">删除</button>
+          <button class="btn delete-confirm-cancel">${t('cancel') || '取消'}</button>
+          <button class="btn btn-danger delete-confirm-ok">${t('delete') || '删除'}</button>
         </div>
       </div>
     `;
-    
-    // 插入到目标元素后面
-    if (targetElement && targetElement.parentNode) {
-      targetElement.parentNode.insertBefore(deleteConfirm, targetElement.nextSibling);
-    } else {
-      // 如果没有目标元素，插入到文档列表中
-      const documentList = document.getElementById('documentList');
-      if (documentList) {
-        documentList.appendChild(deleteConfirm);
-      } else {
-        return false;
-      }
+
+    // 插入到 body
+    document.body.appendChild(backdrop);
+    document.body.appendChild(deleteConfirm);
+
+    // 焦点管理
+    const okBtn = deleteConfirm.querySelector('.delete-confirm-ok');
+    const cancelBtn = deleteConfirm.querySelector('.delete-confirm-cancel');
+    const closeBtn = deleteConfirm.querySelector('.delete-confirm-close');
+    setTimeout(() => { okBtn && okBtn.focus(); }, 0);
+
+    // 事件绑定
+    function cleanup() {
+      deleteConfirm && deleteConfirm.remove();
+      backdrop && backdrop.remove();
+      document.removeEventListener('keydown', onKeyDown);
     }
-    
-    // 获取按钮元素
-    const deleteConfirmOk = deleteConfirm.querySelector('.delete-confirm-ok');
-    const deleteConfirmCancel = deleteConfirm.querySelector('.delete-confirm-cancel');
-    
-    // 添加事件监听器
-    deleteConfirmOk.addEventListener('click', () => {
-      deleteConfirm.remove();
-      document.removeEventListener('click', closeOnOutsideClick);
-      if (onConfirm) onConfirm();
-    });
-    
-    deleteConfirmCancel.addEventListener('click', () => {
-      deleteConfirm.remove();
-      document.removeEventListener('click', closeOnOutsideClick);
-      if (onCancel) onCancel();
-    });
-    
-    // 点击对话框外部关闭
-    const closeOnOutsideClick = (e) => {
-      if (!deleteConfirm.contains(e.target)) {
-        deleteConfirm.remove();
-        document.removeEventListener('click', closeOnOutsideClick);
+
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        cleanup();
         if (onCancel) onCancel();
       }
-    };
+    }
+    document.addEventListener('keydown', onKeyDown);
 
-    // 延迟到下一个事件循环再绑定，避免当前点击立即触发关闭
-    setTimeout(() => {
-      document.addEventListener('click', closeOnOutsideClick);
-    }, 0);
-    
+    okBtn && okBtn.addEventListener('click', () => {
+      cleanup();
+      if (onConfirm) onConfirm();
+    });
+    cancelBtn && cancelBtn.addEventListener('click', () => {
+      cleanup();
+      if (onCancel) onCancel();
+    });
+    closeBtn && closeBtn.addEventListener('click', () => {
+      cleanup();
+      if (onCancel) onCancel();
+    });
+    backdrop.addEventListener('click', () => {
+      cleanup();
+      if (onCancel) onCancel();
+    });
+
     return true;
   }
 
@@ -3061,6 +3071,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
     textInput.addEventListener('blur', () => {
       const currentSig = computeStructureSignature(textInput.value);
       if (currentSig !== lastStructureSignature) {
+        analyzeText();
+      } else if (textInput.value.trim()) {
+        // 即使结构没有变化，如果有文本内容也要重新分析
         analyzeText();
       }
       lastStructureSignature = currentSig;

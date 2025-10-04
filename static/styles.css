@@ -340,7 +340,7 @@ body {
 
 /* 桌面端：当主容器折叠时仅显示右侧内容 */
 .main-container.collapsed {
-  grid-template-columns: 0 1fr;
+  grid-template-columns: 1fr;
 }
 
 
@@ -3180,3 +3180,66 @@ input[type="checkbox"] {
   display: block;
 }
 :root[data-theme="dark"] .token-pill.search-hit { background: #3b2f26; box-shadow: 0 0 0 2px #c49a6c55; }
+/* ===== 居中模态删除确认 + 磨砂遮罩（覆盖旧样式） ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px) saturate(120%);
+  -webkit-backdrop-filter: blur(3px) saturate(120%);
+  z-index: 10090;
+}
+
+.delete-confirm {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 18px 20px;
+  background: var(--elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  animation: modalEnter 0.18s ease-out;
+  font-size: 14px;
+  z-index: 10100;
+  width: 520px;
+  max-width: calc(100vw - 48px);
+  line-height: 1.6;
+}
+
+.delete-confirm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.delete-confirm-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.delete-confirm-close {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.delete-confirm-content { gap: 14px; }
+.delete-confirm-message { gap: 10px; font-size: 15px; }
+.delete-confirm-icon { width: 20px; height: 20px; }
+.delete-confirm-actions { gap: 10px; }
+.delete-confirm-cancel { padding: 8px 14px; border-radius: 6px; font-size: 13px; min-width: 64px; }
+.delete-confirm-ok { padding: 8px 14px; border-radius: 6px; font-size: 13px; min-width: 64px; }
+
+@keyframes modalEnter {
+  from { opacity: 0; transform: translate(-50%, calc(-50% - 8px)); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+[data-theme="dark"] .delete-confirm {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
+}
