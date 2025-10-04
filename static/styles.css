@@ -768,6 +768,8 @@ body {
   min-height: 88px;
   border-radius: 2px;
   color: var(--text);
+  /* 覆盖全局输入控件背景，保持透明以继承容器背景 */
+  background: transparent;
 }
 
 #textInput:focus {
