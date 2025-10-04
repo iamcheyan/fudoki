@@ -20,7 +20,6 @@
   const editorDocDate = document.getElementById('editorDocDate');
   const editorCharCount = document.getElementById('editorCharCount');
   const editorStarToggle = document.getElementById('editorStarToggle');
-  const editorNewBtn = document.getElementById('editorNewBtn');
   const editorDeleteBtn = document.getElementById('editorDeleteBtn');
   const themeToggleBtn = document.getElementById('theme-toggle');
   // 导航语言国旗按钮
@@ -1773,22 +1772,29 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 添加事件监听器
     deleteConfirmOk.addEventListener('click', () => {
       deleteConfirm.remove();
+      document.removeEventListener('click', closeOnOutsideClick);
       if (onConfirm) onConfirm();
     });
     
     deleteConfirmCancel.addEventListener('click', () => {
       deleteConfirm.remove();
+      document.removeEventListener('click', closeOnOutsideClick);
       if (onCancel) onCancel();
     });
     
     // 点击对话框外部关闭
-    document.addEventListener('click', function closeOnOutsideClick(e) {
+    const closeOnOutsideClick = (e) => {
       if (!deleteConfirm.contains(e.target)) {
         deleteConfirm.remove();
         document.removeEventListener('click', closeOnOutsideClick);
         if (onCancel) onCancel();
       }
-    });
+    };
+
+    // 延迟到下一个事件循环再绑定，避免当前点击立即触发关闭
+    setTimeout(() => {
+      document.addEventListener('click', closeOnOutsideClick);
+    }, 0);
     
     return true;
   }
@@ -1913,32 +1919,33 @@ Try Fudoki and enjoy Japanese language analysis!`;
         return false;
       }
 
-      if (!skipConfirm && !showDeleteConfirm((t('confirmDelete') || '').replace('{title}', this.getDocumentTitle(doc.content)), 
-        () => {
-          // 确认删除
-          docs.splice(index, 1);
-          this.saveAllDocuments(docs);
+      if (!skipConfirm) {
+        showDeleteConfirm((t('confirmDelete') || '').replace('{title}', this.getDocumentTitle(doc.content)), 
+          () => {
+            // 确认删除
+            docs.splice(index, 1);
+            this.saveAllDocuments(docs);
 
-          // 如果删除的是当前活动文档，切换到第一个文档
-          if (id === this.getActiveId()) {
-            const firstDoc = docs[0];
-            if (firstDoc) {
-              this.setActiveId(firstDoc.id);
-            } else {
-              this.setActiveId('');
+            // 如果删除的是当前活动文档，切换到第一个文档
+            if (id === this.getActiveId()) {
+              const firstDoc = docs[0];
+              if (firstDoc) {
+                this.setActiveId(firstDoc.id);
+              } else {
+                this.setActiveId('');
+              }
+              this.loadActiveDocument();
             }
-            this.loadActiveDocument();
-          }
 
-          this.render();
-        },
-        () => {
-          // 取消删除
-          return false;
-        },
-        targetElement // 传递目标元素用于定位确认对话框
-      )) {
-        return false;
+            this.render();
+          },
+          () => {
+            // 取消删除
+            return false;
+          },
+          targetElement // 传递目标元素用于定位确认对话框
+        );
+        return true;
       }
 
       // 如果是skipConfirm模式，直接删除
@@ -2114,14 +2121,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
     // 更新删除按钮状态
     updateDeleteButtonState() {
-      if (!deleteDocBtn) return;
+      // 同步列表删除按钮与工具栏垃圾桶按钮的禁用状态
+      if (!deleteDocBtn && !editorDeleteBtn) return;
       
       const docs = this.getAllDocuments();
       const activeId = this.getActiveId();
       const activeDoc = docs.find(d => d.id === activeId);
       
-      // 如果没有活动文档、只有一个文档或活动文档被锁定，禁用删除按钮
-      deleteDocBtn.disabled = !activeDoc || docs.length <= 1 || activeDoc.locked;
+      // 如果没有活动文档或活动文档被锁定，禁用删除按钮（允许删除最后一篇文档）
+      const disabled = !activeDoc || activeDoc.locked;
+      if (deleteDocBtn) deleteDocBtn.disabled = disabled;
+      if (editorDeleteBtn) editorDeleteBtn.disabled = disabled;
     }
 
     // 初始化默认文档
@@ -2156,6 +2166,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
           const activeId = this.getActiveId();
           if (activeId) {
             // 找到当前活动的文档项作为目标元素
+            const activeDocItem = document.querySelector(`.doc-item[data-doc-id="${activeId}"]`);
+            this.deleteDocument(activeId, false, activeDocItem);
+          }
+        });
+      }
+
+      // 编辑工具栏垃圾桶按钮
+      if (editorDeleteBtn) {
+        editorDeleteBtn.addEventListener('click', () => {
+          const activeId = this.getActiveId();
+          if (activeId) {
             const activeDocItem = document.querySelector(`.doc-item[data-doc-id="${activeId}"]`);
             this.deleteDocument(activeId, false, activeDocItem);
           }
@@ -3810,35 +3831,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
         editorStarToggle.setAttribute('aria-pressed', String(isFav));
         editorStarToggle.textContent = isFav ? '★' : '☆';
       }
-
-      // 更新删除按钮禁用态（无活动文档、仅剩一条或被锁定时禁用）
-      if (editorDeleteBtn) {
-        const disabled = !doc || docs.length <= 1 || !!(doc && doc.locked);
-        editorDeleteBtn.disabled = disabled;
-      }
     } catch (_) {}
   }
 
   function initEditorToolbar() {
-    if (editorNewBtn) {
-      editorNewBtn.addEventListener('click', () => {
-        documentManager.createDocument('');
-        if (textInput) textInput.focus();
-        updateEditorToolbar();
-      });
-    }
-
-    if (editorDeleteBtn) {
-      editorDeleteBtn.addEventListener('click', () => {
-        const activeId = documentManager.getActiveId();
-        if (activeId) {
-          const activeDocItem = document.querySelector(`.doc-item[data-doc-id="${activeId}"]`);
-          documentManager.deleteDocument(activeId, false, activeDocItem);
-          updateEditorToolbar();
-        }
-      });
-    }
-
     if (editorStarToggle) {
       editorStarToggle.addEventListener('click', () => {
         const docs = documentManager.getAllDocuments();

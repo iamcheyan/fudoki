@@ -306,6 +306,9 @@ body {
   border-radius: 6px;
   transition: background 0.2s ease;
 }
+.lang-option .flag-icon {
+  border: 1px solid #a6a6a6;
+}
 .lang-option:hover { background: var(--elevated); }
 .lang-name { font-size: 13px; }
 
@@ -402,7 +405,6 @@ body {
   transform: rotate(180deg);
 }
 .main-container.collapsed .content-main{
-  background-color: #fff;
   position: relative;
 }
 /* 侧边栏内容 */
@@ -757,7 +759,7 @@ input:focus, textarea:focus, select:focus {
 /* 结果显示区域 */
 .content-area {
   flex: 1;
-  padding: 0 16px 16px 16px;
+  margin: 0 10px;
   overflow-y: auto;
   background: var(--bg);
 }
@@ -2564,23 +2566,6 @@ body#reading-mode .reading-mode-toggle {
 .editor-star-toggle:hover,.editor-reading-toggle:hover{background:var(--elevated)}
 .editor-star-toggle.is-active{color:#f5a623;border-color:#f5a623;background:rgba(245,166,35,.08)}
 
-/* 顶部编辑器：新建/删除按钮样式 */
-.editor-new-btn, .editor-delete-btn {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  padding: 4px 8px;
-  font-size: 12px;
-  color: var(--text);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all .2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.editor-new-btn:hover, .editor-delete-btn:hover { background: var(--elevated); }
-.editor-delete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
 /* 阅读模式隐藏顶部编辑工具栏 */
 #reading-mode .editor-toolbar{display:none!important}
 
@@ -2825,7 +2810,9 @@ input[type="checkbox"] {
     opacity: 1;
   }
 }
-
+.main-container.collapsed #sidebarStack {
+  display: none;
+}
 /* 移动端：当抽屉展开时为内容区添加灰色透明遮罩以突出左侧菜单 */
 @media (max-width: 768px) {
   /* 展开时添加遮罩（基于 .main-container 的状态） */
