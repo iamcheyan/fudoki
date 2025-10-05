@@ -82,6 +82,7 @@ const headerSpeedValue = $('headerSpeedValue');
     activeId: 'activeId',
     activeFolder: 'activeFolder',
     sortAsc: 'sortAsc',
+    twoPane: 'twoPane',
     showKana: 'showKana',
     showRomaji: 'showRomaji', 
     showPos: 'showPos',
@@ -5676,19 +5677,33 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initListPanelTopOffset();
     setupPwaInstaller();
     initGlobalSearch();
-    // 两栏模式按钮：在 .main-container 上切换 two-pane 类
-    if (twoPaneToggle) {
-      twoPaneToggle.addEventListener('click', () => {
-        const mainContainer = document.querySelector('.main-container');
-        if (!mainContainer) return;
-        const next = !mainContainer.classList.contains('two-pane');
-        mainContainer.classList.toggle('two-pane', next);
-        // 按钮状态同步
-        twoPaneToggle.classList.toggle('is-active', next);
-        twoPaneToggle.setAttribute('aria-pressed', String(next));
-        twoPaneToggle.title = next ? (t('twoPaneOn') || '两栏模式已启用') : (t('twoPaneOff') || '两栏模式已关闭');
-      });
-    }
+    // 两栏模式：读取首选项并绑定按钮
+    (function initTwoPane() {
+      const mainContainer = document.querySelector('.main-container');
+      if (!mainContainer) return;
+      // 恢复
+      try {
+        const saved = localStorage.getItem(LS.twoPane);
+        const on = saved === 'true';
+        if (on) mainContainer.classList.add('two-pane');
+        if (twoPaneToggle) {
+          twoPaneToggle.classList.toggle('is-active', on);
+          twoPaneToggle.setAttribute('aria-pressed', String(on));
+        }
+      } catch (_) {}
+
+      if (twoPaneToggle) {
+        twoPaneToggle.addEventListener('click', () => {
+          const next = !mainContainer.classList.contains('two-pane');
+          mainContainer.classList.toggle('two-pane', next);
+          // 同步与保存
+          twoPaneToggle.classList.toggle('is-active', next);
+          twoPaneToggle.setAttribute('aria-pressed', String(next));
+          twoPaneToggle.title = next ? (t('twoPaneOn') || '两栏模式已启用') : (t('twoPaneOff') || '两栏模式已关闭');
+          try { localStorage.setItem(LS.twoPane, String(next)); } catch (_) {}
+        });
+      }
+    })();
     initQuickSearch();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
   }
