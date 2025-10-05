@@ -539,12 +539,7 @@ body {
 .content-container {
     height: 100%;
 }
-.content-container #headerPlayToggle {
-  width: 24px;
-  height: 24px;
-  border-radius: 24px;
-  margin: 0 0 0 10px;
-}
+
 
 /* 侧边栏内容 */
 .sidebar-content {
@@ -823,6 +818,7 @@ body {
   border-radius: 10px;
   margin: 10px;
   max-width: 860px;
+  overflow: hidden;
 }
 
 .input-group {
@@ -3527,14 +3523,21 @@ input[type="text"], textarea { font-size: 14px; }
   align-items: center;
   gap: 10px;
 }
-.play-control-bar .play-toggle {
-  width: 28px;
-  height: 28px;
+.play-control-bar .play-control-bar-buttons {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--control-text);
+  justify-content: flex-start;
+  gap: 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 0 0 10px;
 }
+.play-control-bar .play-control-bar-buttons .theme-icon-btn {
+  margin: 0;
+  border: none;
+}
+
 .play-control-bar .play-toggle:hover {
   background: var(--control-elev);
 }
@@ -3547,6 +3550,7 @@ input[type="text"], textarea { font-size: 14px; }
   border-radius: 6px;
   position: relative;
   overflow: hidden;
+  display: none !important;
 }
 .play-control-bar .play-progress-fill {
   position: absolute;
@@ -3559,11 +3563,44 @@ input[type="text"], textarea { font-size: 14px; }
 .play-control-bar .play-volume {
   width: 80px;
   height: 20px;
+  display: none;
 }
 :root[data-theme="dark"] .play-control-bar {
   box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+
+/* 头部语音与速度控件样式 */
+.play-control-bar .header-voice-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px;
+  margin-left: auto; /* 将整组语音/速度控件推到右侧 */
+}
+.play-control-bar .header-voice-controls select#headerVoiceSelect {
+  min-width: 220px;
+  height: 28px;
+}
+.play-control-bar .header-voice-controls #headerSpeedRange {
+  width: 140px;
+}
+.play-control-bar .header-voice-controls #headerSpeedValue {
+  width: 40px;
+  text-align: right;
 }
 .token-kanji { font-size: calc(14px * var(--font-scale)); }
 .token-kana { font-size: calc(10px * var(--font-scale)); }
 .token-romaji { font-size: calc(9px * var(--font-scale)); }
 .pos-tag, .token-pos { font-size: calc(8px * var(--font-scale)); }
+/* 暂停/恢复按钮样式，确保与播放按钮风格一致 */
+.content-container .theme-icon-btn {
+  color: var(--text-secondary);
+  width: 25px;
+  height: 25px;
+}
+.content-container #headerPauseToggle:hover {
+  color: var(--text-primary);
+}
+.content-container #headerPauseToggle.disabled {
+  opacity: 0.6;
+}

@@ -4,11 +4,16 @@
   const textInput = $('textInput');
   const analyzeBtn = $('analyzeBtn');
   const content = $('content');
-  const voiceSelect = $('voiceSelect');
-  const speedSlider = $('speedRange');
-  const speedValue = $('speedValue');
+const voiceSelect = $('voiceSelect');
+const speedSlider = $('speedRange');
+const speedValue = $('speedValue');
+// 头部控件
+const headerVoiceSelect = $('headerVoiceSelect');
+const headerSpeedSlider = $('headerSpeedRange');
+const headerSpeedValue = $('headerSpeedValue');
   const playAllBtn = $('playAllBtn');
   const headerPlayToggle = $('headerPlayToggle');
+  const headerPauseToggle = $('headerPauseToggle');
   const headerDownloadBtn = $('headerDownloadBtn');
   const newDocBtn = $('newDocBtn');
   const documentList = $('documentList');
@@ -1132,12 +1137,12 @@
   function playAllLabel(playing) {
     switch (currentLang) {
       case 'ja':
-        return playing ? '一時停止' : '全文再生';
+        return playing ? '停止' : '全文再生';
       case 'en':
-        return playing ? 'Pause' : 'Play All';
+        return playing ? 'Stop' : 'Play All';
       case 'zh':
       default:
-        return playing ? '暂停' : '播放全文';
+        return playing ? '停止' : '播放全文';
     }
   }
 
@@ -1780,12 +1785,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
   let rate = parseFloat(localStorage.getItem(LS.rate)) || 1;// 播放状态跟踪// 全局变量
   let volume = (() => { const v = parseFloat(localStorage.getItem(LS.volume)); return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 1; })();
   let isPlaying = false;
+  let isPaused = false;
   let currentUtterance = null;
   let currentPlayingText = null; // 用于重复播放
   let currentHighlightedToken = null; // 当前高亮的词汇元素
   let highlightTimeout = null; // 高亮定时器存储当前播放的文本用于重复播放
   let progressTimer = null; // 顶部进度条的计时器（TTS边界事件不可用时的回退）
-  let PLAY_STATE = { total: 0, current: 0 };
+  // 播放状态：按字符总量线性推进
+  let PLAY_STATE = { totalSegments: 0, totalChars: 0, charPrefix: [], current: 0 };
+  let usingBoundaryProgress = false;
   // 追加：当前段落与边界信息，用于在播放中实时调整音量并续播
   let currentSegments = null;            // 当前播放的分段数组
   let currentSegmentText = '';           // 当前播放段落文本
@@ -1796,6 +1804,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 初始化速度滑块（元素可能不存在）
   if (speedSlider) speedSlider.value = String(rate);
+  if (headerSpeedSlider) headerSpeedSlider.value = String(rate);
   const headerVolume = $('headerVolume');
   if (headerVolume) {
     headerVolume.value = String(volume);
@@ -1850,14 +1859,26 @@ Try Fudoki and enjoy Japanese language analysis!`;
     return Math.max(0.6, Math.min(6, seconds)); // 设定合理上下限
   }
 
+  // 取消当前语音并清理旧事件，避免取消后旧回调干扰新的播放
+  function safeCancelCurrentUtterance() {
+    try {
+      if (currentUtterance) {
+        try { currentUtterance.onend = null; } catch (_) {}
+        try { currentUtterance.onerror = null; } catch (_) {}
+        try { currentUtterance.onboundary = null; } catch (_) {}
+      }
+      window.speechSynthesis.cancel();
+    } catch (_) {}
+  }
+
   // 在当前段落位置重启语音，应用最新音量
   function restartCurrentSegmentAt(charIndex) {
     if (!('speechSynthesis' in window)) return;
     if (!currentSegments || !currentSegmentText) return;
     const idx = Math.max(0, Math.min(currentSegmentText.length, Number(charIndex) || 0));
     const remaining = currentSegmentText.slice(idx);
-    // 取消当前语音
-    try { window.speechSynthesis.cancel(); } catch (_) {}
+    // 取消当前语音（并移除其事件回调）
+    safeCancelCurrentUtterance();
 
     // 构建新 utterance 播放剩余文本
     const utterance = new SpeechSynthesisUtterance(remaining);
@@ -1872,39 +1893,46 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const baseOffset = Math.max(0, Math.min(1, idx / len));
 
     utterance.onstart = () => {
+      if (utterance !== currentUtterance) return; // 忽略过期回调
       isPlaying = true;
       segmentStartTs = Date.now();
       segmentEstimatedDuration = estimateSegmentDuration(remaining, utterance.rate);
       clearProgressTimer();
-      // 进度计时器，从基线偏移开始推进
-      progressTimer = setInterval(() => {
-        const elapsed = (Date.now() - segmentStartTs) / 1000;
-        const frac = Math.max(0, Math.min(1, elapsed / segmentEstimatedDuration));
-        if (PLAY_STATE.total > 0) setHeaderProgress(Math.min(1, (currentSegmentIndex + baseOffset + frac) / PLAY_STATE.total));
-        if (frac >= 1) clearProgressTimer();
-      }, 80);
+    // 进度计时器，从基线偏移开始推进（按字符线性）
+    progressTimer = setInterval(() => {
+      const elapsed = (Date.now() - segmentStartTs) / 1000;
+      const frac = Math.max(0, Math.min(1, elapsed / segmentEstimatedDuration));
+        const passedChars = (PLAY_STATE.charPrefix[currentSegmentIndex] || 0) + idx + Math.round(frac * Math.max(1, remaining.length));
+        if (PLAY_STATE.totalChars > 0) setHeaderProgress(Math.max(0, Math.min(1, passedChars / PLAY_STATE.totalChars)));
+      if (frac >= 1) clearProgressTimer();
+    }, 80);
       updatePlayButtonStates();
     };
 
     utterance.onboundary = (event) => {
+      if (utterance !== currentUtterance) return; // 忽略过期回调
       try {
         lastBoundaryCharIndex = idx + (typeof event.charIndex === 'number' ? event.charIndex : 0);
+        clearProgressTimer();
         const segLenRemain = Math.max(1, remaining.length);
-        const fracRemain = Math.max(0, Math.min(1, (event.charIndex || 0) / segLenRemain));
-        if (PLAY_STATE.total > 0) setHeaderProgress(Math.min(1, (currentSegmentIndex + baseOffset + fracRemain) / PLAY_STATE.total));
+        const passedChars = (PLAY_STATE.charPrefix[currentSegmentIndex] || 0) + idx + Math.max(0, Math.min(segLenRemain, event.charIndex || 0));
+        if (PLAY_STATE.totalChars > 0) setHeaderProgress(Math.max(0, Math.min(1, passedChars / PLAY_STATE.totalChars)));
       } catch (_) {}
     };
 
     utterance.onend = () => {
+      if (utterance !== currentUtterance) return; // 忽略过期回调
       clearProgressTimer();
       const next = currentSegmentIndex + 1;
-      if (PLAY_STATE.total > 0) setHeaderProgress(Math.min(1, next / PLAY_STATE.total));
+      const nextChars = PLAY_STATE.charPrefix[next] || PLAY_STATE.totalChars;
+      if (PLAY_STATE.totalChars > 0) setHeaderProgress(Math.max(0, Math.min(1, nextChars / PLAY_STATE.totalChars)));
       setTimeout(() => {
         playSegments(currentSegments, next, undefined);
       }, 0);
     };
 
     utterance.onerror = (event) => {
+      if (utterance !== currentUtterance) return; // 忽略过期回调
       clearProgressTimer();
       console.warn('Speech synthesis error during restart:', event);
       isPlaying = false;
@@ -2205,13 +2233,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
     return details.join('');
   }
   if (speedValue) speedValue.textContent = `${rate.toFixed(1)}x`;
+  if (headerSpeedValue) headerSpeedValue.textContent = `${rate.toFixed(1)}x`;
   
   if (speedSlider) {
     speedSlider.addEventListener('input', () => {
       rate = Math.min(2, Math.max(0.5, parseFloat(speedSlider.value) || 1));
       if (speedValue) speedValue.textContent = `${rate.toFixed(1)}x`;
+      if (headerSpeedValue) headerSpeedValue.textContent = `${rate.toFixed(1)}x`;
       if (sidebarSpeedSlider) sidebarSpeedSlider.value = rate;
       if (sidebarSpeedValue) sidebarSpeedValue.textContent = `${rate.toFixed(1)}x`;
+      if (headerSpeedSlider) headerSpeedSlider.value = rate;
       localStorage.setItem(LS.rate, String(rate));
     });
   }
@@ -2220,8 +2251,22 @@ Try Fudoki and enjoy Japanese language analysis!`;
     sidebarSpeedSlider.addEventListener('input', () => {
       rate = Math.min(2, Math.max(0.5, parseFloat(sidebarSpeedSlider.value) || 1));
       if (speedValue) speedValue.textContent = `${rate.toFixed(1)}x`;
+      if (headerSpeedValue) headerSpeedValue.textContent = `${rate.toFixed(1)}x`;
       if (sidebarSpeedValue) sidebarSpeedValue.textContent = `${rate.toFixed(1)}x`;
       if (speedSlider) speedSlider.value = rate;
+      if (headerSpeedSlider) headerSpeedSlider.value = rate;
+      localStorage.setItem(LS.rate, String(rate));
+    });
+  }
+
+  if (headerSpeedSlider) {
+    headerSpeedSlider.addEventListener('input', () => {
+      rate = Math.min(2, Math.max(0.5, parseFloat(headerSpeedSlider.value) || 1));
+      if (headerSpeedValue) headerSpeedValue.textContent = `${rate.toFixed(1)}x`;
+      if (speedValue) speedValue.textContent = `${rate.toFixed(1)}x`;
+      if (sidebarSpeedValue) sidebarSpeedValue.textContent = `${rate.toFixed(1)}x`;
+      if (speedSlider) speedSlider.value = rate;
+      if (sidebarSpeedSlider) sidebarSpeedSlider.value = rate;
       localStorage.setItem(LS.rate, String(rate));
     });
   }
@@ -2259,14 +2304,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
         // 显示语音不可用选项
         const voiceSelectEl = document.getElementById('voiceSelect');
         const sidebarVoiceSelectEl = document.getElementById('sidebarVoiceSelect');
+        const headerVoiceSelectEl = document.getElementById('headerVoiceSelect');
         if (voiceSelectEl) voiceSelectEl.innerHTML = '';
         if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.innerHTML = '';
+        if (headerVoiceSelectEl) headerVoiceSelectEl.innerHTML = '';
         
         const opt = document.createElement('option');
         opt.textContent = t('noJapaneseVoice');
         opt.disabled = true;
         opt.selected = true;
         if (voiceSelectEl) voiceSelectEl.appendChild(opt);
+        if (headerVoiceSelectEl) {
+          const headerOpt = opt.cloneNode(true);
+          headerVoiceSelectEl.appendChild(headerOpt);
+        }
         
         if (sidebarVoiceSelectEl) {
           const sidebarOpt = opt.cloneNode(true);
@@ -2283,14 +2334,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const populateVoiceSelects = () => {
       const voiceSelectEl = document.getElementById('voiceSelect');
       const sidebarVoiceSelectEl = document.getElementById('sidebarVoiceSelect');
+      const headerVoiceSelectEl = document.getElementById('headerVoiceSelect');
       if (voiceSelectEl) voiceSelectEl.innerHTML = '';
       if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.innerHTML = '';
+      if (headerVoiceSelectEl) headerVoiceSelectEl.innerHTML = '';
       
       voices.forEach((v, i) => {
         const opt = document.createElement('option');
         opt.value = v.voiceURI || v.name || String(i);
         opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (默认)' : ''}`;
         if (voiceSelectEl) voiceSelectEl.appendChild(opt);
+        if (headerVoiceSelectEl) {
+          const headerOpt = opt.cloneNode(true);
+          headerVoiceSelectEl.appendChild(headerOpt);
+        }
         
         if (sidebarVoiceSelectEl) {
           const sidebarOpt = opt.cloneNode(true);
@@ -2306,6 +2363,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         currentVoice = chosen;
         if (voiceSelectEl) voiceSelectEl.value = chosen.voiceURI || chosen.name;
         if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.value = chosen.voiceURI || chosen.name;
+        if (headerVoiceSelectEl) headerVoiceSelectEl.value = chosen.voiceURI || chosen.name;
       }
     };
     
@@ -2321,15 +2379,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
   document.addEventListener('change', (e) => {
     const target = e.target;
     if (!(target instanceof HTMLSelectElement)) return;
-    if (target.id !== 'voiceSelect' && target.id !== 'sidebarVoiceSelect') return;
+    if (target.id !== 'voiceSelect' && target.id !== 'sidebarVoiceSelect' && target.id !== 'headerVoiceSelect') return;
     const uri = target.value;
     const v = voices.find(v => (v.voiceURI || v.name) === uri);
     if (v) {
       currentVoice = v;
       try { localStorage.setItem(LS.voiceURI, v.voiceURI || v.name); } catch (_) {}
-      const otherId = target.id === 'voiceSelect' ? 'sidebarVoiceSelect' : 'voiceSelect';
-      const other = document.getElementById(otherId);
-      if (other) other.value = uri;
+      const mirrorIds = ['voiceSelect','sidebarVoiceSelect','headerVoiceSelect'].filter(id => id !== target.id);
+      mirrorIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = uri;
+      });
     }
   });
 
@@ -3034,8 +3094,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 存储当前播放的文本用于重复播放
     currentPlayingText = stripped;
     
-    // 初始化进度并分段播放
-    PLAY_STATE = { total: segments.length, current: 0 };
+    // 初始化进度并分段播放（按字符线性推进）
+    const charPrefix = [0];
+    for (let i = 0; i < segments.length; i++) {
+      charPrefix.push(charPrefix[charPrefix.length - 1] + (segments[i].text || '').length);
+    }
+    PLAY_STATE = {
+      totalSegments: segments.length,
+      totalChars: charPrefix[charPrefix.length - 1],
+      charPrefix,
+      current: 0,
+    };
     setHeaderProgress(0);
     playSegments(segments, 0, rateOverride);
   }
@@ -3124,6 +3193,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     currentSegmentIndex = index;
     currentSegmentText = segment.text || '';
     lastBoundaryCharIndex = 0;
+    segmentStartTs = 0; // 重置段落开始时间标记，允许新段落初始化
     
     // 创建语音合成对象
     const utterance = new SpeechSynthesisUtterance(segment.text);
@@ -3133,45 +3203,66 @@ Try Fudoki and enjoy Japanese language analysis!`;
     utterance.volume = volume;
     utterance.pitch = 1.0;
     // 边界事件用于实时更新进度（部分浏览器支持）
-    utterance.onboundary = (event) => {
+  utterance.onboundary = (event) => {
+    if (utterance !== currentUtterance) return; // 忽略过期回调
       try {
         const segLen = Math.max(1, segment.text.length || 1);
         const charIdx = typeof event.charIndex === 'number' ? event.charIndex : 0;
         lastBoundaryCharIndex = charIdx;
-        const frac = Math.max(0, Math.min(1, charIdx / segLen));
-        if (PLAY_STATE.total > 0) setHeaderProgress(Math.min(1, (index + frac) / PLAY_STATE.total));
+        usingBoundaryProgress = true;
+        clearProgressTimer();
+        const passedChars = (PLAY_STATE.charPrefix[index] || 0) + Math.max(0, Math.min(segLen, charIdx));
+        if (PLAY_STATE.totalChars > 0) setHeaderProgress(Math.max(0, Math.min(1, passedChars / PLAY_STATE.totalChars)));
       } catch (_) {}
     };
     
-    utterance.onstart = () => {
-      isPlaying = true;
-      PLAY_STATE.current = index;
-      if (PLAY_STATE.total > 0) setHeaderProgress(PLAY_STATE.current / PLAY_STATE.total);
-      updatePlayButtonStates();
+  utterance.onstart = () => {
+    if (utterance !== currentUtterance) return; // 忽略过期回调
+    isPlaying = true;
+    isPaused = false; // 恢复播放时清除暂停状态
+    PLAY_STATE.current = index;
+    // 恢复播放时，部分浏览器会重新触发 onstart
+    // 只在首次播放该段落时设置进度，避免恢复时重置进度
+    if (!segmentStartTs) {
+      const segLen = Math.max(1, (segment.text || '').length);
+      const boundary = Math.max(0, Math.min(segLen, lastBoundaryCharIndex || 0));
+      const baseChars = (PLAY_STATE.charPrefix[index] || 0) + boundary;
+      if (PLAY_STATE.totalChars > 0) setHeaderProgress(Math.max(0, Math.min(1, baseChars / PLAY_STATE.totalChars)));
+    }
+    updatePlayButtonStates();
 
       // 基于时间的进度更新回退（部分浏览器不触发 onboundary）
-      clearProgressTimer();
-      const est = estimateSegmentDuration(segment.text, utterance.rate);
-      const startTs = Date.now();
-      progressTimer = setInterval(() => {
-        const elapsed = (Date.now() - startTs) / 1000;
-        const frac = Math.max(0, Math.min(1, elapsed / est));
-        if (PLAY_STATE.total > 0) setHeaderProgress(Math.min(1, (index + frac) / PLAY_STATE.total));
-        if (frac >= 1) clearProgressTimer();
-      }, 80);
+      if (!segmentStartTs) {
+        clearProgressTimer();
+        const est = estimateSegmentDuration(segment.text, utterance.rate);
+        const startTs = Date.now();
+        segmentStartTs = startTs; // 标记段落已开始
+        progressTimer = setInterval(() => {
+          if (usingBoundaryProgress) return;
+          const elapsed = (Date.now() - startTs) / 1000;
+          const frac = Math.max(0, Math.min(1, elapsed / est));
+          const segLen = Math.max(1, segment.text.length || 1);
+          const passedChars = (PLAY_STATE.charPrefix[index] || 0) + Math.round(frac * segLen);
+          if (PLAY_STATE.totalChars > 0) setHeaderProgress(Math.max(0, Math.min(1, passedChars / PLAY_STATE.totalChars)));
+          if (frac >= 1) clearProgressTimer();
+        }, 80);
+      }
     };
     
-    utterance.onend = () => {
+  utterance.onend = () => {
+    if (utterance !== currentUtterance) return; // 忽略过期回调
       // 添加停顿
       const nextIndex = index + 1;
-      if (PLAY_STATE.total > 0) setHeaderProgress(Math.min(1, nextIndex / PLAY_STATE.total));
+      const nextChars = PLAY_STATE.charPrefix[nextIndex] || PLAY_STATE.totalChars;
+      if (PLAY_STATE.totalChars > 0) setHeaderProgress(Math.max(0, Math.min(1, nextChars / PLAY_STATE.totalChars)));
       clearProgressTimer();
       setTimeout(() => {
         playSegments(segments, nextIndex, rateOverride);
       }, segment.pause);
     };
     
-    utterance.onerror = (event) => {
+  utterance.onerror = (event) => {
+    if (utterance !== currentUtterance) return; // 忽略过期回调
       console.warn('Speech synthesis error:', event);
       
       // 根据错误类型进行不同处理
@@ -3292,7 +3383,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     currentPlayingText = null; // 停止时清除重复播放文本
     clearTokenHighlight();
     clearProgressTimer();
-    setHeaderProgress(0);
+    // 停止时不强制重置进度，保留用户可见的最后进度
     updatePlayButtonStates();
   }
 
@@ -3303,6 +3394,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     updateButtonIcon(playAllBtn, isPlaying);
     // 更新导航播放按钮
     updateButtonIcon(headerPlayToggle, isPlaying);
+    // 更新暂停/恢复按钮
+    updatePauseButtonIcon(headerPauseToggle, isPlaying, isPaused);
     
     // 更新所有行播放按钮
     document.querySelectorAll('.play-line-btn').forEach(btn => {
@@ -3335,8 +3428,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
     
     if (playing) {
-      // 停止图标 (方形)
-      svg.innerHTML = '<rect x="6" y="6" width="4" height="12" fill="currentColor"/><rect x="14" y="6" width="4" height="12" fill="currentColor"/>';
+      // 停止图标（黑色方块）
+      svg.innerHTML = '<rect x="6" y="6" width="12" height="12" fill="currentColor"/>';
       // 根据按钮类型设置不同的title
       if (button.classList.contains('play-all-btn') || button.id === 'playAllBtn') {
         button.title = playAllLabel(true);
@@ -3356,6 +3449,25 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 播放全文按钮改为纯图标：不添加文字，仅更新 title
     // 保留其他按钮默认文本行为（目前无文本）
+  }
+
+  function updatePauseButtonIcon(button, playing, paused) {
+    if (!button) return;
+    const svg = button.querySelector('svg');
+    if (!svg) return;
+    // 暂停状态：显示播放图标（恢复）；播放状态：显示暂停图标；未播放：显示暂停图标但置灰
+    const showPlay = paused && playing; // 恢复
+    const title = showPlay ? t('resume') : t('pause');
+    button.setAttribute('aria-label', title);
+    button.title = title;
+    // 切换图标
+    if (showPlay) {
+      svg.innerHTML = '<path d="M8 5v14l11-7z" fill="currentColor"></path>';
+    } else {
+      svg.innerHTML = '<path d="M6 5h4v14H6z" fill="currentColor"></path><path d="M14 5h4v14h-4z" fill="currentColor"></path>';
+    }
+    // 未播放时按钮可用但不高亮
+    button.classList.toggle('disabled', !playing);
   }
 
   // 移动端播放按钮图标更新函数已移除
@@ -4208,6 +4320,42 @@ Try Fudoki and enjoy Japanese language analysis!`;
         stopSpeaking();
       } else {
         playAllText();
+      }
+    });
+  }
+
+  // 暂停/恢复按钮
+  if (headerPauseToggle) {
+    headerPauseToggle.addEventListener('click', () => {
+      if (!('speechSynthesis' in window)) return;
+      if (!isPlaying || !currentUtterance) return; // 未播放时不操作
+      if (!isPaused) {
+        // 执行暂停
+        try { window.speechSynthesis.pause(); } catch (_) {}
+        isPaused = true;
+        clearProgressTimer(); // 暂停时停止进度计时器
+        updatePauseButtonIcon(headerPauseToggle, isPlaying, isPaused);
+      } else {
+        // 执行恢复
+        try { window.speechSynthesis.resume(); } catch (_) {}
+        isPaused = false;
+        // 恢复时间回退进度（若浏览器不触发边界事件）
+        try {
+          const segText = currentSegmentText || '';
+          const baseChars = (PLAY_STATE.charPrefix[currentSegmentIndex] || 0) + Math.max(0, Math.min(segText.length, lastBoundaryCharIndex || 0));
+          const remainingLen = Math.max(0, segText.length - (lastBoundaryCharIndex || 0));
+          const est = estimateSegmentDuration(segText.slice(lastBoundaryCharIndex || 0), rate);
+          const startTs = Date.now();
+          clearProgressTimer();
+          progressTimer = setInterval(() => {
+            const elapsed = (Date.now() - startTs) / 1000;
+            const frac = Math.max(0, Math.min(1, est ? (elapsed / est) : 0));
+            const passedChars = baseChars + Math.round(frac * remainingLen);
+            if (PLAY_STATE.totalChars > 0) setHeaderProgress(Math.max(0, Math.min(1, passedChars / PLAY_STATE.totalChars)));
+            if (frac >= 1) clearProgressTimer();
+          }, 80);
+        } catch (_) {}
+        updatePauseButtonIcon(headerPauseToggle, isPlaying, isPaused);
       }
     });
   }
@@ -5369,10 +5517,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function initVoiceAndSpeedControls() {
     const voiceSelectEl = document.getElementById('voiceSelect');
     const sidebarVoiceSelectEl = document.getElementById('sidebarVoiceSelect');
+    const headerVoiceSelectEl = document.getElementById('headerVoiceSelect');
     const speedSliderEl = document.getElementById('speedRange');
     const speedValueEl = document.getElementById('speedValue');
     const sidebarSpeedSliderEl = document.getElementById('sidebarSpeedRange');
     const sidebarSpeedValueEl = document.getElementById('sidebarSpeedValue');
+    const headerSpeedSliderEl = document.getElementById('headerSpeedRange');
+    const headerSpeedValueEl = document.getElementById('headerSpeedValue');
     const playAllBtnEl = document.getElementById('playAllBtn');
     const sidebarPlayAllBtnEl = document.getElementById('sidebarPlayAllBtn');
 
@@ -5381,6 +5532,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
     if (sidebarSpeedSliderEl) sidebarSpeedSliderEl.value = String(rate);
     if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
+    if (headerSpeedSliderEl) headerSpeedSliderEl.value = String(rate);
+    if (headerSpeedValueEl) headerSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
 
     // 绑定速度事件
     if (speedSliderEl) {
@@ -5389,6 +5542,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
         if (sidebarSpeedSliderEl) sidebarSpeedSliderEl.value = rate;
         if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
+        if (headerSpeedSliderEl) headerSpeedSliderEl.value = rate;
+        if (headerSpeedValueEl) headerSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
         localStorage.setItem(LS.rate, String(rate));
       });
     }
@@ -5399,6 +5554,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
         if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
         if (speedSliderEl) speedSliderEl.value = rate;
+        if (headerSpeedSliderEl) headerSpeedSliderEl.value = rate;
+        if (headerSpeedValueEl) headerSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
+        localStorage.setItem(LS.rate, String(rate));
+      });
+    }
+
+    if (headerSpeedSliderEl) {
+      headerSpeedSliderEl.addEventListener('input', () => {
+        rate = Math.min(2, Math.max(0.5, parseFloat(headerSpeedSliderEl.value) || 1));
+        if (headerSpeedValueEl) headerSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
+        if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
+        if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
+        if (speedSliderEl) speedSliderEl.value = rate;
+        if (sidebarSpeedSliderEl) sidebarSpeedSliderEl.value = rate;
         localStorage.setItem(LS.rate, String(rate));
       });
     }
@@ -5412,6 +5581,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           currentVoice = v;
           localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
           if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.value = uri;
+          if (headerVoiceSelectEl) headerVoiceSelectEl.value = uri;
         }
       });
     }
@@ -5424,6 +5594,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
           currentVoice = v;
           localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
           if (voiceSelectEl) voiceSelectEl.value = uri;
+          if (headerVoiceSelectEl) headerVoiceSelectEl.value = uri;
+        }
+      });
+    }
+
+    if (headerVoiceSelectEl) {
+      headerVoiceSelectEl.addEventListener('change', () => {
+        const uri = headerVoiceSelectEl.value;
+        const v = voices.find(v => (v.voiceURI || v.name) === uri);
+        if (v) {
+          currentVoice = v;
+          localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
+          if (voiceSelectEl) voiceSelectEl.value = uri;
+          if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.value = uri;
         }
       });
     }
