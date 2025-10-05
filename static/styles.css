@@ -3527,7 +3527,7 @@ input[type="text"], textarea { font-size: 14px; }
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
+  /* gap: 8px; */
   border: 1px solid var(--control-border);
   border-radius: 8px;
   overflow: hidden;
@@ -3574,18 +3574,18 @@ input[type="text"], textarea { font-size: 14px; }
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 8px;
+  margin: 0 5px;
   margin-left: auto; /* 将整组语音/速度控件推到右侧 */
 }
-.play-control-bar .header-voice-controls select#headerVoiceSelect {
-  min-width: 220px;
+#headerVoiceSelect {
+  /* min-width: 220px; */
   height: 28px;
 }
-.play-control-bar .header-voice-controls #headerSpeedRange {
+#headerSpeedRange {
   width: 140px;
 }
-.play-control-bar .header-voice-controls #headerSpeedValue {
-  width: 40px;
+#headerSpeedValue {
+  /* width: 40px; */
   text-align: right;
 }
 .token-kanji { font-size: calc(14px * var(--font-scale)); }
@@ -3603,4 +3603,22 @@ input[type="text"], textarea { font-size: 14px; }
 }
 .content-container #headerPauseToggle.disabled {
   opacity: 0.6;
+}
+/* Mobile (WAP) — compress speed slider and voice select widths */
+@media (max-width: 480px) {
+  .play-control-bar .header-voice-controls {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+  #headerSpeedRange {
+    width: 60px;
+    max-width: 36vw;
+  }
+  #headerVoiceSelect {
+    width: 120px;
+    max-width: 44vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
