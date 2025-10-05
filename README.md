@@ -35,14 +35,14 @@ python -m http.server 8000
 ```
 
 ### Part-of-Speech Colors
-| Color | POS |
+|  | POS |
 |---|---|
-| Green | Noun |
-| Blue | Verb |
-| Orange | Adjective |
-| Purple | Adverb |
-| Red | Particle |
-| Yellow | Interjection |
+| 🟢 | Noun |
+| 🔵 | Verb |
+| 🟠 | Adjective |
+| 🟣 | Adverb |
+| 🔴 | Particle |
+| 🟡 | Interjection |
 
 ### Development
 ```
@@ -100,12 +100,12 @@ python -m http.server 8000
 ### 品詞色分け
 | 色 | 品詞 |
 |---|---|
-| 緑 | 名詞 |
-| 青 | 動詞 |
-| 橙 | 形容詞 |
-| 紫 | 副詞 |
-| 赤 | 助詞 |
-| 黄 | 感動詞 |
+| 🟢 | 名詞 |
+| 🔵 | 動詞 |
+| 🟠 | 形容詞 |
+| 🟣 | 副詞 |
+| 🔴 | 助詞 |
+| 🟡 | 感動詞 |
 
 ### 開発情報
 - テーマカラー：`static/styles.css` の CSS 変数を編集。
@@ -148,12 +148,12 @@ python -m http.server 8000
 ### 词性颜色
 | 颜色 | 词性 |
 |---|---|
-| 绿色 | 名词 |
-| 蓝色 | 动词 |
-| 橙色 | 形容词 |
-| 紫色 | 副词 |
-| 红色 | 助词 |
-| 黄色 | 感叹词 |
+| 🟢 | 名词 |
+| 🔵 | 动词 |
+| 🟠 | 形容词 |
+| 🟣 | 副词 |
+| 🔴 | 助词 |
+| 🟡 | 感叹词 |
 
 ### 开发信息
 - 主题颜色：编辑 `static/styles.css` 中的 CSS 变量。
@@ -171,12 +171,12 @@ python -m http.server 8000
 
 ## Name Origin / 名称の由来 / 名称由来
 
-### English (Story)
+### English
 Fudoki is named in homage to Japan’s ancient regional gazetteers “Fudoki”.
 “Fudo” conveys the atmosphere and character of place and culture; “Ki” means to record.
 This app similarly “records the climate of language”—prosody, rhythm, phonology, and grammar—by segmenting text, labeling parts of speech and readings, and reassembling it for spoken output. It is not the book itself, but a calm tool inspired by that spirit of attentive recording.
 
-### 日本語（ストーリー）
+### 日本語
 この名称 **フドキ** は、奈良時代の地誌『**風土記（ふどき）**』へのオマージュです。
 日本人が「フドキ」と聞くと、多くの場合この古代の記録書を思い出します。そこには土地、暮らし、風俗、文化が静かに、しかし丹念に記されています。
 
@@ -185,7 +185,7 @@ This app similarly “records the climate of language”—prosody, rhythm, phon
 
 このアプリは、まさに「言葉の風土」を記録し、見える化するための道具です。文を分解し、品詞や読み、音のリズムを捉え、発音として再構成する――それは『風土記』が土地の景色を一つひとつ書き留めた営みによく似ています。歴史書そのものではなく、その精神への敬意としての命名です。
 
-### 中文（讲故事）
+### 中文
 **Fudoki（フドキ）** 的名字向日本奈良时代的古代地志《**风土记**》致敬。
 
 - 「风土」＝地域与文化的气息与肌理
