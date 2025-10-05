@@ -6060,3 +6060,51 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
     } catch (_) {}
   }
+  
+  // 字体家族存储应用（输入区与显示区分别控制）
+  function applyFontFamilyFromStorage() {
+    try {
+      const inFont = localStorage.getItem('app:inputFont');
+      const outFont = localStorage.getItem('app:contentFont');
+      if (inFont) document.documentElement.style.setProperty('--input-font-family', inFont);
+      if (outFont) document.documentElement.style.setProperty('--content-font-family', outFont);
+      const inSel = document.getElementById('editorInputFontSelect');
+      const outSel = document.getElementById('editorContentFontSelect');
+      if (inSel && inFont) inSel.value = inFont;
+      if (outSel && outFont) outSel.value = outFont;
+    } catch (_) {}
+  }
+
+  // 初始化字体家族选择控件并持久化
+  function initFontFamilyControls() {
+    const inputSelect = document.getElementById('editorInputFontSelect');
+    const contentSelect = document.getElementById('editorContentFontSelect');
+    const applyInput = (val) => {
+      if (!val) return;
+      document.documentElement.style.setProperty('--input-font-family', val);
+      try { localStorage.setItem('app:inputFont', val); } catch (_) {}
+    };
+    const applyContent = (val) => {
+      if (!val) return;
+      document.documentElement.style.setProperty('--content-font-family', val);
+      try { localStorage.setItem('app:contentFont', val); } catch (_) {}
+    };
+    if (inputSelect) {
+      inputSelect.addEventListener('change', () => applyInput(inputSelect.value));
+    }
+    if (contentSelect) {
+      contentSelect.addEventListener('change', () => applyContent(contentSelect.value));
+    }
+    applyFontFamilyFromStorage();
+  }
+
+  // DOM 就绪后恢复字体并初始化控件（双重保障）
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      try { applyFontFamilyFromStorage(); } catch (_) {}
+      try { initFontFamilyControls(); } catch (_) {}
+    });
+  } else {
+    try { applyFontFamilyFromStorage(); } catch (_) {}
+    try { initFontFamilyControls(); } catch (_) {}
+  }

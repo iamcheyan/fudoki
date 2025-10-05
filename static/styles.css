@@ -911,13 +911,10 @@ body {
   color: var(--text);
   /* 覆盖全局输入控件背景，保持透明以继承容器背景 */
   background: transparent;
+  outline: none;
 }
 
-#textInput:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
-}
+
 
 .btn {
   padding: 8px 16px;
@@ -997,7 +994,7 @@ input, textarea, select {
   transition: all 0.2s;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus, select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary);
@@ -1010,6 +1007,9 @@ input:focus, textarea:focus, select:focus {
   /* overflow-y: auto; */
   background: var(--bg);
   padding-bottom: 50px;
+}
+.two-pane .content-area {
+  margin: 0 10px 0 0;
 }
 
 /* 行容器 - 简洁线条风格 */
@@ -2196,7 +2196,7 @@ select, textarea, input[type="text"] {
   color: var(--control-text);
   border: 1px solid var(--control-border);
 }
-select:focus, textarea:focus, input[type="text"]:focus {
+select:focus, input[type="text"]:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary);
@@ -3706,10 +3706,41 @@ input[type="text"], textarea { font-size: 14px; }
   color: var(--text-secondary-color, #666);
 }
 
+/* 字体选择控件（编辑器工具栏右侧） */
+.editor-toolbar-right .editor-fontfamily-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+}
+.editor-toolbar-right .editor-fontfamily-controls select {
+  height: 28px;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 /* 应用全局字体缩放到输入区与内容区 */
 .main-container .input-section,
 .main-container .content-area {
   font-size: calc(16px * var(--font-scale));
+  font-family: var(--input-font-family, inherit);
+}
+
+/* 显示区域字体（可独立控制） */
+.main-container .content-area {
+  font-family: var(--content-font-family, inherit);
 }
 /* 暂停/恢复按钮样式，确保与播放按钮风格一致 */
 .content-container .theme-icon-btn {
