@@ -527,7 +527,7 @@ body {
 }
 /* 右侧内容区域：与视口同高并可独立滚动 */
 .content-main {
-  height: calc(100vh - 56px);
+  height: calc(100vh );
   min-height: 0;
   overflow-y: auto;
   padding-top: 0;
@@ -938,6 +938,7 @@ input:focus, textarea:focus, select:focus {
   margin: 0 10px;
   /* overflow-y: auto; */
   background: var(--bg);
+  padding-bottom: 50px;
 }
 
 /* 行容器 - 简洁线条风格 */
@@ -2642,17 +2643,25 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   display: block;
   max-width: 960px;
   margin: 64px auto;
-  padding: 0 24px 80px 24px;
+  padding: 80px 24px;
   box-shadow: none;
   border-radius: 0;
   background: transparent;
   min-height: auto;
+  overflow: visible;
+}
+
+#reading-mode .content-container {
+  height: auto;
+  padding-bottom: 200px;
 }
 
 #reading-mode .content-main {
   width: 100%;
   display: block;
   background-color: transparent;
+  overflow-y: visible;
+  position: static;
 }
 
 #reading-mode .content-area {
