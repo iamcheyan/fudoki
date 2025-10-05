@@ -530,6 +530,39 @@ body {
   /* height: 100%; */
 }
 
+/* 文档列表顶部工具栏样式 */
+.doc-list-toolbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  z-index: 2;
+}
+.doc-list-toolbar .btn-sort {
+  font-size: 12px;
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--control-border);
+}
+
+/* 排序图标样式与状态 */
+.doc-list-toolbar .btn-sort .sort-icon { width: 18px; height: 18px; }
+.btn-sort .arrow-up, .btn-sort .arrow-down { fill: currentColor; transition: opacity .2s ease; }
+.btn-sort.asc .arrow-up { opacity: 1; }
+.btn-sort.asc .arrow-down { opacity: .35; }
+.btn-sort.desc .arrow-up { opacity: .35; }
+.btn-sort.desc .arrow-down { opacity: 1; }
+
 
 
 /* PC端内容折叠时保持边栏宽度 */

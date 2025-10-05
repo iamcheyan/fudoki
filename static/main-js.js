@@ -20,6 +20,7 @@
   const editorDocDate = document.getElementById('editorDocDate');
   const editorCharCount = document.getElementById('editorCharCount');
   const editorStarToggle = document.getElementById('editorStarToggle');
+  const docSortToggle = $('docSortToggle');
   // 左侧列表底部按钮可能被移除，这里做安全获取
   const deleteDocBtn = document.getElementById('deleteDocBtn');
   const editorNewBtn = document.getElementById('editorNewBtn');
@@ -73,6 +74,7 @@
     texts: 'texts', 
     activeId: 'activeId',
     activeFolder: 'activeFolder',
+    sortAsc: 'sortAsc',
     showKana: 'showKana',
     showRomaji: 'showRomaji', 
     showPos: 'showPos',
@@ -818,7 +820,7 @@
         console.log(`最后错误: ${PWA_STATE.lastError}`);
         console.groupEnd();
         
-        const details = formatFailedAssetsSummary(5);
+        const details = formatFailedAssetsSummary(3);
         const baseMsg = formatMessage('pwaPartial', { failed: PWA_STATE.failed });
         const message = details ? `${baseMsg}\n\n${details}` : baseMsg;
         updatePwaToast('error', {
@@ -2293,6 +2295,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       this.seedDefaultDocument();
       this.bindEvents();
       this.render();
+      this.updateSortToggleLabel();
       this.loadActiveDocument();
     }
 
@@ -2539,6 +2542,25 @@ Try Fudoki and enjoy Japanese language analysis!`;
       try { updateEditorToolbar(); } catch (_) {}
     }
 
+    // 排序偏好：读取、保存并更新按钮标签
+    getSortAsc() {
+      const v = localStorage.getItem(LS.sortAsc);
+      return v === 'true';
+    }
+    setSortAsc(val) {
+      localStorage.setItem(LS.sortAsc, String(!!val));
+    }
+    updateSortToggleLabel() {
+      if (!docSortToggle) return;
+      const asc = this.getSortAsc();
+      const label = asc ? '排序：旧→新' : '排序：新→旧';
+      // 仅更新无障碍与提示文本；图标通过类切换高亮
+      docSortToggle.title = label;
+      docSortToggle.setAttribute('aria-label', label);
+      docSortToggle.classList.toggle('asc', asc);
+      docSortToggle.classList.toggle('desc', !asc);
+    }
+
     // 渲染文档列表
     render() {
       const docs = this.getAllDocuments();
@@ -2550,7 +2572,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       documentList.innerHTML = '';
       
-      docs.filter(doc => {
+      const filtered = docs.filter(doc => {
         // 文件夹过滤
         if (activeFolder === 'favorites' && !doc.favorite) return false;
         // “全部”不显示示例文章
@@ -2564,7 +2586,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
           if (!combined.includes(queryLower)) return false;
         }
         return true;
-      }).forEach(doc => {
+      });
+
+      // 时间排序
+      const asc = this.getSortAsc();
+      filtered.sort((a, b) => {
+        const ta = Number(a.createdAt) || 0;
+        const tb = Number(b.createdAt) || 0;
+        return asc ? (ta - tb) : (tb - ta);
+      });
+
+      filtered.forEach(doc => {
         const title = this.getDocumentTitle(doc.content);
         const docItem = document.createElement('div');
         docItem.className = 'doc-item';
@@ -2809,6 +2841,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
         });
       }
 
+      // 列表排序切换
+      if (docSortToggle) {
+        docSortToggle.addEventListener('click', () => {
+          const next = !this.getSortAsc();
+          this.setSortAsc(next);
+          this.updateSortToggleLabel();
+          this.render();
+        });
+      }
+
       // 自动保存当前文档内容
       if (textInput) {
         let saveTimeout;
@@ -2828,6 +2870,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
           try { updateEditorToolbar(); } catch (_) {}
         });
       }
+
+      // 初始化排序按钮标签（确保首次渲染后标签正确）
+      this.updateSortToggleLabel();
     }
   }
 

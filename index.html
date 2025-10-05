@@ -113,6 +113,17 @@
       <section class="list-panel" id="listPanel">
         <div class="list-content">
           <div class="sidebar-title" id="sidebarDocsTitle">文档列表</div>
+          <!-- 文档列表工具栏：排序按钮 -->
+          <div class="doc-list-toolbar" id="docListToolbar" aria-label="列表工具栏">
+            <button type="button" class="btn-sort theme-icon-btn desc" id="docSortToggle" aria-label="切换时间排序" title="切换时间排序">
+              <svg class="sort-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <!-- 上箭头（升序时高亮） -->
+                <path class="arrow-up" d="M12 7l-4 4h8z"></path>
+                <!-- 下箭头（降序时高亮） -->
+                <path class="arrow-down" d="M12 17l4-4H8z"></path>
+              </svg>
+            </button>
+          </div>
           <div class="doc-list" id="documentList">
             <!-- 文档列表由 JS 生成 -->
           </div>
