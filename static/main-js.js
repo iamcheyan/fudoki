@@ -836,7 +836,7 @@ const headerSpeedValue = $('headerSpeedValue');
     if (data.type === 'CACHE_COMPLETE') {
       PWA_STATE.installing = false;
       PWA_STATE.requestId = null;
-      headerDownloadBtn?.classList.remove('is-loading', 'is-rotating');
+      toggleHeaderDownloadSpinner(false);
       const progressValue = data.total ? data.completed / data.total : 1;
 
       if (PWA_STATE.failed > 0) {
@@ -869,6 +869,34 @@ const headerSpeedValue = $('headerSpeedValue');
       PWA_STATE.failed = 0;
       PWA_STATE.failedAssets = [];
       PWA_STATE.lastError = '';
+    }
+  }
+
+  // 下载按钮：加载时替换为圆形指示器，完成后还原
+  function toggleHeaderDownloadSpinner(active) {
+    if (!headerDownloadBtn) return;
+    const svg = headerDownloadBtn.querySelector('svg');
+    if (!svg) return;
+    if (active) {
+      if (!headerDownloadBtn.dataset.originalSvg) {
+        headerDownloadBtn.dataset.originalSvg = svg.innerHTML;
+      }
+      // 用圆形加载指示器替换当前图标（旋转由 CSS 控制）
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('width', '18');
+      svg.setAttribute('height', '18');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('fill', 'none');
+      // 空心粗圆环（带缺口），通过 dasharray 形成转动感
+      svg.innerHTML = '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="36 24"></circle>';
+      headerDownloadBtn.classList.add('is-loading', 'is-rotating');
+      headerDownloadBtn.setAttribute('aria-busy', 'true');
+    } else {
+      headerDownloadBtn.classList.remove('is-loading', 'is-rotating');
+      headerDownloadBtn.removeAttribute('aria-busy');
+      if (headerDownloadBtn.dataset.originalSvg && svg) {
+        svg.innerHTML = headerDownloadBtn.dataset.originalSvg;
+      }
     }
   }
 
@@ -911,7 +939,7 @@ const headerSpeedValue = $('headerSpeedValue');
     PWA_STATE.completed = 0;
     PWA_STATE.failedAssets = [];
     PWA_STATE.requestId = null;
-    headerDownloadBtn?.classList.add('is-loading', 'is-rotating');
+    toggleHeaderDownloadSpinner(true);
 
     // 第一步：清除本地浏览器缓存并提示
     try {
@@ -953,7 +981,7 @@ const headerSpeedValue = $('headerSpeedValue');
     } catch (error) {
       console.error('PWA reset failed', error);
       PWA_STATE.installing = false;
-      headerDownloadBtn?.classList.remove('is-loading', 'is-rotating');
+      toggleHeaderDownloadSpinner(false);
       updatePwaToast('error', {
         title: formatMessage('pwaTitle'),
         message: formatMessage('pwaResetFailed', { message: error?.message || 'unknown' }),
@@ -1016,7 +1044,7 @@ const headerSpeedValue = $('headerSpeedValue');
       console.error('PWA cache failed', error);
       PWA_STATE.installing = false;
       PWA_STATE.requestId = null;
-      headerDownloadBtn?.classList.remove('is-loading', 'is-rotating');
+      toggleHeaderDownloadSpinner(false);
       updatePwaToast('error', {
         title: formatMessage('pwaTitle'),
         message: formatMessage('pwaError', { message: error?.message || 'unknown' }),

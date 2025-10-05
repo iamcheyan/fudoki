@@ -1985,6 +1985,8 @@ select, input[type="range"] {
 
 /* 同步按钮：点击时让内部 SVG 反方向（逆时针）旋转 */
 .theme-icon-btn.is-rotating svg {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
   animation: pwa-spin 0.9s linear infinite reverse;
 }
 
@@ -2296,6 +2298,59 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 .footer-sep { color: var(--border); }
 .footer-copy { color: var(--control-muted); }
 /* 移动端页脚规则已移除 */
+
+/* 优雅滚动条样式（桌面浏览器） */
+/* Firefox 原生滚动条颜色与粗细 */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) rgba(0, 0, 0, 0.08);
+}
+:root[data-theme="dark"] html {
+  scrollbar-color: rgba(217, 179, 90, 0.75) rgba(255, 255, 255, 0.08);
+}
+
+/* WebKit 浏览器（Chromium/Safari） */
+/* 全局滚动条尺寸与轨道 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 999px;
+}
+
+/* 滚动条拇指：金色渐变、圆角、内边框制造“悬浮”质感 */
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--primary), rgba(139, 105, 20, 0.45));
+  border: 2px solid transparent; /* 让拇指与轨道之间留一点空隙 */
+  background-clip: padding-box;   /* 避免边框覆盖渐变色 */
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--primary), rgba(139, 105, 20, 0.65));
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* 深色主题下的滚动条轨道与拇指 */
+:root[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+}
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(217, 179, 90, 0.85), rgba(217, 179, 90, 0.55));
+  border-color: transparent;
+}
+
+/* 为常用滚动容器确保显示优化后的滚动条 */
+.sidebar-right .toolbar-content,
+.doc-list,
+.list-content,
+.content-container,
+.editor-panels,
+.token-details,
+.pwa-toast__content {
+  scrollbar-width: thin;
+}
 
 /* 播放高亮 */
 .token-pill.playing {
@@ -2816,8 +2871,11 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   background: transparent;
   box-shadow: none;
   border-color: rgba(226, 207, 163, 0.6);
+  border-bottom: none;
 }
-
+.reading-overlay .overlay-content .token-pos {
+  display: none;
+}
 #reading-mode .content-area .token-list {
   gap: 16px;
 }
@@ -2826,9 +2884,10 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 .reading-overlay .line-container {
   width: 100%;
   padding: 0 10px;
-  /* margin: 10px 0; */
+  margin: 5px 0;
   gap: 0;
-  border-radius: 22px 22px 14px 22px;
+  /* border-radius: 22px 22px 14px 22px; */
+  border-bottom: 1px solid #e5dbc3;
   /* background: rgba(255, 252, 240, 0.65);
   transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease; */
   cursor: pointer;
