@@ -332,6 +332,8 @@ const headerSpeedValue = $('headerSpeedValue');
       pwaResetting: '古いオフラインデータを整理しています…',
       pwaResetFailed: 'キャッシュのリセットに失敗しました: {message}',
       pwaOffline: 'ネットワークに接続してからダウンロードしてください。',
+      localCacheCleared: '一時キャッシュを削除しました（ドキュメントと設定保持）。',
+      pwaCacheCleared: 'オフラインキャッシュを削除しました。',
       delete: '削除',
       cancel: 'キャンセル',
       newDocument: '新規ドキュメント',
@@ -438,6 +440,8 @@ const headerSpeedValue = $('headerSpeedValue');
       pwaResetting: 'Clearing old offline cache…',
       pwaResetFailed: 'Reset failed: {message}',
       pwaOffline: 'Connect to the internet before downloading.',
+      localCacheCleared: 'Temporary cache cleared (documents and settings preserved).',
+      pwaCacheCleared: 'Offline cache has been cleared.',
       delete: 'Delete',
       cancel: 'Cancel',
       newDocument: 'New Document',
@@ -543,6 +547,8 @@ const headerSpeedValue = $('headerSpeedValue');
       pwaResetting: '正在清理旧的离线缓存…',
       pwaResetFailed: '清理缓存失败：{message}',
       pwaOffline: '请联网后再下载离线资源。',
+      localCacheCleared: '已清除临时缓存（保留文档与设置）。',
+      pwaCacheCleared: '已清除离线程序缓存文件。',
       delete: '删除',
       cancel: '取消',
       newDocument: '新建文档',
@@ -754,6 +760,16 @@ const headerSpeedValue = $('headerSpeedValue');
     }, 320);
   }
 
+  // 简易延时工具：用于让提示停留 1s
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // 清理本地浏览器临时缓存：仅清除 sessionStorage，保留文档与设置（localStorage）
+  function clearLocalAppCache() {
+    try { sessionStorage.clear(); } catch (_) {}
+  }
+
   function handleServiceWorkerMessage(event) {
     const data = event.data;
     if (!data) return;
@@ -897,6 +913,19 @@ const headerSpeedValue = $('headerSpeedValue');
     PWA_STATE.requestId = null;
     headerDownloadBtn?.classList.add('is-loading', 'is-rotating');
 
+    // 第一步：清除本地浏览器缓存并提示
+    try {
+      clearLocalAppCache();
+      updatePwaToast('success', {
+        title: formatMessage('pwaTitle'),
+        message: formatMessage('localCacheCleared'),
+        icon: 'success'
+      });
+      // 让提示停留 1 秒
+      await sleep(1000);
+    } catch (_) {}
+
+    // 第二步（准备提示）：清除 PWA 离线缓存
     updatePwaToast('progress', {
       title: formatMessage('pwaTitle'),
       message: formatMessage('pwaResetting'),
@@ -933,6 +962,16 @@ const headerSpeedValue = $('headerSpeedValue');
       });
       return;
     }
+
+    // 第二步完成：提示已清除离线缓存
+    updatePwaToast('success', {
+      title: formatMessage('pwaTitle'),
+      message: formatMessage('pwaCacheCleared'),
+      progress: null,
+      icon: 'success'
+    });
+    // 让提示停留 1 秒
+    await sleep(1000);
 
     updatePwaToast('progress', {
       title: formatMessage('pwaTitle'),
@@ -2307,20 +2346,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   // 语音列表管理
-  function listVoicesFiltered() {
-    const all = window.speechSynthesis.getVoices?.() || [];
-    return all.filter(v => {
-      const l = (v.lang || '').toLowerCase();
-      return l.startsWith('ja');
-    }).sort((a, b) => {
-      const pa = (a.lang || '').toLowerCase().startsWith('ja') ? 0 : 1;
-      const pb = (b.lang || '').toLowerCase().startsWith('ja') ? 0 : 1;
-      if (pa !== pb) return pa - pb;
-      if (a.default && !b.default) return -1;
-      if (!a.default && b.default) return 1;
-      return (a.name || '').localeCompare(b.name || '');
-    });
-  }
+  function listVoicesFiltered() { return (window.TTS && window.TTS.listVoicesFiltered) ? window.TTS.listVoicesFiltered() : []; }
 
   function refreshVoices() {
     // Safari兼容性：确保语音列表已加载
@@ -3428,41 +3454,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 移动端播放按钮图标更新函数已移除
 
-  function applyVoice(u) {
-    try {
-      // 优先选择日语音色；如未显式选择，则自动挑选第一个日语音色
-      if (currentVoice && (currentVoice.lang || '').toLowerCase().startsWith('ja')) {
-        u.voice = currentVoice;
-        u.lang = currentVoice.lang || 'ja-JP';
-        console.log('TTS语言设置:', { voice: currentVoice.name, lang: u.lang });
-        return;
-      }
-
-      const jaVoices = listVoicesFiltered();
-      if (jaVoices.length > 0) {
-        u.voice = jaVoices[0];
-        u.lang = jaVoices[0].lang || 'ja-JP';
-        console.log('TTS语言设置:', { voice: jaVoices[0].name, lang: u.lang });
-        return;
-      }
-
-      // 回退：使用默认音色，但强制语言为日语，避免非日语音色误读
-      const all = window.speechSynthesis.getVoices?.() || [];
-      const fb = all.find(v => v.default) || all[0];
-      if (fb) {
-        u.voice = fb;
-        const lang = (fb.lang || '').toLowerCase();
-        u.lang = lang.startsWith('ja') ? fb.lang : 'ja-JP';
-        console.log('TTS语言设置:', { voice: fb.name, lang: u.lang, originalLang: fb.lang });
-      } else {
-        u.lang = 'ja-JP';
-        console.log('TTS语言设置: 使用默认日语');
-      }
-    } catch (e) {
-      u.lang = 'ja-JP';
-      console.log('TTS语言设置: 异常处理，使用日语');
-    }
-  }
+  function applyVoice(u) { if (window.TTS && window.TTS.applyVoice) { window.TTS.applyVoice(u, currentVoice, 'ja-JP'); } }
 
   // 文本分析功能
   async function analyzeText() {

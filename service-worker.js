@@ -1,4 +1,5 @@
-const CACHE_NAME = 'fudoki-cache-v1';
+const CACHE_PREFIX = 'fudoki-cache';
+const CACHE_NAME = `${CACHE_PREFIX}-v1`;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
@@ -7,7 +8,12 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)));
+    // 仅清理本应用前缀的旧版本缓存，避免误删其他缓存
+    await Promise.all(
+      keys
+        .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+        .map((key) => caches.delete(key))
+    );
     await self.clients.claim();
   })());
 });
