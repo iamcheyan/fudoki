@@ -903,7 +903,7 @@ body {
   flex: 1;
   border: none;
   padding: 5px 10px;
-  font-size: 14px;
+  font-size: calc(14px * var(--font-scale));
   font-family: inherit;
   resize: vertical;
   min-height: 88px;
@@ -1186,7 +1186,12 @@ input:focus, textarea:focus, select:focus {
   /* 避免在深色主题下把文字强制成深灰导致"看不见" */
   color: inherit;
 }
-
+#reading-mode .main-container.two-pane #editorPanels {
+  height: calc(100vh);
+}
+#reading-mode .main-container.two-pane #editorPanels .content-area {
+    max-width: 100%;
+}
 /* 深色主题下，阅读模式的激活/播放状态保持高对比文本颜色 */
 :root[data-theme="dark"] #reading-mode .token-pill.active,
 :root[data-theme="dark"] #reading-mode .token-pill.playing {
@@ -2738,7 +2743,6 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   width: 100%;
   display: block;
   background-color: transparent;
-  overflow-y: visible;
   position: static;
 }
 
@@ -3684,6 +3688,29 @@ input[type="text"], textarea { font-size: 14px; }
 .token-kana { font-size: calc(10px * var(--font-scale)); }
 .token-romaji { font-size: calc(9px * var(--font-scale)); }
 .pos-tag, .token-pos { font-size: calc(8px * var(--font-scale)); }
+
+/* 编辑器工具栏右侧的字号控制 */
+.editor-toolbar-right .editor-fontsize-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+}
+
+#editorFontSizeRange {
+  width: 130px;
+}
+
+#editorFontSizeValue {
+  font-size: 12px;
+  color: var(--text-secondary-color, #666);
+}
+
+/* 应用全局字体缩放到输入区与内容区 */
+.main-container .input-section,
+.main-container .content-area {
+  font-size: calc(16px * var(--font-scale));
+}
 /* 暂停/恢复按钮样式，确保与播放按钮风格一致 */
 .content-container .theme-icon-btn {
   color: var(--text-secondary);

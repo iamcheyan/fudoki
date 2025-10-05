@@ -94,7 +94,8 @@ const headerSpeedValue = $('headerSpeedValue');
     lightTheme: 'lightTheme',
     showUnderline: 'showUnderline',
     readingScript: 'readingScript',
-    haAsWa: 'haAsWa'
+    haAsWa: 'haAsWa',
+    tokenAlignLeft: 'tokenAlignLeft'
   };
 
   const PWA_MANIFEST_URL = 'static/pwa-assets.json';
@@ -261,6 +262,7 @@ const headerSpeedValue = $('headerSpeedValue');
       showRomaji: 'ローマ字を表示',
       showPos: '品詞を表示',
       showUnderline: '品詞の色下線',
+      tokenAlignLeft: '左揃え',
       autoRead: '自動読み上げ',
       repeatPlay: 'リピート再生',
       readingToggleEnter: '読書モード',
@@ -365,6 +367,7 @@ const headerSpeedValue = $('headerSpeedValue');
       showKana: 'Show Kana',
       showRomaji: 'Show Romaji',
       showPos: 'Show POS',
+      tokenAlignLeft: 'Left align token content',
       showDetails: 'Show token details',
       haAsWaLabel: 'Read particle “は” as “わ”',
       showUnderline: 'POS underline color',
@@ -470,6 +473,7 @@ const headerSpeedValue = $('headerSpeedValue');
       showKana: '显示假名',
       showRomaji: '显示罗马音',
       showPos: '显示词性',
+      tokenAlignLeft: '词块左对齐',
       showDetails: '显示词汇详情',
       haAsWaLabel: '助词“は”读作“わ”',
       autoRead: '自动朗读',
@@ -1517,6 +1521,7 @@ const headerSpeedValue = $('headerSpeedValue');
     setText('showRomajiLabel', 'showRomaji');
     setText('showPosLabel', 'showPos');
     setText('showDetailsLabel', 'showDetails');
+    setText('tokenAlignLeftLabel', 'tokenAlignLeft');
     setText('showUnderlineLabel', 'showUnderline');
     setText('autoReadLabel', 'autoRead');
     setText('repeatPlayLabel', 'repeatPlay');
@@ -1553,6 +1558,7 @@ const headerSpeedValue = $('headerSpeedValue');
     setText('sidebarShowRomajiLabel', 'showRomaji');
     setText('sidebarShowPosLabel', 'showPos');
     setText('sidebarShowDetailsLabel', 'showDetails');
+    setText('sidebarTokenAlignLeftLabel', 'tokenAlignLeft');
     setText('sidebarShowUnderlineLabel', 'showUnderline');
     setText('sidebarAutoReadLabel', 'autoRead');
     setText('sidebarRepeatPlayLabel', 'repeatPlay');
@@ -4486,6 +4492,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const showKanaCheckbox = document.getElementById('showKana');
     const showRomajiCheckbox = document.getElementById('showRomaji');
     const showPosCheckbox = document.getElementById('showPos');
+    const tokenAlignLeftCheckbox = document.getElementById('tokenAlignLeft');
     const showDetailsCheckbox = document.getElementById('showDetails');
     const showUnderlineCheckbox = document.getElementById('showUnderline');
     const autoReadCheckbox = document.getElementById('autoRead');
@@ -4493,6 +4500,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const sidebarShowKanaCheckbox = document.getElementById('sidebarShowKana');
     const sidebarShowRomajiCheckbox = document.getElementById('sidebarShowRomaji');
     const sidebarShowPosCheckbox = document.getElementById('sidebarShowPos');
+    const sidebarTokenAlignLeftCheckbox = document.getElementById('sidebarTokenAlignLeft');
     const sidebarShowDetailsCheckbox = document.getElementById('sidebarShowDetails');
     const sidebarShowUnderlineCheckbox = document.getElementById('sidebarShowUnderline');
     const sidebarAutoReadCheckbox = document.getElementById('sidebarAutoRead');
@@ -4510,6 +4518,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (showKanaCheckbox) showKanaCheckbox.checked = getBool(LS.showKana, true);
     if (showRomajiCheckbox) showRomajiCheckbox.checked = getBool(LS.showRomaji, true);
     if (showPosCheckbox) showPosCheckbox.checked = getBool(LS.showPos, true);
+    if (tokenAlignLeftCheckbox) tokenAlignLeftCheckbox.checked = getBool(LS.tokenAlignLeft, false);
     if (showDetailsCheckbox) showDetailsCheckbox.checked = getBool(LS.showDetails, true);
     if (showUnderlineCheckbox) showUnderlineCheckbox.checked = getBool(LS.showUnderline, true);
     if (autoReadCheckbox) autoReadCheckbox.checked = getBool(LS.autoRead, false);
@@ -4530,6 +4539,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (sidebarShowKanaCheckbox) sidebarShowKanaCheckbox.checked = getBool(LS.showKana, true);
     if (sidebarShowRomajiCheckbox) sidebarShowRomajiCheckbox.checked = getBool(LS.showRomaji, true);
     if (sidebarShowPosCheckbox) sidebarShowPosCheckbox.checked = getBool(LS.showPos, true);
+    if (sidebarTokenAlignLeftCheckbox) sidebarTokenAlignLeftCheckbox.checked = getBool(LS.tokenAlignLeft, false);
     if (sidebarShowDetailsCheckbox) sidebarShowDetailsCheckbox.checked = getBool(LS.showDetails, true);
     if (sidebarShowUnderlineCheckbox) sidebarShowUnderlineCheckbox.checked = getBool(LS.showUnderline, true);
     if (sidebarAutoReadCheckbox) sidebarAutoReadCheckbox.checked = getBool(LS.autoRead, false);
@@ -4568,6 +4578,21 @@ Try Fudoki and enjoy Japanese language analysis!`;
         localStorage.setItem(LS.showPos, showPosCheckbox.checked);
         // 同步侧边栏状态
         if (sidebarShowPosCheckbox) sidebarShowPosCheckbox.checked = showPosCheckbox.checked;
+        updateDisplaySettings();
+      });
+    }
+
+    if (tokenAlignLeftCheckbox) {
+      tokenAlignLeftCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.tokenAlignLeft, tokenAlignLeftCheckbox.checked);
+        updateDisplaySettings();
+      });
+    }
+
+    if (sidebarTokenAlignLeftCheckbox) {
+      sidebarTokenAlignLeftCheckbox.addEventListener('change', () => {
+        localStorage.setItem(LS.tokenAlignLeft, sidebarTokenAlignLeftCheckbox.checked);
+        if (tokenAlignLeftCheckbox) tokenAlignLeftCheckbox.checked = sidebarTokenAlignLeftCheckbox.checked;
         updateDisplaySettings();
       });
     }
@@ -4708,11 +4733,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const showPosCheckbox = document.getElementById('showPos');
     const showDetailsCheckbox = document.getElementById('showDetails');
     const showUnderlineCheckbox = document.getElementById('showUnderline');
+    const tokenAlignLeftCheckbox = document.getElementById('tokenAlignLeft');
     const sidebarShowKanaCheckbox = document.getElementById('sidebarShowKana');
     const sidebarShowRomajiCheckbox = document.getElementById('sidebarShowRomaji');
     const sidebarShowPosCheckbox = document.getElementById('sidebarShowPos');
     const sidebarShowDetailsCheckbox = document.getElementById('sidebarShowDetails');
     const sidebarShowUnderlineCheckbox = document.getElementById('sidebarShowUnderline');
+    const sidebarTokenAlignLeftCheckbox = document.getElementById('sidebarTokenAlignLeft');
     // 获取当前状态，优先从主弹窗获取，如果不存在则从侧边栏获取
     const showKana = showKanaCheckbox ? showKanaCheckbox.checked : 
                      (sidebarShowKanaCheckbox ? sidebarShowKanaCheckbox.checked : true);
@@ -4724,6 +4751,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
                         (sidebarShowDetailsCheckbox ? sidebarShowDetailsCheckbox.checked : true);
     const showUnderline = showUnderlineCheckbox ? showUnderlineCheckbox.checked : 
                          (sidebarShowUnderlineCheckbox ? sidebarShowUnderlineCheckbox.checked : true);
+    const tokenAlignLeft = tokenAlignLeftCheckbox ? tokenAlignLeftCheckbox.checked :
+                          (sidebarTokenAlignLeftCheckbox ? sidebarTokenAlignLeftCheckbox.checked : false);
     
     // 创建或更新CSS规则
     let styleElement = document.getElementById('display-control-styles');
@@ -4741,6 +4770,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (!showDetails) css += '.token-details { display: none !important; }\n';
     // 关闭词性彩色下划线：移除底边线
     if (!showUnderline) css += '.token-pill { border-bottom: none !important; }\n';
+    // 词块对齐
+    if (tokenAlignLeft) css += '.token-content { align-items: flex-start !important; }\n';
     
     styleElement.textContent = css;
 
@@ -5389,6 +5420,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
           </div>
 
           <div class="control-group checkbox-group">
+            <label class="control-label" id="${id('tokenAlignLeftLabel')}">
+              <input type="checkbox" id="${id('tokenAlignLeft')}">
+              <span class="label-text">${t('tokenAlignLeft')}</span>
+            </label>
+          </div>
+
+          <div class="control-group checkbox-group">
             <label class="control-label" id="${id('showDetailsLabel')}">
               <input type="checkbox" id="${id('showDetails')}" checked>
               <span class="label-text">${t('showDetails')}</span>
@@ -5972,11 +6010,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function initFontSizeControls() {
     const rangeEls = [
       document.getElementById('fontSizeRange'),
-      document.getElementById('sidebarFontSizeRange')
+      document.getElementById('sidebarFontSizeRange'),
+      document.getElementById('editorFontSizeRange')
     ].filter(Boolean);
     const valueEls = [
       document.getElementById('fontSizeValue'),
-      document.getElementById('sidebarFontSizeValue')
+      document.getElementById('sidebarFontSizeValue'),
+      document.getElementById('editorFontSizeValue')
     ].filter(Boolean);
 
     const applyScale = (v) => {
