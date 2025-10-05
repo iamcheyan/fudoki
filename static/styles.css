@@ -530,9 +530,10 @@ body {
   position: relative;
   top: 56px;
   transition: top 0.18s ease;
+  will-change: transform;
 }
 .content-container {
-    height: calc(100vh);
+    height: 100%;
 }
 
 /* 侧边栏内容 */

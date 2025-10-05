@@ -4913,13 +4913,23 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const h = header ? header.offsetHeight : 56;
       return Math.max(h || 56, 0);
     };
+    let ticking = false;
     const applyOffset = () => {
       const base = getBaseOffset();
       const st = contentMain.scrollTop || 0;
-      const offset = Math.max(base - st, 0);
-      contentMain.style.top = offset + 'px';
+      const offset = Math.min(st, base);
+      contentMain.style.transform = `translateY(${-offset}px)`;
     };
-    contentMain.addEventListener('scroll', applyOffset, { passive: true });
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          applyOffset();
+          ticking = false;
+        });
+      }
+    };
+    contentMain.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', applyOffset, { passive: true });
     // 初始化
     applyOffset();
