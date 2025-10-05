@@ -208,6 +208,7 @@ body {
   box-shadow: 0 4px 18px var(--header-shadow-strong), 0 1.5px 6px var(--header-shadow-soft);
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
+  transition: padding 0.2s ease, box-shadow 0.2s ease;
 }
 
 .header-content {
@@ -244,6 +245,9 @@ body {
   height: auto;
   display: inline-block;
 }
+
+/* Header 紧凑态（滚动离开顶部时） */
+/* 头部滚动压缩功能已移除 */
 
 /* 移动端按钮样式已移除（collapse/mobile-play/mobile-settings） */
 
@@ -455,7 +459,7 @@ body {
   transition: width 0.3s ease, transform 0.3s ease;
   overflow: hidden;
   border-right: 1px solid var(--border);
-  padding-top: 60px;
+  padding-top: 56px;
 }
 
 .sidebar-stack {
@@ -467,7 +471,7 @@ body {
 }
 /* 中间列表面板 */
 .list-panel {
-  padding-top: 60px;
+  padding-top: 56px;
   background: var(--bg);
   min-height: 0;   /* 配合父容器高度，避免内容被裁切 */
 }
@@ -522,8 +526,14 @@ body {
   height: calc(100vh);
   min-height: 0;
   overflow-y: auto;
-  padding-top: 60px;
+  padding-top: 0;
+  position: relative;
+  top: 56px;
 }
+.content-container {
+    height: calc(100vh);
+}
+
 /* 侧边栏内容 */
 .sidebar-content {
   padding: 0 12px;
@@ -793,7 +803,7 @@ body {
 
 /* 输入区域 - 紧凑设计 */
 .input-section {
-  padding: 10px;
+  padding: 5px;
   border: 1px solid var(--border);
   background: var(--elevated);
   border-radius: 10px;
@@ -2914,7 +2924,7 @@ input[type="checkbox"] {
 @media (max-width: 768px) {
   .sidebar-stack {
     position: fixed;
-    top: 57px;
+    top: 56px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -3000,7 +3010,7 @@ input[type="checkbox"] {
   .main-container:not(.collapsed) .content-main::after {
     content: "";
     position: fixed;
-    top: 57px; /* 与导航高度对齐，必要时调整 */
+    top: 56px; /* 与导航高度对齐，必要时调整 */
     left: 0;
     right: 0;
     bottom: 0;

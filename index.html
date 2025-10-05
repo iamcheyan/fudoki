@@ -133,50 +133,50 @@
 
     <!-- 右侧列 - 内容区域 -->
     <main class="content-main">
-       <!-- 编辑工具栏：显示创建日期、字数、星标与阅读模式 -->
-      <section class="editor-toolbar" id="editorToolbar" aria-label="文档工具栏">
-        <div class="editor-toolbar-left">
-          <span class="editor-date" id="editorDocDate" title="创建日期"></span>
-          <span class="editor-count" id="editorCharCount" title="字数">0 字</span>
-        </div>
-        <div class="editor-toolbar-right">
-          <button class="theme-icon-btn" id="editorDeleteBtn" aria-label="删除文档" title="删除文档">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M9 4h6l1 2h4" fill="none"></path>
-              <path d="M4 6h16" fill="none"></path>
-              <path d="M7.5 9L8.3 20a2 2 0 0 0 2 1.8h3.4a2 2 0 0 0 2-1.8L17.5 9" fill="none"></path>
-              <path d="M11 12v5" fill="none"></path>
-              <path d="M13 12v5" fill="none"></path>
-            </svg>
-          </button>
-          <button type="button" class="editor-star-toggle theme-icon-btn" id="editorStarToggle" aria-pressed="false" title="加星">☆</button>
-          <!-- 将阅读模式按钮改为“展开菜单”按钮，样式与功能一致 -->
-          <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M5 7h14" fill="none"></path>
-              <path d="M5 12h14" fill="none"></path>
-              <path d="M5 17h14" fill="none"></path>
-            </svg>
-          </button>
-        </div>
-      </section>
+      <div class="content-container">
+         <!-- 编辑工具栏：显示创建日期、字数、星标与阅读模式 -->
+        <section class="editor-toolbar" id="editorToolbar" aria-label="文档工具栏">
+          <div class="editor-toolbar-left">
+            <span class="editor-date" id="editorDocDate" title="创建日期"></span>
+            <span class="editor-count" id="editorCharCount" title="字数">0 字</span>
+          </div>
+          <div class="editor-toolbar-right">
+            <button class="theme-icon-btn" id="editorDeleteBtn" aria-label="删除文档" title="删除文档">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M9 4h6l1 2h4" fill="none"></path>
+                <path d="M4 6h16" fill="none"></path>
+                <path d="M7.5 9L8.3 20a2 2 0 0 0 2 1.8h3.4a2 2 0 0 0 2-1.8L17.5 9" fill="none"></path>
+                <path d="M11 12v5" fill="none"></path>
+                <path d="M13 12v5" fill="none"></path>
+              </svg>
+            </button>
+            <button type="button" class="editor-star-toggle theme-icon-btn" id="editorStarToggle" aria-pressed="false" title="加星">☆</button>
+            <!-- 将阅读模式按钮改为“展开菜单”按钮，样式与功能一致 -->
+            <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M5 7h14" fill="none"></path>
+                <path d="M5 12h14" fill="none"></path>
+                <path d="M5 17h14" fill="none"></path>
+              </svg>
+            </button>
+          </div>
+        </section>
 
-      <!-- 输入区域 -->
-      <section class="input-section">
-        <div class="input-group">
-          <textarea id="textInput" placeholder="在此输入日语文本进行分析..."></textarea>
-          <!-- 移除分析按钮：改为在文本域失去焦点且结构变化时自动解析 -->
-        </div>
-      </section>
+        <!-- 输入区域 -->
+        <section class="input-section">
+          <div class="input-group">
+            <textarea id="textInput" placeholder="在此输入日语文本进行分析..."></textarea>
+            <!-- 移除分析按钮：改为在文本域失去焦点且结构变化时自动解析 -->
+          </div>
+        </section>
 
-      
-
-      <!-- 结果显示区域 -->
-      <section class="content-area" id="content">
-        <div class="empty-state">
-          <p id="emptyText">请在上方输入日语文本，点击"分析文本"开始处理</p>
-        </div>
-      </section>
+        <!-- 结果显示区域 -->
+        <section class="content-area" id="content">
+          <div class="empty-state">
+            <p id="emptyText">请在上方输入日语文本，点击"分析文本"开始处理</p>
+          </div>
+        </section>
+      </div>
     </main>
 
     <!-- 设置弹窗 -->

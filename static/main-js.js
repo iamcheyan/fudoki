@@ -4897,6 +4897,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
   }
 
+  // Header滚动压缩切换
+  function initHeaderScroll() {
+    // 已按用户要求移除头部滚动压缩功能
+    return;
+  }
+
   // 创建共享工具栏内容HTML
   function createToolbarContentHTML(context) {
     const isSidebar = context === 'sidebar';
@@ -5188,6 +5194,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 移动端右侧边栏初始化已移除
     initReadingModeToggle();
     initReadingModeInteractions();
+    // 头部滚动压缩效果
+    initHeaderScroll();
     setupPwaInstaller();
     initGlobalSearch();
     initQuickSearch();
