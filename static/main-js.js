@@ -2212,6 +2212,49 @@ Try Fudoki and enjoy Japanese language analysis!`;
     return script === 'hiragana' ? toHiragana(text) : toKatakana(text);
   }
 
+  // 常用计算机术语读音与翻译覆盖
+  const TECH_TERM_OVERRIDES = {
+    'javascript': { reading: 'ジャバスクリプト', translations: { zh: 'JavaScript 脚本语言', ja: 'JavaScript', en: 'JavaScript' } },
+    'typescript': { reading: 'タイプスクリプト', translations: { zh: 'TypeScript 类型化脚本', ja: 'TypeScript', en: 'TypeScript' } },
+    'node.js': { reading: 'ノードジェイエス', translations: { zh: 'Node.js 运行时', ja: 'Node.js', en: 'Node.js runtime' } },
+    'react': { reading: 'リアクト', translations: { zh: 'React 前端库', ja: 'React', en: 'React library' } },
+    'vue': { reading: 'ヴュー', translations: { zh: 'Vue 前端框架', ja: 'Vue', en: 'Vue framework' } },
+    'angular': { reading: 'アンギュラー', translations: { zh: 'Angular 前端框架', ja: 'Angular', en: 'Angular framework' } },
+    'api': { reading: 'エーピーアイ', translations: { zh: '应用程序接口', ja: 'アプリケーション・プログラミング・インタフェース', en: 'Application Programming Interface' } },
+    'http': { reading: 'エイチティーティーピー', translations: { zh: '超文本传输协议', ja: 'ハイパーテキスト転送プロトコル', en: 'Hypertext Transfer Protocol' } },
+    'html': { reading: 'エイチティーエムエル', translations: { zh: '超文本标记语言', ja: 'ハイパーテキストマークアップ言語', en: 'HyperText Markup Language' } },
+    'css': { reading: 'シーエスエス', translations: { zh: '层叠样式表', ja: 'カスケーディング・スタイル・シート', en: 'Cascading Style Sheets' } },
+    'sql': { reading: 'エスキューエル', translations: { zh: '结构化查询语言', ja: '構造化問い合わせ言語', en: 'Structured Query Language' } },
+    'json': { reading: 'ジェイソン', translations: { zh: 'JSON 数据格式', ja: 'JSON', en: 'JSON data format' } },
+    'yaml': { reading: 'ヤムル', translations: { zh: 'YAML 配置格式', ja: 'YAML', en: 'YAML configuration format' } },
+    'url': { reading: 'ユーアールエル', translations: { zh: '统一资源定位符', ja: 'URL', en: 'Uniform Resource Locator' } },
+    'ui': { reading: 'ユーアイ', translations: { zh: '用户界面', ja: 'ユーザーインターフェース', en: 'User Interface' } },
+    'ux': { reading: 'ユーエックス', translations: { zh: '用户体验', ja: 'ユーザーエクスペリエンス', en: 'User Experience' } },
+    'ide': { reading: 'アイディーイー', translations: { zh: '集成开发环境', ja: '統合開発環境', en: 'Integrated Development Environment' } },
+    'docker': { reading: 'ドッカー', translations: { zh: '容器引擎 Docker', ja: 'Docker', en: 'Docker container engine' } },
+    'kubernetes': { reading: 'クバネティス', translations: { zh: '容器编排 Kubernetes', ja: 'Kubernetes', en: 'Kubernetes' } },
+    'git': { reading: 'ギット', translations: { zh: '分布式版本控制 Git', ja: 'Git', en: 'Git version control' } },
+    'github': { reading: 'ギットハブ', translations: { zh: '代码托管平台 GitHub', ja: 'GitHub', en: 'GitHub platform' } },
+    'js': { reading: 'ジェイエス', translations: { zh: 'JS（JavaScript）', ja: 'JS（JavaScript）', en: 'JS (JavaScript)' } }
+  };
+
+  function normalizeTechKey(s) {
+    return String(s || '').trim().toLowerCase();
+  }
+
+  function getTechOverride(token) {
+    if (!token) return null;
+    const keys = [token.surface, token.lemma, token.reading].filter(Boolean);
+    for (const k of keys) {
+      const key = normalizeTechKey(k);
+      if (TECH_TERM_OVERRIDES[key]) return TECH_TERM_OVERRIDES[key];
+      // 特例：去掉点号进行匹配（如 Node.js -> nodejs）
+      const noDot = key.replace(/\./g, '');
+      if (TECH_TERM_OVERRIDES[noDot]) return TECH_TERM_OVERRIDES[noDot];
+    }
+    return null;
+  }
+
   // 读取“助词は→わ”开关（主弹窗、侧边栏或本地存储），默认开启
   function isHaParticleReadingEnabled() {
     try {
@@ -2229,6 +2272,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const surface = token && token.surface ? token.surface : '';
     const posArr = Array.isArray(token && token.pos) ? token.pos : [token && token.pos || ''];
     const readingRaw = token && token.reading ? token.reading : '';
+    const override = getTechOverride(token);
+    if (override && override.reading) {
+      const normalized = normalizeKanaByScript(override.reading, script);
+      // 英文术语通常不显示与表层一致的假名；这里始终显示覆盖读音
+      return normalized;
+    }
     if (!readingRaw) return '';
     // 特例：助词"は"读作"わ/ワ"
     if (surface === 'は' && posArr[0] === '助詞' && isHaParticleReadingEnabled()) {
@@ -4164,6 +4213,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (!translationContent) return;
     
     try {
+      // 先应用术语翻译覆盖（多语言）
+      const override = getTechOverride(tokenData);
+      if (override && override.translations) {
+        const lang = (typeof currentLang === 'string') ? currentLang : 'ja';
+        const text = override.translations[lang] || override.translations.ja || '';
+        if (text) {
+          translationContent.textContent = text;
+          return; // 已覆盖翻译，无需查询词典
+        }
+      }
+
       // 确保词典服务已初始化
       if (!window.dictionaryService.isReady()) {
         translationContent.textContent = t('dict_init') || '正在初始化词典...';

@@ -1040,7 +1040,7 @@ input:focus, select:focus {
   /* transition: all 0.2s ease; */
   margin: 2px;
   flex-direction: column;
-  min-width: 60px;
+  /* min-width: 60px; */
   text-align: center;
 }
 
@@ -2907,15 +2907,28 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 
 /* 编辑工具栏 */
 .editor-toolbar {
-  display: flex;
+  /* 改为两栏布局：左/右分区各占一列 */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   padding: 0 12px;
   margin: 10px 0 8px 0;
   background: var(--bg);
 }
-.editor-toolbar-left,.editor-toolbar-right{display:flex;align-items:center;gap:10px}
+.editor-toolbar-left,
+.editor-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* 右侧内容右对齐，使两栏更整齐 */
+.editor-toolbar-right { justify-content: flex-end; }
+/* 窄屏退化为单栏 */
+@media (max-width: 680px) {
+  .editor-toolbar { grid-template-columns: 1fr; }
+  .editor-toolbar-right { justify-content: flex-start; }
+}
 #twoPaneToggle.theme-icon-btn{min-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
 .editor-date{font-size:12px;color:var(--muted)}
 .editor-count{font-size:12px;color:var(--text);opacity:.9}
