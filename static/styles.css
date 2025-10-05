@@ -3002,7 +3002,7 @@ html {
   transition: all .2s ease;
 }
 .editor-star-toggle:hover,.editor-reading-toggle:hover{background:var(--elevated)}
-.editor-star-toggle.is-active{color:#f5a623;border-color:#f5a623;background:rgba(245,166,35,.08)}
+.editor-star-toggle.is-active{color:#f5a623;border-color:#f5a623;}
 
 /* 阅读模式隐藏顶部编辑工具栏 */
 #reading-mode .editor-toolbar{display:none!important}
@@ -3683,7 +3683,7 @@ input[type="checkbox"] {
 }
 .editor-toolbar-right .theme-icon-btn {
   color: var(--muted);
-  background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.75));
+  /* background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.75)); */
   border-color: rgba(139,105,20,0.14);
   box-shadow: 0 4px 10px rgba(139,105,20,0.08);
   transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
