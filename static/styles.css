@@ -2678,6 +2678,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 }
 .reading-overlay .token-pill {
   padding: 0;
+  min-width: 0;
 }
 .reading-overlay .overlay-backdrop {
   position: absolute;

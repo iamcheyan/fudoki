@@ -154,18 +154,18 @@ const headerSpeedValue = $('headerSpeedValue');
   let activeReadingLine = null;
   const initialUrlSearch = (() => {
     try {
-      return new URL(window.location.href).searchParams;
+      const url = new URL(window.location.href);
+      // 刷新后不恢复阅读模式：若存在 ?read 参数，立即移除
+      if (url.searchParams.has('read')) {
+        url.searchParams.delete('read');
+        try { window.history.replaceState({}, '', url); } catch (_) {}
+      }
+      return url.searchParams;
     } catch (_) {
       return null;
     }
   })();
-
-  if (initialUrlSearch && initialUrlSearch.has('read')) {
-    isReadingMode = true;
-    if (document.body) {
-      document.body.id = 'reading-mode';
-    }
-  }
+  // 不从 URL 初始化阅读模式，刷新后默认关闭
 
   // ====== 文件夹管理（简化版：仅"全部"和"收藏"） ======
   function getActiveFolderId() {
