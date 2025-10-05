@@ -3758,9 +3758,29 @@ Try Fudoki and enjoy Japanese language analysis!`;
         await window.dictionaryService.init();
       }
       
-      // 查询翻译
-      const word = tokenData.lemma || tokenData.surface;
-      const detailedInfo = await window.dictionaryService.getDetailedInfo(word);
+      // 查询翻译：优先使用可查询的日文形式
+      // 1) 如果 lemma 为 '*' 或为拉丁字母，则优先使用 reading
+      // 2) 若仍无结果，使用别名映射（如 アプリ -> アプリケーション，Web -> ウェブ）
+      const isLatin = (s) => /^[A-Za-z0-9 .,:;!?\-_/+()\[\]{}'"%&@#*]+$/.test(String(s || ''));
+      const lemma = tokenData.lemma;
+      const surface = tokenData.surface;
+      const reading = tokenData.reading;
+      const aliases = {
+        'アプリ': 'アプリケーション',
+        'web': 'ウェブ',
+        'Web': 'ウェブ',
+        'WEB': 'ウェブ'
+      };
+
+      let query = (lemma && lemma !== '*') ? lemma : (reading || surface);
+      if (isLatin(query) && reading) {
+        query = reading; // 将拉丁字母词转为片假名读音查询
+      }
+
+      let detailedInfo = await window.dictionaryService.getDetailedInfo(query);
+      if (!detailedInfo && aliases[query]) {
+        detailedInfo = await window.dictionaryService.getDetailedInfo(aliases[query]);
+      }
       
       if (detailedInfo && detailedInfo.senses && detailedInfo.senses.length > 0) {
         // 显示主要翻译
