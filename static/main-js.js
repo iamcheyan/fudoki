@@ -3771,6 +3771,34 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return !allPunct; // 如果整行都是标点符号，则过滤掉
     });
     
+    // 将行首标点移动到上一行末尾，避免标点出现在行首
+    function reflowLeadingPunctuation(lines) {
+      const adjusted = [];
+      for (let i = 0; i < lines.length; i++) {
+        const line = Array.isArray(lines[i]) ? lines[i].slice() : [];
+        if (line.length === 0) { adjusted.push(line); continue; }
+        // 连续处理多个可能的行首标点
+        while (line.length > 0) {
+          const first = line[0];
+          const posArr = Array.isArray(first && first.pos) ? first.pos : [first && first.pos || ''];
+          const mainPos = posArr[0] || '';
+          const isPunct = (mainPos === '記号' || mainPos === '補助記号');
+          if (!isPunct) break;
+          // 若存在上一行，把标点移动到上一行末尾；否则保留（避免信息丢失）
+          if (adjusted.length > 0 && Array.isArray(adjusted[adjusted.length - 1])) {
+            adjusted[adjusted.length - 1].push(first);
+            line.shift();
+          } else {
+            // 第一行没有上一行，停止移动以保留内容
+            break;
+          }
+        }
+        adjusted.push(line);
+      }
+      return adjusted;
+    }
+    const linesWithoutLeadingPunct = reflowLeadingPunctuation(nonEmptyLines);
+    
     // 片假名复合词拆分（如「スマート フォン アプリ」）
     const isKatakana = (s) => /^[\u30A0-\u30FFー・]+$/.test(String(s || ''));
     function splitKatakanaCompounds(tokens) {
@@ -3849,7 +3877,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return out;
     }
 
-    const html = nonEmptyLines.map((line, lineIndex) => {
+    const html = linesWithoutLeadingPunct.map((line, lineIndex) => {
       // 先把可能被合成成单一助词的结构拆开，再应用展示层合并与片假名拆分
       const preSplit = splitLeadingParticleVerbTeDe(line);
       const mergedTokens = mergeTokensForDisplay(preSplit);

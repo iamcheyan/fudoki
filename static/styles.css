@@ -2209,6 +2209,10 @@ select:focus, input[type="text"]:focus {
   border: 1px solid var(--control-border);
   border-radius: 18px;
 }
+.play-line-btn {
+  position: absolute;
+  right: 0;
+}
 /* 修正：按钮悬停恢复为主题高亮底色 */
 .btn:hover, .new-doc-btn:hover, .play-line-btn:hover, .play-token-btn:hover {
   /* background: var(--control-elev); */
@@ -2672,6 +2676,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   justify-content: center;
   pointer-events: auto;
 }
+.reading-overlay .token-pill {
+  padding: 0;
+}
 .reading-overlay .overlay-backdrop {
   position: absolute;
   inset: 0;
@@ -2690,6 +2697,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   border: 1px solid #e2cfa3;
   padding: 20px 20px 40px;
   color: #4c381a;
+  /* 与 content-area 保持一致的字体与字号缩放 */
+  font-family: var(--content-font-family, inherit);
+  font-size: calc(16px * var(--font-scale));
 }
 .reading-overlay .overlay-toolbar {
   position: absolute;
