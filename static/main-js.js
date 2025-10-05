@@ -2542,88 +2542,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
   });
 
-  // 居中模态确认对话框 + 磨砂遮罩
-  function showDeleteConfirm(message, onConfirm, onCancel) {
-    // 移除之前的确认内容与遮罩
-    const existingConfirm = document.querySelector('.delete-confirm');
-    const existingBackdrop = document.querySelector('.modal-backdrop');
-    if (existingConfirm) existingConfirm.remove();
-    if (existingBackdrop) existingBackdrop.remove();
-
-    // 创建遮罩
-    const backdrop = document.createElement('div');
-    backdrop.className = 'modal-backdrop';
-    backdrop.setAttribute('aria-hidden', 'false');
-
-    // 创建对话框
-    const deleteConfirm = document.createElement('div');
-    deleteConfirm.className = 'delete-confirm';
-    deleteConfirm.setAttribute('role', 'dialog');
-    deleteConfirm.setAttribute('aria-modal', 'true');
-    deleteConfirm.setAttribute('aria-labelledby', 'deleteConfirmTitle');
-    deleteConfirm.innerHTML = `
-      <div class="delete-confirm-header">
-        <div class="delete-confirm-title" id="deleteConfirmTitle">${t('delete')}</div>
-        <button class="delete-confirm-close" aria-label="关闭">×</button>
-      </div>
-      <div class="delete-confirm-content">
-        <div class="delete-confirm-message">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="delete-confirm-icon">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-          </svg>
-          <span class="delete-confirm-text">${message}</span>
-        </div>
-        <div class="delete-confirm-actions">
-          <button class="btn delete-confirm-cancel">${t('cancel')}</button>
-          <button class="btn btn-danger delete-confirm-ok">${t('delete')}</button>
-        </div>
-      </div>
-    `;
-
-    // 插入到 body
-    document.body.appendChild(backdrop);
-    document.body.appendChild(deleteConfirm);
-
-    // 焦点管理
-    const okBtn = deleteConfirm.querySelector('.delete-confirm-ok');
-    const cancelBtn = deleteConfirm.querySelector('.delete-confirm-cancel');
-    const closeBtn = deleteConfirm.querySelector('.delete-confirm-close');
-    setTimeout(() => { okBtn && okBtn.focus(); }, 0);
-
-    // 事件绑定
-    function cleanup() {
-      deleteConfirm && deleteConfirm.remove();
-      backdrop && backdrop.remove();
-      document.removeEventListener('keydown', onKeyDown);
-    }
-
-    function onKeyDown(e) {
-      if (e.key === 'Escape') {
-        cleanup();
-        if (onCancel) onCancel();
-      }
-    }
-    document.addEventListener('keydown', onKeyDown);
-
-    okBtn && okBtn.addEventListener('click', () => {
-      cleanup();
-      if (onConfirm) onConfirm();
-    });
-    cancelBtn && cancelBtn.addEventListener('click', () => {
-      cleanup();
-      if (onCancel) onCancel();
-    });
-    closeBtn && closeBtn.addEventListener('click', () => {
-      cleanup();
-      if (onCancel) onCancel();
-    });
-    backdrop.addEventListener('click', () => {
-      cleanup();
-      if (onCancel) onCancel();
-    });
-
-    return true;
-  }
+  // 删除确认对话框已抽离至 static/js/ui-utils.js（window.showDeleteConfirm）
 
   // 文档管理类
   class DocumentManager {
@@ -4583,54 +4502,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 清空和帮助按钮功能已移除
 
-  // 通知系统
-  function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      color: white;
-      font-weight: 500;
-      z-index: 1000;
-      animation: slideIn 0.3s ease;
-    `;
-
-    const colors = {
-      success: '#10b981',
-      warning: '#f59e0b',
-      error: '#ef4444',
-      info: '#3b82f6'
-    };
-
-    notification.style.backgroundColor = colors[type] || colors.info;
-    notification.textContent = message;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 3000);
-  }
-
-  // 添加动画样式
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
-    }
-  `;
-  document.head.appendChild(style);
+  // 通知系统与动画样式已抽离至 static/js/ui-utils.js（window.showNotification）
 
   // 键盘快捷键
   document.addEventListener('keydown', (e) => {
@@ -5886,14 +5758,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
   }
 
-  // 简易防抖
-  function debounce(fn, delay = 200) {
-    let timer = null;
-    return function(...args) {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn.apply(this, args), delay);
-    };
-  }
+  // 防抖已抽离至 static/js/ui-utils.js（window.debounce）
 
   // 初始化全局搜索（针对全部文档）
   function initGlobalSearch() {
