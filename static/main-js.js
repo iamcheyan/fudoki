@@ -1871,6 +1871,22 @@ Try Fudoki and enjoy Japanese language analysis!`;
     } catch (_) {}
   }
 
+  // 当音色或速度改变时，中断当前播放并从当前段落开始重新播放
+  function restartPlaybackWithNewSettings() {
+    if (!isPlaying || !currentUtterance || !currentSegments) return;
+    try {
+      // 停止当前播放
+      safeCancelCurrentUtterance();
+      clearProgressTimer();
+      
+      // 从当前段落开始重新播放
+      const segmentIndex = currentSegmentIndex || 0;
+      playSegments(currentSegments, segmentIndex, undefined);
+    } catch (e) {
+      console.error('Failed to restart playback with new settings:', e);
+    }
+  }
+
   // 在当前段落位置重启语音，应用最新音量
   function restartCurrentSegmentAt(charIndex) {
     if (!('speechSynthesis' in window)) return;
@@ -2390,6 +2406,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const el = document.getElementById(id);
         if (el) el.value = uri;
       });
+      // 若正在播放：中断并以新音色重新播放当前段落
+      restartPlaybackWithNewSettings();
     }
   });
 
@@ -5545,6 +5563,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (headerSpeedSliderEl) headerSpeedSliderEl.value = rate;
         if (headerSpeedValueEl) headerSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
         localStorage.setItem(LS.rate, String(rate));
+        // 若正在播放：中断并以新速度重新播放当前段落
+        restartPlaybackWithNewSettings();
       });
     }
 
@@ -5557,6 +5577,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (headerSpeedSliderEl) headerSpeedSliderEl.value = rate;
         if (headerSpeedValueEl) headerSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
         localStorage.setItem(LS.rate, String(rate));
+        // 若正在播放：中断并以新速度重新播放当前段落
+        restartPlaybackWithNewSettings();
       });
     }
 
@@ -5569,6 +5591,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (speedSliderEl) speedSliderEl.value = rate;
         if (sidebarSpeedSliderEl) sidebarSpeedSliderEl.value = rate;
         localStorage.setItem(LS.rate, String(rate));
+        // 若正在播放：中断并以新速度重新播放当前段落
+        restartPlaybackWithNewSettings();
       });
     }
 
@@ -5582,6 +5606,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
           localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
           if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.value = uri;
           if (headerVoiceSelectEl) headerVoiceSelectEl.value = uri;
+          // 若正在播放：中断并以新音色重新播放当前段落
+          restartPlaybackWithNewSettings();
         }
       });
     }
@@ -5595,6 +5621,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
           localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
           if (voiceSelectEl) voiceSelectEl.value = uri;
           if (headerVoiceSelectEl) headerVoiceSelectEl.value = uri;
+          // 若正在播放：中断并以新音色重新播放当前段落
+          restartPlaybackWithNewSettings();
         }
       });
     }
@@ -5608,6 +5636,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
           localStorage.setItem(LS.voiceURI, v.voiceURI || v.name);
           if (voiceSelectEl) voiceSelectEl.value = uri;
           if (sidebarVoiceSelectEl) sidebarVoiceSelectEl.value = uri;
+          // 若正在播放：中断并以新音色重新播放当前段落
+          restartPlaybackWithNewSettings();
         }
       });
     }
