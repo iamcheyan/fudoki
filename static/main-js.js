@@ -2212,48 +2212,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     return script === 'hiragana' ? toHiragana(text) : toKatakana(text);
   }
 
-  // 常用计算机术语读音与翻译覆盖
-  const TECH_TERM_OVERRIDES = {
-    'javascript': { reading: 'ジャバスクリプト', translations: { zh: 'JavaScript 脚本语言', ja: 'JavaScript', en: 'JavaScript' } },
-    'typescript': { reading: 'タイプスクリプト', translations: { zh: 'TypeScript 类型化脚本', ja: 'TypeScript', en: 'TypeScript' } },
-    'node.js': { reading: 'ノードジェイエス', translations: { zh: 'Node.js 运行时', ja: 'Node.js', en: 'Node.js runtime' } },
-    'react': { reading: 'リアクト', translations: { zh: 'React 前端库', ja: 'React', en: 'React library' } },
-    'vue': { reading: 'ヴュー', translations: { zh: 'Vue 前端框架', ja: 'Vue', en: 'Vue framework' } },
-    'angular': { reading: 'アンギュラー', translations: { zh: 'Angular 前端框架', ja: 'Angular', en: 'Angular framework' } },
-    'api': { reading: 'エーピーアイ', translations: { zh: '应用程序接口', ja: 'アプリケーション・プログラミング・インタフェース', en: 'Application Programming Interface' } },
-    'http': { reading: 'エイチティーティーピー', translations: { zh: '超文本传输协议', ja: 'ハイパーテキスト転送プロトコル', en: 'Hypertext Transfer Protocol' } },
-    'html': { reading: 'エイチティーエムエル', translations: { zh: '超文本标记语言', ja: 'ハイパーテキストマークアップ言語', en: 'HyperText Markup Language' } },
-    'css': { reading: 'シーエスエス', translations: { zh: '层叠样式表', ja: 'カスケーディング・スタイル・シート', en: 'Cascading Style Sheets' } },
-    'sql': { reading: 'エスキューエル', translations: { zh: '结构化查询语言', ja: '構造化問い合わせ言語', en: 'Structured Query Language' } },
-    'json': { reading: 'ジェイソン', translations: { zh: 'JSON 数据格式', ja: 'JSON', en: 'JSON data format' } },
-    'yaml': { reading: 'ヤムル', translations: { zh: 'YAML 配置格式', ja: 'YAML', en: 'YAML configuration format' } },
-    'url': { reading: 'ユーアールエル', translations: { zh: '统一资源定位符', ja: 'URL', en: 'Uniform Resource Locator' } },
-    'ui': { reading: 'ユーアイ', translations: { zh: '用户界面', ja: 'ユーザーインターフェース', en: 'User Interface' } },
-    'ux': { reading: 'ユーエックス', translations: { zh: '用户体验', ja: 'ユーザーエクスペリエンス', en: 'User Experience' } },
-    'ide': { reading: 'アイディーイー', translations: { zh: '集成开发环境', ja: '統合開発環境', en: 'Integrated Development Environment' } },
-    'docker': { reading: 'ドッカー', translations: { zh: '容器引擎 Docker', ja: 'Docker', en: 'Docker container engine' } },
-    'kubernetes': { reading: 'クバネティス', translations: { zh: '容器编排 Kubernetes', ja: 'Kubernetes', en: 'Kubernetes' } },
-    'git': { reading: 'ギット', translations: { zh: '分布式版本控制 Git', ja: 'Git', en: 'Git version control' } },
-    'github': { reading: 'ギットハブ', translations: { zh: '代码托管平台 GitHub', ja: 'GitHub', en: 'GitHub platform' } },
-    'js': { reading: 'ジェイエス', translations: { zh: 'JS（JavaScript）', ja: 'JS（JavaScript）', en: 'JS (JavaScript)' } }
-  };
-
-  function normalizeTechKey(s) {
-    return String(s || '').trim().toLowerCase();
-  }
-
-  function getTechOverride(token) {
-    if (!token) return null;
-    const keys = [token.surface, token.lemma, token.reading].filter(Boolean);
-    for (const k of keys) {
-      const key = normalizeTechKey(k);
-      if (TECH_TERM_OVERRIDES[key]) return TECH_TERM_OVERRIDES[key];
-      // 特例：去掉点号进行匹配（如 Node.js -> nodejs）
-      const noDot = key.replace(/\./g, '');
-      if (TECH_TERM_OVERRIDES[noDot]) return TECH_TERM_OVERRIDES[noDot];
-    }
-    return null;
-  }
+  // 词典：技术术语覆盖与词性解析抽离至 static/js/dictionary.js（window.FudokiDict）
 
   // 读取“助词は→わ”开关（主弹窗、侧边栏或本地存储），默认开启
   function isHaParticleReadingEnabled() {
@@ -2272,7 +2231,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const surface = token && token.surface ? token.surface : '';
     const posArr = Array.isArray(token && token.pos) ? token.pos : [token && token.pos || ''];
     const readingRaw = token && token.reading ? token.reading : '';
-    const override = getTechOverride(token);
+    const override = (window.FudokiDict && window.FudokiDict.getTechOverride) ? window.FudokiDict.getTechOverride(token) : null;
     if (override && override.reading) {
       const normalized = normalizeKanaByScript(override.reading, script);
       // 英文术语通常不显示与表层一致的假名；这里始终显示覆盖读音
@@ -2304,81 +2263,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   // 词性解析函数
-  function parsePartOfSpeech(pos) {
-    if (!Array.isArray(pos) || pos.length === 0) {
-      return { main: '未知', details: [] };
-    }
-
-    const posMap = {
-      '名詞': '名',
-      '動詞': '动', 
-      '形容詞': '形',
-      '副詞': '副',
-      '助詞': '助',
-      '助動詞': '助动',
-      '連体詞': '连体',
-      '接続詞': '接续',
-      '感動詞': '感叹',
-      '記号': '标点',
-      '補助記号': '符号',
-      'フィラー': '填充',
-      '其他': '其他'
-    };
-
-    const main = pos[0] || '未知';
-    const mainChinese = posMap[main] || main;
-    
-    const details = [];
-    if (pos.length > 1 && pos[1] !== '*') details.push(`细分: ${pos[1]}`);
-    if (pos.length > 2 && pos[2] !== '*') details.push(`类型: ${pos[2]}`);
-    if (pos.length > 3 && pos[3] !== '*') details.push(`形态: ${pos[3]}`);
-    
-    return { main: mainChinese, details, original: pos };
-  }
+  // parsePartOfSpeech 移至 FudokiDict
 
   // 格式化详细信息
-  function formatDetailInfo(token, posInfo) {
-    const details = [];
-    
-    // 基本信息
-    details.push(`<div class="detail-item"><strong>${t('lbl_surface') || '表层形'}:</strong> ${token.surface}</div>`);
-    if (token.lemma && token.lemma !== token.surface) {
-      details.push(`<div class="detail-item"><strong>${t('lbl_base') || '基本形'}:</strong> ${token.lemma}</div>`);
-    }
-    if (token.reading && token.reading !== token.surface) {
-      // 特殊处理：助词"は"单字时显示读音为"わ"
-      let displayReading = token.reading;
-      if (
-        token.surface === 'は' &&
-        token.pos && Array.isArray(token.pos) && token.pos[0] === '助詞' &&
-        isHaParticleReadingEnabled()
-      ) {
-        displayReading = 'わ';
-      }
-      details.push(`<div class="detail-item"><strong>${t('lbl_reading') || '读音'}:</strong> ${displayReading}</div>`);
-    }
-    
-    // 翻译信息占位符
-    details.push(`<div class="detail-item translation-item"><strong>${t('lbl_translation') || '翻译'}:</strong> <span class="translation-content">${t('loading') || '加载中...'}</span></div>`);
-    
-    // 词性信息
-    details.push(`<div class="detail-item"><strong>${t('lbl_pos') || '词性'}:</strong> ${posInfo.main}</div>`);
-    if (posInfo.details.length > 0) {
-      posInfo.details.forEach(detail => {
-        details.push(`<div class="detail-item">${detail}</div>`);
-      });
-    }
-    
-    // 原始词性标签
-    if (posInfo.original && posInfo.original.length > 0) {
-      const originalPos = posInfo.original.filter(p => p !== '*').join(' / ');
-      if (originalPos) {
-        details.push(`<div class="detail-item"><strong>${t('lbl_pos_raw') || '原始标签'}:</strong> ${originalPos}</div>`);
-      }
-    }
-    
-    return details.join('');
-  }
+  // formatDetailInfo 移至 FudokiDict
   if (speedValue) speedValue.textContent = `${rate.toFixed(1)}x`;
   if (headerSpeedValue) headerSpeedValue.textContent = `${rate.toFixed(1)}x`;
   
@@ -3857,9 +3745,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const pos = Array.isArray(token.pos) ? token.pos : [token.pos || ''];
         
         // 解析词性信息
-        const posInfo = parsePartOfSpeech(pos);
+          const posInfo = (window.FudokiDict && window.FudokiDict.parsePartOfSpeech) ? window.FudokiDict.parsePartOfSpeech(pos) : { main: '未知', details: [], original: pos };
         const posDisplay = posInfo.main || '未知';
-        const detailInfo = formatDetailInfo(token, posInfo);
+        const detailInfo = (window.FudokiDict && window.FudokiDict.formatDetailInfo) ? window.FudokiDict.formatDetailInfo(token, posInfo, I18N[currentLang] || {}) : '';
         
         // 获取罗马音（仅针对日文读音；英文字母或数字时不显示）
         let romaji = '';
@@ -4133,7 +4021,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     try {
       // 先应用术语翻译覆盖（多语言）
-      const override = getTechOverride(tokenData);
+      const override = (window.FudokiDict && window.FudokiDict.getTechOverride) ? window.FudokiDict.getTechOverride(tokenData) : null;
       if (override && override.translations) {
         const lang = (typeof currentLang === 'string') ? currentLang : 'ja';
         const text = override.translations[lang] || override.translations.ja || '';
