@@ -190,6 +190,12 @@ class JapaneseSegmenter {
    */
   englishAbbreviationReading(word) {
     if (!word || typeof word !== 'string') return '';
+    // 特例：常见外来语，直接按词读
+    // 例：web -> ウェブ（而非 W=ダブリュー, E=イー, B=ビー 的逐字母读法）
+    const lower = word.toLowerCase();
+    if (lower === 'web') {
+      return 'ウェブ';
+    }
     const map = {
       'A': 'エー', 'B': 'ビー', 'C': 'シー', 'D': 'ディー', 'E': 'イー',
       'F': 'エフ', 'G': 'ジー', 'H': 'エイチ', 'I': 'アイ', 'J': 'ジェイ',
