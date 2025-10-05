@@ -523,12 +523,13 @@ body {
 }
 /* 右侧内容区域：与视口同高并可独立滚动 */
 .content-main {
-  height: calc(100vh);
+  height: calc(100vh - 56px);
   min-height: 0;
   overflow-y: auto;
   padding-top: 0;
   position: relative;
   top: 56px;
+  transition: top 0.18s ease;
 }
 .content-container {
     height: calc(100vh);

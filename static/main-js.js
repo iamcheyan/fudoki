@@ -4903,6 +4903,28 @@ Try Fudoki and enjoy Japanese language analysis!`;
     return;
   }
 
+  // 内容区域滚动时，动态调整 .content-main 的 top，实现 56px -> 0px 的渐变
+  function initContentTopOffset() {
+    const contentMain = document.querySelector('.content-main');
+    const header = document.querySelector('.header');
+    if (!contentMain) return;
+    const getBaseOffset = () => {
+      // 若可获取到头部实际高度则使用之，否则回退为 56px
+      const h = header ? header.offsetHeight : 56;
+      return Math.max(h || 56, 0);
+    };
+    const applyOffset = () => {
+      const base = getBaseOffset();
+      const st = contentMain.scrollTop || 0;
+      const offset = Math.max(base - st, 0);
+      contentMain.style.top = offset + 'px';
+    };
+    contentMain.addEventListener('scroll', applyOffset, { passive: true });
+    window.addEventListener('resize', applyOffset, { passive: true });
+    // 初始化
+    applyOffset();
+  }
+
   // 创建共享工具栏内容HTML
   function createToolbarContentHTML(context) {
     const isSidebar = context === 'sidebar';
@@ -5196,6 +5218,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initReadingModeInteractions();
     // 头部滚动压缩效果
     initHeaderScroll();
+    // 内容滚动联动顶部偏移（56px -> 0px，再回到56px）
+    initContentTopOffset();
     setupPwaInstaller();
     initGlobalSearch();
     initQuickSearch();
