@@ -4935,6 +4935,38 @@ Try Fudoki and enjoy Japanese language analysis!`;
     applyOffset();
   }
 
+  // 文档列表区域：滚动时让 .list-panel 顶部偏移由 56px 渐变到 0
+  function initListPanelTopOffset() {
+    const listPanel = document.querySelector('.list-panel');
+    const listContent = document.querySelector('.list-content');
+    const header = document.querySelector('.header');
+    if (!listPanel || !listContent) return;
+    const getBaseOffset = () => {
+      const h = header ? header.offsetHeight : 56;
+      return Math.max(h || 56, 0);
+    };
+    let ticking = false;
+    const applyOffset = () => {
+      const base = getBaseOffset();
+      const st = listContent.scrollTop || 0;
+      const offset = Math.min(st, base);
+      listPanel.style.transform = `translateY(${-offset}px)`;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          applyOffset();
+          ticking = false;
+        });
+      }
+    };
+    listContent.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', applyOffset, { passive: true });
+    // 初始化
+    applyOffset();
+  }
+
   // 创建共享工具栏内容HTML
   function createToolbarContentHTML(context) {
     const isSidebar = context === 'sidebar';
@@ -5230,6 +5262,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initHeaderScroll();
     // 内容滚动联动顶部偏移（56px -> 0px，再回到56px）
     initContentTopOffset();
+    // 文档列表滚动也联动顶部偏移
+    initListPanelTopOffset();
     setupPwaInstaller();
     initGlobalSearch();
     initQuickSearch();

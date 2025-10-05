@@ -471,9 +471,13 @@ body {
 }
 /* 中间列表面板 */
 .list-panel {
-  padding-top: 56px;
+  position: relative;
+  top: 56px;                     /* 初始与头部高度对齐 */
+  height: calc(100vh);    /* 视口高度减去头部高度 */
+  padding-top: 0;                /* 滚动条从可视区域顶部开始 */
   background: var(--bg);
-  min-height: 0;   /* 配合父容器高度，避免内容被裁切 */
+  min-height: 0;                 /* 配合父容器高度，避免内容被裁切 */
+  will-change: transform;        /* 优化位移性能 */
 }
 
 .list-content {
@@ -929,7 +933,6 @@ input:focus, textarea:focus, select:focus {
   margin: 0 10px;
   /* overflow-y: auto; */
   background: var(--bg);
-  padding-bottom: 50px;
 }
 
 /* 行容器 - 简洁线条风格 */
