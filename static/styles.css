@@ -2591,9 +2591,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 }
 
 /* 阅读模式布局 */
-#reading-mode {
-  background: #f7f0de;
-}
+/* 重构：阅读模式改为浮层，不再使用 body#reading-mode */
 
 
 /* 阅读模式按钮点击动画 */
@@ -2664,25 +2662,71 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   }
 }
 
-#reading-mode .list-panel,
-#reading-mode .header,
-#reading-mode .sidebar-stack,
-#reading-mode .folder-management,
-#reading-mode .sidebar-right,
-#reading-mode .input-section,
-#reading-mode .settings-modal,
-#reading-mode .footer,
-#reading-mode .toolbar-resize-handle {
-  display: none !important;
-  animation: fadeOut 0.3s ease-out forwards;
+/* 阅读浮层与遮罩 */
+.reading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+.reading-overlay .overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(32, 24, 12, 0.35);
+  backdrop-filter: blur(2px);
+}
+.reading-overlay .overlay-content {
+  position: relative;
+  max-width: 960px;
+  width: min(960px, 92vw);
+  max-height: 82vh;
+  overflow: auto;
+  border-radius: 18px;
+  box-shadow: 0 26px 60px rgba(0,0,0,0.35);
+  background: linear-gradient(180deg, #fffdf8 0%, #fff5da 100%);
+  border: 1px solid #e2cfa3;
+  padding: 20px 20px 40px;
+  color: #4c381a;
+}
+.reading-overlay .overlay-toolbar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+}
+.reading-overlay .overlay-close {
+  border: none;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(139,105,20,0.24);
+  color: #5a3410;
+  width: 28px;
+  height: 28px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+:root[data-theme="dark"] .reading-overlay .overlay-backdrop {
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(1px);
+}
+:root[data-theme="dark"] .reading-overlay .overlay-content {
+  background: linear-gradient(180deg, rgba(44, 36, 24, 0.92) 0%, rgba(32, 27, 17, 0.92) 100%);
+  color: #f2e0c0;
+  border-color: rgba(226, 207, 163, 0.18);
 }
 
 
 
 
 /* 阅读模式内容区域动画 */
-#reading-mode .content-area {
-  animation: contentSlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+.reading-overlay .overlay-content {
+  animation: contentSlideIn 0.48s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 
@@ -2717,7 +2761,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   }
 }
 
-#reading-mode .token-content{
+.reading-overlay .token-content{
   gap: 0;
   align-items: baseline;  
 }
@@ -2755,9 +2799,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   color: #4c381a;
 }
 
-#reading-mode .content-area .analysis-section,
-#reading-mode .content-area .token-pill,
-#reading-mode .content-area .translation-card {
+.reading-overlay .overlay-content .analysis-section,
+.reading-overlay .overlay-content .token-pill,
+.reading-overlay .overlay-content .translation-card {
   background: transparent;
   box-shadow: none;
   border-color: rgba(226, 207, 163, 0.6);
@@ -2768,7 +2812,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 }
 
 
-#reading-mode .line-container {
+.reading-overlay .line-container {
   width: 100%;
   padding: 0 10px;
   /* margin: 10px 0; */
@@ -2782,11 +2826,11 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   /* box-shadow: 0 12px 36px -32px rgba(112, 80, 30, 0.5); */
 }
 
-#reading-mode .line-container.reading-line-active {
+.reading-overlay .line-container.reading-line-active {
   border-bottom: 2px solid rgb(217 169 58 / 60%);
 }
 
-#reading-mode .line-container.reading-line-active .token-pill {
+.reading-overlay .line-container.reading-line-active .token-pill {
   border-bottom: none;
 }
 

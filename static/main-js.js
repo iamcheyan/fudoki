@@ -1036,7 +1036,7 @@ const headerSpeedValue = $('headerSpeedValue');
 
   function setReadingLineActive(line) {
     if (!line) return;
-    if (document.body.id !== 'reading-mode') return;
+    if (!isReadingMode) return;
     if (activeReadingLine === line) {
       clearReadingLineHighlight();
       syncReadingLineAttributes(true);
@@ -1088,41 +1088,92 @@ const headerSpeedValue = $('headerSpeedValue');
       }
       return;
     }
-
-    // 添加按钮点击动画 - 修复定位问题
-    if (readingModeToggle && shouldEnable) {
-      // 使用 CSS 类而不是直接设置 transform，避免影响定位
-      readingModeToggle.classList.add('click-animation');
-      setTimeout(() => {
-        readingModeToggle.classList.remove('click-animation');
-      }, 150);
-    }
-
-    // 添加退出阅读模式的动画
-    if (readingModeToggle && !shouldEnable && isReadingMode) {
-      readingModeToggle.classList.add('exit-animation');
-      setTimeout(() => {
-        readingModeToggle.classList.remove('exit-animation');
-      }, 300);
+    // 进入/退出按钮动画
+    if (readingModeToggle) {
+      if (shouldEnable) {
+        readingModeToggle.classList.add('click-animation');
+        setTimeout(() => readingModeToggle.classList.remove('click-animation'), 150);
+      } else if (isReadingMode) {
+        readingModeToggle.classList.add('exit-animation');
+        setTimeout(() => readingModeToggle.classList.remove('exit-animation'), 300);
+      }
     }
 
     isReadingMode = shouldEnable;
-    
-    // 使用 requestAnimationFrame 确保动画流畅
-    requestAnimationFrame(() => {
-      document.body.id = shouldEnable ? 'reading-mode' : '';
-      
+
+    const updateButtons = () => {
       [readingModeToggle, editorReadingToggle].forEach((btn) => {
         if (!btn) return;
         btn.classList.toggle('is-active', shouldEnable);
         btn.setAttribute('aria-pressed', String(shouldEnable));
       });
-      
       updateReadingToggleLabels();
-      
-      if (!shouldEnable) {
-        clearReadingLineHighlight();
+    };
+
+    const createOverlay = () => {
+      // 清理旧浮层
+      const existing = document.getElementById('readingOverlay');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'reading-overlay';
+      overlay.id = 'readingOverlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', t('readingToggleEnter') || '阅读模式');
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'overlay-backdrop';
+      const contentWrap = document.createElement('div');
+      contentWrap.className = 'overlay-content';
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'overlay-toolbar';
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'overlay-close';
+      closeBtn.type = 'button';
+      closeBtn.title = t('readingToggleExit') || '退出阅读';
+      closeBtn.setAttribute('aria-label', closeBtn.title);
+      closeBtn.innerHTML = '&times;';
+      toolbar.appendChild(closeBtn);
+
+      // 克隆右侧显示区内容
+      try {
+        const original = document.getElementById('content');
+        if (original) {
+          contentWrap.innerHTML = original.innerHTML;
+        }
+      } catch (_) {}
+
+      overlay.appendChild(backdrop);
+      overlay.appendChild(contentWrap);
+      overlay.appendChild(toolbar);
+      document.body.appendChild(overlay);
+
+      const dismiss = () => setReadingMode(false);
+      backdrop.addEventListener('click', dismiss);
+      closeBtn.addEventListener('click', dismiss);
+
+      // 绑定浮层内的阅读交互
+      bindReadingOverlayInteractions(contentWrap);
+    };
+
+    const removeOverlay = () => {
+      try {
+        const overlay = document.getElementById('readingOverlay');
+        if (overlay) overlay.remove();
+      } catch (_) {}
+      clearReadingLineHighlight();
+    };
+
+    // 使用 requestAnimationFrame 确保动画流畅
+    requestAnimationFrame(() => {
+      if (shouldEnable) {
+        createOverlay();
+      } else {
+        removeOverlay();
       }
+      updateButtons();
       syncReadingLineAttributes(shouldEnable);
     });
 
@@ -1137,6 +1188,29 @@ const headerSpeedValue = $('headerSpeedValue');
         window.history.replaceState({}, '', url);
       } catch (_) {}
     }
+  }
+
+  // 浮层中的阅读交互：点击/键盘触发高亮；ESC 关闭
+  function bindReadingOverlayInteractions(container) {
+    if (!container) return;
+    container.addEventListener('click', (event) => {
+      if (!isReadingMode) return;
+      const line = event.target.closest('.line-container');
+      if (!line) return;
+      setReadingLineActive(line);
+    });
+    container.addEventListener('keydown', (event) => {
+      if (!isReadingMode) return;
+      const line = event.target.closest('.line-container');
+      if (!line) return;
+      if ((event.key === 'Enter' || event.key === ' ') && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        event.preventDefault();
+        setReadingLineActive(line);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        setReadingMode(false);
+      }
+    });
   }
 
   // 播放全文按钮的动态文案
@@ -5265,29 +5339,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   function initReadingModeInteractions() {
-    if (!content) return;
-
-    content.addEventListener('click', (event) => {
-      if (document.body.id !== 'reading-mode') return;
-      const container = event.target.closest('.line-container');
-      if (!container) return;
-      setReadingLineActive(container);
-    });
-
-    content.addEventListener('keydown', (event) => {
-      if (document.body.id !== 'reading-mode') return;
-      const container = event.target.closest('.line-container');
-      if (!container) return;
-
-      if ((event.key === 'Enter' || event.key === ' ') && !event.metaKey && !event.ctrlKey && !event.altKey) {
-        event.preventDefault();
-        setReadingLineActive(container);
-      } else if (event.key === 'Escape' && activeReadingLine === container) {
-        event.preventDefault();
-        clearReadingLineHighlight();
-        syncReadingLineAttributes(true);
-      }
-    });
+    // 主内容区不再绑定阅读模式交互，改由阅读浮层承载
   }
 
   // Header滚动压缩切换
