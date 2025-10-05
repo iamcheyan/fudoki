@@ -536,8 +536,27 @@ body {
   transition: top 0.18s ease;
   will-change: transform;
 }
-.content-container {
-    height: 100%;
+.content-container { height: 100%; }
+
+/* 两栏模式：输入在左，内容在右 */
+.main-container.two-pane #editorPanels{display:flex;gap:12px;align-items:stretch}
+.main-container.two-pane #editorPanels .input-section{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
+.main-container.two-pane #editorPanels .content-area{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
+.main-container.two-pane #editorPanels{height:calc(100vh - 56px)}
+.main-container.two-pane #editorPanels .input-section,
+.main-container.two-pane #editorPanels .content-area{height:100%;overflow-y:auto}
+.main-container.two-pane .input-section .editor{flex:1 1 auto}
+.main-container.two-pane .content-area .content{flex:1 1 auto}
+.main-container.two-pane .input-section {
+  margin: 0 10px;
+}
+@media (max-width: 900px){
+  .main-container.two-pane #editorPanels{display:block}
+  .main-container.two-pane #editorPanels .input-section,
+  .main-container.two-pane #editorPanels .content-area{max-width:100%;flex:1 1 auto}
+  .main-container.two-pane #editorPanels{height:auto}
+  .main-container.two-pane #editorPanels .input-section,
+  .main-container.two-pane #editorPanels .content-area{height:auto;overflow:visible}
 }
 
 
@@ -2832,6 +2851,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   background: var(--bg);
 }
 .editor-toolbar-left,.editor-toolbar-right{display:flex;align-items:center;gap:10px}
+#twoPaneToggle.theme-icon-btn{min-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
 .editor-date{font-size:12px;color:var(--muted)}
 .editor-count{font-size:12px;color:var(--text);opacity:.9}
 .editor-star-toggle,.editor-reading-toggle{
@@ -3010,15 +3030,19 @@ input[type="checkbox"] {
 
 /* 移动端：统一抽屉（sidebar-stack）上下堆叠文件夹与文档 */
 @media (max-width: 768px) {
+  #twoPaneToggle.theme-icon-btn {
+    display: none;
+  }
+
   .sidebar-stack {
     position: fixed;
-    top: 56px;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    z-index: 1100; /* 提升层级：抽屉位于遮罩之上 */
+    z-index: 900; /* 提升层级：抽屉位于遮罩之上 */
     display: flex;
     flex-direction: column;
     background: var(--bg);
@@ -3173,7 +3197,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: 10px;
   border-bottom: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.05);
 }
@@ -3453,7 +3477,7 @@ input[type="checkbox"] {
 
 /* 左侧边栏中的搜索区样式调整 */
 .folder-management .search-section {
-  padding: 10px 30px 10px 10px;
+  padding: 10px;
   display: block;
 }
 :root[data-theme="dark"] .token-pill.search-hit { background: #3b2f26; box-shadow: 0 0 0 2px #c49a6c55; }

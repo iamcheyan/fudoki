@@ -16,6 +16,7 @@ const headerSpeedValue = $('headerSpeedValue');
   const headerPauseToggle = $('headerPauseToggle');
   const headerDownloadBtn = $('headerDownloadBtn');
   const newDocBtn = $('newDocBtn');
+    const twoPaneToggle = $('twoPaneToggle');
   const documentList = $('documentList');
   const folderList = $('folderList');
   const langSelect = $('langSelect');
@@ -5675,6 +5676,19 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initListPanelTopOffset();
     setupPwaInstaller();
     initGlobalSearch();
+    // 两栏模式按钮：在 .main-container 上切换 two-pane 类
+    if (twoPaneToggle) {
+      twoPaneToggle.addEventListener('click', () => {
+        const mainContainer = document.querySelector('.main-container');
+        if (!mainContainer) return;
+        const next = !mainContainer.classList.contains('two-pane');
+        mainContainer.classList.toggle('two-pane', next);
+        // 按钮状态同步
+        twoPaneToggle.classList.toggle('is-active', next);
+        twoPaneToggle.setAttribute('aria-pressed', String(next));
+        twoPaneToggle.title = next ? (t('twoPaneOn') || '两栏模式已启用') : (t('twoPaneOff') || '两栏模式已关闭');
+      });
+    }
     initQuickSearch();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
   }
