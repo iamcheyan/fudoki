@@ -463,7 +463,6 @@ body {
 }
 
 .sidebar-stack {
-  border-right: 1px solid var(--border);
   display: grid;
   grid-template-columns: 250px 1fr; /* 左右排列：左侧250px，右侧自适应 */
   height: calc(100vh); /* 与视口同高，避免页面整体滚动 */
@@ -471,6 +470,7 @@ body {
 }
 /* 中间列表面板 */
 .list-panel {
+  border-right: 1px solid var(--border);
   position: relative;
   top: 56px;                     /* 初始与头部高度对齐 */
   height: calc(100vh);    /* 视口高度减去头部高度 */
@@ -547,6 +547,39 @@ body {
   /* height: 100%; */
 }
 
+/* 文件夹标题行与收缩按钮 */
+.folder-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.folder-collapse-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--control-border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.folder-collapse-btn:hover {
+  background: var(--elevated);
+}
+
+/* 折叠状态下隐藏文件夹列表，并收紧标题底边距 */
+.folder-management.collapsed .folder-list {
+  display: none;
+}
+.folder-management.collapsed .sidebar-title {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
 /* 文档列表顶部工具栏样式 */
 .doc-list-toolbar {
   position: sticky;
@@ -559,6 +592,19 @@ body {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   z-index: 2;
+}
+
+/* 将文件夹折叠按钮推到最左侧 */
+.doc-list-toolbar #folderToolbarCollapseBtn {
+  margin-right: auto;
+}
+
+/* Avoid dblclick targeting inner SVG (SVGAnimatedString className), let button receive events */
+.doc-list-toolbar .folder-collapse-btn svg,
+.doc-list-toolbar .folder-collapse-btn svg *,
+.doc-list-toolbar .theme-icon-btn svg,
+.doc-list-toolbar .theme-icon-btn svg * {
+  pointer-events: none;
 }
 
 .doc-list-toolbar .btn-new svg { width: 18px; height: 18px; }
@@ -2138,6 +2184,13 @@ select:focus, textarea:focus, input[type="text"]:focus {
   /* background: var(--control-elev); */
   border-color: var(--control-border);
 }
+.folders-collapsed {
+  grid-template-columns: 250px 1fr;
+}
+
+.folders-collapsed .folder-management {
+  display: none;
+}
 
 /* 主要按钮（提高浅色主题可读性） */
 .btn-primary, .play-all-btn {
@@ -2180,8 +2233,8 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 
 /* 页脚 */
 .footer {
-  margin: 20px auto 50px auto;
-  padding: 12px 0 0;
+  /* margin: 20px auto 50px auto; */
+  /* padding: 12px 0 0; */
   font-size: 11.5px;
   color: var(--control-muted);
   line-height: 1.6;
@@ -2668,7 +2721,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
   background: linear-gradient(180deg, #fffdf8 0%, #fff5da 100%);
   border: 1px solid #e2cfa3;
   border-radius: 18px 18px 12px 18px;
-  padding: 20px;
+  padding: 20px 20px 40px 20px;
   box-shadow: 0 20px 60px -32px rgba(112, 80, 30, 0.45), 0 18px 28px -26px rgba(112, 80, 30, 0.25);
   color: #4c381a;
 }
@@ -3222,7 +3275,7 @@ input[type="checkbox"] {
 .user-profile {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  /* margin-bottom: 16px; */
 }
 
 .user-avatar {

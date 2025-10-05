@@ -5165,6 +5165,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     restoreSidebarState();
   }
 
+  // 文件夹工具栏折叠按钮已移至下方统一定义
+
   // 右侧边栏移动端控制功能已移除
   
   // 右侧边栏自动收缩功能已完全移除
@@ -5661,6 +5663,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     initToolbarDrag();
     initToolbarResize();
     initSidebarToggle();
+    initFolderToolbarCollapse();
     // 移动端右侧边栏初始化已移除
     initReadingModeToggle();
     initReadingModeInteractions();
@@ -5913,6 +5916,29 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
 })();
+  // 文件夹工具栏折叠（支持多个触发按钮）
+  function initFolderToolbarCollapse() {
+    const buttons = Array.from(document.querySelectorAll('.folder-collapse-btn'));
+    const mainContainer = document.querySelector('.main-container');
+    if (!mainContainer || buttons.length === 0) return;
+
+    // 恢复上次状态
+    let collapsed = false;
+    try {
+      collapsed = localStorage.getItem('folderToolbarCollapsed') === 'true';
+    } catch (_) {}
+    // 切换的是 main-container 上的类，由样式层实现具体折叠动作
+    mainContainer.classList.toggle('folders-collapsed', collapsed);
+
+    const handleClick = (e) => {
+      e.preventDefault();
+      const isCollapsed = mainContainer.classList.toggle('folders-collapsed');
+      try { localStorage.setItem('folderToolbarCollapsed', String(isCollapsed)); } catch (_) {}
+    };
+
+    // 绑定所有触发按钮（标题区与文档列表工具栏）
+    buttons.forEach(btn => btn.addEventListener('click', handleClick));
+  }
   // 字号缩放控制
   function initFontSizeControls() {
     const rangeEls = [
