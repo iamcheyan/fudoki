@@ -3326,7 +3326,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   }
 
   // 高亮词汇函数
-  function highlightToken(text, targetElement = null) {
+  function highlightToken(text, targetElement = null, opts = {}) {
     // 清除之前的高亮
     clearTokenHighlight();
     
@@ -3337,12 +3337,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
       targetElement.classList.add('playing');
       currentHighlightedToken = targetElement;
       
-      // 滚动到可视区域
-      targetElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center',
-        inline: 'nearest'
-      });
+      // 滚动到可视区域（允许调用方禁用）
+      if (opts.scroll !== false) {
+        targetElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
       return;
     }
     
@@ -3354,12 +3356,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
         pill.classList.add('playing');
         currentHighlightedToken = pill;
         
-        // 滚动到可视区域
-        pill.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
-        });
+        // 滚动到可视区域（文本匹配时默认允许）
+        if (opts.scroll !== false) {
+          pill.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
         break;
       }
     }
@@ -3940,7 +3944,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const surface = tokenData.surface || '';
         if (surface) {
           if (isPlaying) stopSpeaking();
-          highlightToken(surface, element);
+          highlightToken(surface, element, { scroll: false });
           let textToSpeak = tokenData.reading || surface;
           // 只有在surface确实是单个"は"字符且为助词时才转换
           if (surface === 'は' && tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞') {
