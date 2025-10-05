@@ -469,12 +469,12 @@ body {
 .list-panel {
   padding-top: 60px;
   background: var(--bg);
-  overflow-y: auto; /* 列表独立滚动 */
   min-height: 0;   /* 配合父容器高度，避免内容被裁切 */
 }
 
 .list-content {
   /* padding: 16px 12px; */
+  overflow-y: auto; /* 列表独立滚动 */
   height: 100%;
 }
 

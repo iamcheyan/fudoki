@@ -7,6 +7,18 @@
   },
   "articles": [
     {
+      "id": "20251007-000001",
+      "lines": [
+        "Fudoki（フドキ）は、日本語テキストを簡単に分析できるWebアプリです。",
+        "日本語の文章を入力すると、AIが自動的に分かち書き（Tokenization）や品詞（Part of Speech, POS）を判別し、各単語のカタカナ・ローマ字（Romaji）も表示します。",
+        "さらに、Speech Synthesis APIを使って、ワンクリックでネイティブ風の音声再生も可能！",
+        "「Play All」ボタンで全文を一気に聴くこともできます。",
+        "UIはシンプルで、ダークモード（Dark Mode）やカスタムスピード（Speed Control）などのSettingsも充実。",
+        "日本語学習者やNLPエンジニア、そして好奇心旺盛な皆さんに最適なツールです。",
+        "Try Fudoki and enjoy Japanese language analysis!"
+      ]
+    },
+    {
       "id": "20251004-101500",
       "lines": [
         "て／で／た形の結合表示と朗読の例",
