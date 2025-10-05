@@ -540,10 +540,10 @@ body {
     height: 100%;
 }
 .content-container #headerPlayToggle {
-  width: 48px;
-  height: 48px;
-  border-radius: 48px;
-  margin: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 24px;
+  margin: 0 0 0 10px;
 }
 
 /* 侧边栏内容 */
@@ -829,6 +829,7 @@ body {
   display: flex;
   gap: 8px;
   align-items: stretch;
+  margin-bottom: 10px;
 }
 
 #textInput {
@@ -3519,6 +3520,49 @@ input[type="checkbox"] {
 input[type="text"], textarea { font-size: 14px; }
 
 /* 可选：细节子元素的字号 */
+
+/* 顶部播放控制栏 */
+.play-control-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.play-control-bar .play-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--control-text);
+}
+.play-control-bar .play-toggle:hover {
+  background: var(--control-elev);
+}
+.play-control-bar .play-progress {
+  flex: 1;
+  height: 6px;
+  min-width: 140px;
+  background: var(--control-elev);
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.play-control-bar .play-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0%;
+  background: var(--primary);
+}
+.play-control-bar .play-volume {
+  width: 80px;
+  height: 20px;
+}
+:root[data-theme="dark"] .play-control-bar {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
 .token-kanji { font-size: calc(14px * var(--font-scale)); }
 .token-kana { font-size: calc(10px * var(--font-scale)); }
 .token-romaji { font-size: calc(9px * var(--font-scale)); }
