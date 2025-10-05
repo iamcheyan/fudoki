@@ -539,6 +539,12 @@ body {
 .content-container {
     height: 100%;
 }
+.content-container #headerPlayToggle {
+  width: 48px;
+  height: 48px;
+  border-radius: 48px;
+  margin: 10px;
+}
 
 /* 侧边栏内容 */
 .sidebar-content {
@@ -1161,7 +1167,7 @@ input:focus, textarea:focus, select:focus {
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
-  padding: 12px;
+  padding: 35px 10px 10px 10px;
   z-index: 10000;
   min-width: 240px;
   max-width: 300px;
@@ -1459,6 +1465,23 @@ select, input[type="range"] {
 
 .play-token-btn:hover {
   background: var(--elevated);
+}
+
+/* 将词汇详情的播放按钮固定在 section 右侧 */
+.token-details .play-token-btn {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border-radius: 50%;
+  background: var(--control-bg);
+  border-color: var(--control-border);
+  color: var(--control-text);
+}
+.token-details .play-token-btn:hover {
+  background: var(--control-elev);
 }
 
 /* 加载和错误状态 */
