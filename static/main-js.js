@@ -2697,6 +2697,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       doc.content = textInput.value;
       doc.updatedAt = Date.now();
       this.saveAllDocuments(docs);
+      // 保存后刷新顶部工具栏的日期显示（改为显示最后保存时间）
+      try { updateEditorToolbar(); } catch (_) {}
     }
 
     // 加载活动文档到编辑器
@@ -5142,7 +5144,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const doc = docs.find(d => d.id === activeId);
 
       if (editorDocDate) {
-        editorDocDate.textContent = doc ? documentManager.formatCreationTime(doc.createdAt) : '';
+        const ts = doc ? (doc.updatedAt || doc.createdAt) : null;
+        editorDocDate.textContent = ts ? documentManager.formatCreationTime(ts) : '';
       }
       if (editorCharCount) {
         const count = (textInput && textInput.value) ? textInput.value.length : 0;
