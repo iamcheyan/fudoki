@@ -3259,7 +3259,7 @@ input[type="checkbox"] {
   .main-container:not(.collapsed) .content-main::after {
     content: "";
     position: fixed;
-    top: 56px; /* 与导航高度对齐，必要时调整 */
+    top: 0; /* 与导航高度对齐，必要时调整 */
     left: 0;
     right: 0;
     bottom: 0;
