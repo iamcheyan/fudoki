@@ -208,7 +208,7 @@ body {
   box-shadow: 0 4px 18px var(--header-shadow-strong), 0 1.5px 6px var(--header-shadow-soft);
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
-  transition: padding 0.2s ease, box-shadow 0.2s ease;
+  transition: padding 0.2s ease, box-shadow 0.2s ease, transform 0.18s ease;
 }
 
 .header-content {
@@ -3268,6 +3268,16 @@ input[type="checkbox"] {
     pointer-events: none; /* 仅视觉强调，不拦截交互 */
     backdrop-filter: blur(5px) saturate(160%);
     -webkit-backdrop-filter: blur(5px) saturate(160%);
+  }
+
+  /* 移动端：向上滚动时收缩隐藏Header，向下滚动时恢复 */
+  body.header-hidden .header {
+    transform: translateY(-100%);
+    box-shadow: none;
+  }
+  body.header-hidden .content-main,
+  body.header-hidden .list-panel {
+    top: 0;
   }
 }
 

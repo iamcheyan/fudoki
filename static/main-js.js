@@ -5243,8 +5243,73 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // Header滚动压缩切换
   function initHeaderScroll() {
-    // 已按用户要求移除头部滚动压缩功能
-    return;
+    const header = document.querySelector('.header');
+    const contentMain = document.querySelector('.content-main');
+    const listContent = document.querySelector('.list-content');
+    if (!header || (!contentMain && !listContent)) return;
+
+    const isMobile = () => window.innerWidth <= 768;
+    let hidden = false;
+    let lastY = 0;
+    const threshold = 6; // 轻微滑动忽略，避免抖动
+
+    const hideHeader = () => {
+      if (!hidden) {
+        document.body.classList.add('header-hidden');
+        hidden = true;
+      }
+    };
+    const showHeader = () => {
+      if (hidden) {
+        document.body.classList.remove('header-hidden');
+        hidden = false;
+      }
+    };
+
+    const handleScroll = (el) => {
+      const y = el.scrollTop;
+      const atTop = y <= 0;
+      if (!isMobile()) {
+        // 桌面端不隐藏头部
+        showHeader();
+        return;
+      }
+      if (atTop) {
+        showHeader();
+        lastY = 0;
+        return;
+      }
+      if (y > lastY + threshold) {
+        hideHeader();
+      } else if (y < lastY - threshold) {
+        showHeader();
+      }
+      lastY = y;
+    };
+
+    const bind = (el) => {
+      if (!el) return;
+      lastY = el.scrollTop;
+      el.addEventListener('scroll', () => handleScroll(el), { passive: true });
+      el.addEventListener('touchstart', () => { lastY = el.scrollTop; }, { passive: true });
+    };
+
+    // 初始化绑定（仅移动端）
+    if (isMobile()) {
+      bind(contentMain);
+      bind(listContent);
+    }
+    // 窗口尺寸变化时的处理
+    window.addEventListener('resize', () => {
+      if (isMobile()) {
+        bind(contentMain);
+        bind(listContent);
+      } else {
+        showHeader();
+      }
+    });
+    // 初始状态确保显示
+    showHeader();
   }
 
   // 内容区域滚动时，动态调整 .content-main 的 top，实现 56px -> 0px 的渐变
@@ -5259,6 +5324,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     };
     let ticking = false;
     const applyOffset = () => {
+      // 当 Header 已隐藏时，不再向上平移内容（由 CSS 归零 top 实现）
+      if (document.body.classList.contains('header-hidden')) {
+        contentMain.style.transform = 'translateY(0)';
+        return;
+      }
       const base = getBaseOffset();
       const st = contentMain.scrollTop || 0;
       const offset = Math.min(st, base);
@@ -5291,6 +5361,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     };
     let ticking = false;
     const applyOffset = () => {
+      // 当 Header 已隐藏时，不再向上平移列表面板（由 CSS 归零 top 实现）
+      if (document.body.classList.contains('header-hidden')) {
+        listPanel.style.transform = 'translateY(0)';
+        return;
+      }
       const base = getBaseOffset();
       const st = listContent.scrollTop || 0;
       const offset = Math.min(st, base);
