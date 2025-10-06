@@ -3764,7 +3764,7 @@ input[type="text"], textarea { font-size: 14px; }
   border: 1px solid var(--control-border);
   border-radius: 8px;
   overflow: hidden;
-  margin: 0 0 0 10px;
+  margin: 0 0 0 5px;
 }
 .play-control-bar .play-control-bar-buttons .theme-icon-btn {
   margin: 0;
