@@ -587,6 +587,8 @@ const headerSpeedValue = $('headerSpeedValue');
     
     // 将 details 移动到 body 最底层
     if (details.parentNode !== document.body) {
+      // 记录归属 token，便于在模态交互后正确归位
+      try { details.__ownerTokenElement = element; } catch (_) {}
       document.body.appendChild(details);
     }
     
@@ -3968,6 +3970,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
     } else {
       details = element.querySelector('.token-details');
     }
+    // 如果详情已被移动到 body（之前打开过），尝试通过归属引用找回
+    if (!details) {
+      const moved = Array.from(document.body.querySelectorAll('.token-details')).find(d => d.__ownerTokenElement === element);
+      if (moved) details = moved;
+    }
     
     if (details) {
       // 检查当前元素是否已经是活动状态
@@ -4130,6 +4137,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
     document.querySelectorAll('.token-pill').forEach(p => {
       p.classList.remove('active');
     });
+    // 若当前有活动的详情弹层，确保在打开模态前将其归位到对应 token 元素
+    try {
+      const prev = activeTokenDetails;
+      if (prev && prev.details && prev.element && prev.details.parentNode === document.body) {
+        prev.details.style.display = 'none';
+        prev.details.style.visibility = 'hidden';
+        try { prev.element.appendChild(prev.details); } catch (_) {}
+      }
+    } catch (_) {}
     activeTokenDetails = null;
     
     const modal = document.createElement('div');
@@ -4196,9 +4212,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.remove();
-        // 确保关闭翻译模态框时，词汇详情弹窗保持隐藏
+        // 确保关闭翻译模态框时，词汇详情弹窗保持隐藏，并将仍在 body 的详情归位
         document.querySelectorAll('.token-details').forEach(d => {
+          if (d.parentNode === document.body && d.__ownerTokenElement) {
+            try { d.__ownerTokenElement.appendChild(d); } catch (_) {}
+          }
           d.style.display = 'none';
+          d.style.visibility = 'hidden';
         });
         document.querySelectorAll('.token-pill').forEach(p => {
           p.classList.remove('active');
@@ -4212,9 +4232,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
         modal.remove();
-        // 确保关闭翻译模态框时，词汇详情弹窗保持隐藏
+        // 确保关闭翻译模态框时，词汇详情弹窗保持隐藏，并将仍在 body 的详情归位
         document.querySelectorAll('.token-details').forEach(d => {
+          if (d.parentNode === document.body && d.__ownerTokenElement) {
+            try { d.__ownerTokenElement.appendChild(d); } catch (_) {}
+          }
           d.style.display = 'none';
+          d.style.visibility = 'hidden';
         });
         document.querySelectorAll('.token-pill').forEach(p => {
           p.classList.remove('active');
