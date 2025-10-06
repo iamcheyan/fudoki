@@ -25,6 +25,7 @@
     'git': { reading: 'ギット', translations: { zh: '分布式版本控制 Git', ja: 'Git', en: 'Git version control' } },
     'github': { reading: 'ギットハブ', translations: { zh: '代码托管平台 GitHub', ja: 'GitHub', en: 'GitHub platform' } },
     'js': { reading: 'ジェイエス', translations: { zh: 'JS（JavaScript）', ja: 'JS（JavaScript）', en: 'JS (JavaScript)' } }
+    
   };
 
   function normalizeTechKey(s) {
