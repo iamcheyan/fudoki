@@ -55,7 +55,11 @@ const headerSpeedValue = $('headerSpeedValue');
   const showRomajiCheckbox = $('showRomaji');
   const showPosCheckbox = $('showPos');
   const autoReadCheckbox = $('autoRead');
-  const repeatPlayCheckbox = $('repeatPlay');
+  let repeatPlayCheckbox = $('repeatPlay');
+  // 暴露到全局，供 tts.js 访问
+  if (typeof window !== 'undefined') {
+    window.repeatPlayCheckbox = repeatPlayCheckbox;
+  }
 
   const pwaToast = $('pwaInstallToast');
   const pwaToastIcon = $('pwaInstallIcon');
@@ -70,7 +74,7 @@ const headerSpeedValue = $('headerSpeedValue');
   const sidebarShowRomajiCheckbox = $('sidebarShowRomaji');
   const sidebarShowPosCheckbox = $('sidebarShowPos');
   const sidebarAutoReadCheckbox = $('sidebarAutoRead');
-  const sidebarRepeatPlayCheckbox = $('sidebarRepeatPlay');
+  let sidebarRepeatPlayCheckbox = $('sidebarRepeatPlay');
 
   // 本地存储键
   const LS = { 
@@ -1934,6 +1938,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
   let voices = [];
   let currentVoice = null;
   let rate = parseFloat(localStorage.getItem(LS.rate)) || 1;// 播放状态跟踪// 全局变量
+  // 同步到全局，确保 tts.js 能读取最新速率
+  if (typeof window !== 'undefined') {
+    window.rate = rate;
+  }
   let volume = (() => { const v = parseFloat(localStorage.getItem(LS.volume)); return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 1; })();
   let isPlaying = false;
   let isPaused = false;
@@ -4468,7 +4476,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const showDetailsCheckbox = document.getElementById('showDetails');
     const showUnderlineCheckbox = document.getElementById('showUnderline');
     const autoReadCheckbox = document.getElementById('autoRead');
-    const repeatPlayCheckbox = document.getElementById('repeatPlay');
+    // 使用全局变量，避免遮蔽
+    repeatPlayCheckbox = document.getElementById('repeatPlay');
     const sidebarShowKanaCheckbox = document.getElementById('sidebarShowKana');
     const sidebarShowRomajiCheckbox = document.getElementById('sidebarShowRomaji');
     const sidebarShowPosCheckbox = document.getElementById('sidebarShowPos');
@@ -4476,7 +4485,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const sidebarShowDetailsCheckbox = document.getElementById('sidebarShowDetails');
     const sidebarShowUnderlineCheckbox = document.getElementById('sidebarShowUnderline');
     const sidebarAutoReadCheckbox = document.getElementById('sidebarAutoRead');
-    const sidebarRepeatPlayCheckbox = document.getElementById('sidebarRepeatPlay');
+    // 使用全局变量，避免遮蔽
+    sidebarRepeatPlayCheckbox = document.getElementById('sidebarRepeatPlay');
     // 读音脚本下拉
     const readingScriptSelect = document.getElementById('readingScriptSelect');
     const sidebarReadingScriptSelect = document.getElementById('sidebarReadingScriptSelect');
@@ -4495,6 +4505,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (showUnderlineCheckbox) showUnderlineCheckbox.checked = getBool(LS.showUnderline, true);
     if (autoReadCheckbox) autoReadCheckbox.checked = getBool(LS.autoRead, false);
     if (repeatPlayCheckbox) repeatPlayCheckbox.checked = getBool(LS.repeatPlay, false);
+    // 同步到全局，供 tts.js 使用
+    if (typeof window !== 'undefined') {
+      window.repeatPlayCheckbox = repeatPlayCheckbox;
+    }
     // 新增：助词“は→わ”开关
     const haAsWaCheckbox = document.getElementById('haAsWa');
     const sidebarHaAsWaCheckbox = document.getElementById('sidebarHaAsWa');
@@ -5625,6 +5639,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (speedSliderEl) {
       speedSliderEl.addEventListener('input', () => {
         rate = Math.min(2, Math.max(0.5, parseFloat(speedSliderEl.value) || 1));
+        if (typeof window !== 'undefined') window.rate = rate;
         if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
         if (sidebarSpeedSliderEl) sidebarSpeedSliderEl.value = rate;
         if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
@@ -5639,6 +5654,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (sidebarSpeedSliderEl) {
       sidebarSpeedSliderEl.addEventListener('input', () => {
         rate = Math.min(2, Math.max(0.5, parseFloat(sidebarSpeedSliderEl.value) || 1));
+        if (typeof window !== 'undefined') window.rate = rate;
         if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
         if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
         if (speedSliderEl) speedSliderEl.value = rate;
@@ -5653,6 +5669,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (headerSpeedSliderEl) {
       headerSpeedSliderEl.addEventListener('input', () => {
         rate = Math.min(2, Math.max(0.5, parseFloat(headerSpeedSliderEl.value) || 1));
+        if (typeof window !== 'undefined') window.rate = rate;
         if (headerSpeedValueEl) headerSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
         if (speedValueEl) speedValueEl.textContent = `${rate.toFixed(1)}x`;
         if (sidebarSpeedValueEl) sidebarSpeedValueEl.textContent = `${rate.toFixed(1)}x`;
