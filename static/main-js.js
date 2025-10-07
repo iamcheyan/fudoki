@@ -455,6 +455,14 @@ const headerSpeedValue = $('headerSpeedValue');
       close: 'Close',
       confirmExit: 'Are you sure you want to exit?',
       exitInDevelopment: 'Exit feature is under development...'
+      ,backupTitle: 'Backup & Import'
+      ,exportBtn: 'Export Data'
+      ,importBtn: 'Import Data'
+      ,exportSuccess: 'Exported backup JSON.'
+      ,exportError: 'Failed to export backup.'
+      ,importSuccess: 'Backup imported.'
+      ,importError: 'Failed to import backup.'
+      ,importConfirmOverwrite: 'Import will overwrite current data and settings. Continue?'
     },
     zh: {
       title: 'Fudoki',
@@ -562,6 +570,14 @@ const headerSpeedValue = $('headerSpeedValue');
       close: '关闭',
       confirmExit: '确定要退出吗？',
       exitInDevelopment: '退出功能开发中...'
+      ,backupTitle: '备份与导入'
+      ,exportBtn: '导出数据'
+      ,importBtn: '导入数据'
+      ,exportSuccess: '已导出备份 JSON。'
+      ,exportError: '导出失败。'
+      ,importSuccess: '导入成功。'
+      ,importError: '导入失败：文件格式或内容无效。'
+      ,importConfirmOverwrite: '导入将覆盖当前数据与设置，是否继续？'
     }
   };
 
@@ -5534,6 +5550,18 @@ Try Fudoki and enjoy Japanese language analysis!`;
           </div>
         </div>
       </div>
+
+      <!-- 备份与导入 -->
+      <div class="settings-section">
+        <div class="sidebar-title" id="${id('backupTitle')}">${t('backupTitle')}</div>
+        <div class="system-controls">
+          <div class="control-group">
+            <button type="button" class="btn" id="${id('exportJsonBtn')}">${t('exportBtn')}</button>
+            <button type="button" class="btn" id="${id('importJsonBtn')}">${t('importBtn')}</button>
+            <input type="file" id="${id('importJsonFile')}" accept="application/json" style="display:none">
+          </div>
+        </div>
+      </div>
     `;
   }
 
@@ -5608,6 +5636,127 @@ Try Fudoki and enjoy Japanese language analysis!`;
         // 绑定切换事件
         modalLangSelect.addEventListener('change', () => {
           setLanguage(modalLangSelect.value);
+        });
+      }
+    } catch (_) {}
+
+    // 备份/导入按钮事件
+    try {
+      const exportBtn = document.getElementById('exportJsonBtn');
+      const importBtn = document.getElementById('importJsonBtn');
+      const importFile = document.getElementById('importJsonFile');
+
+      function collectBackupPayload() {
+        const documents = (() => {
+          try {
+            const all = documentManager ? documentManager.getAllDocuments() : JSON.parse(localStorage.getItem(LS.texts) || '[]');
+            // 排除示例文章与锁定文档
+            return (Array.isArray(all) ? all : []).filter(d => d && d.folder !== 'samples' && !d.locked);
+          } catch (_) { return []; }
+        })();
+        const activeId = localStorage.getItem(LS.activeId) || '';
+        const settings = {};
+        try {
+          Object.values(LS).forEach((k) => {
+            if (k === LS.texts || k === LS.activeId) return;
+            settings[k] = localStorage.getItem(k);
+          });
+        } catch (_) {}
+        return {
+          app: 'Fudoki',
+          version: 1,
+          createdAt: new Date().toISOString(),
+          data: { documents, activeId, settings }
+        };
+      }
+
+      function downloadTextFile(filename, text) {
+        const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { try { document.body.removeChild(a); } catch (_) {} URL.revokeObjectURL(url); }, 0);
+      }
+
+      function formatNowForFile() {
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+      }
+
+      function doExport() {
+        try {
+          const payload = collectBackupPayload();
+          const json = JSON.stringify(payload, null, 2);
+          const fname = `fudoki-backup-${formatNowForFile()}.json`;
+          downloadTextFile(fname, json);
+          try { showNotification(t('exportSuccess'), 'success'); } catch (_) {}
+        } catch (e) {
+          console.error('Export failed:', e);
+          try { showNotification(t('exportError'), 'error'); } catch (_) {}
+        }
+      }
+
+      function applyBackup(data) {
+        try {
+          if (!data || !data.data) throw new Error('invalid');
+          const docs = Array.isArray(data.data.documents) ? data.data.documents : [];
+          const activeId = typeof data.data.activeId === 'string' ? data.data.activeId : '';
+          const settings = data.data.settings && typeof data.data.settings === 'object' ? data.data.settings : {};
+          // 覆盖存储
+          localStorage.setItem(LS.texts, JSON.stringify(docs));
+          localStorage.setItem(LS.activeId, activeId);
+          Object.keys(settings).forEach((k) => {
+            try { if (k && typeof settings[k] !== 'undefined') localStorage.setItem(k, settings[k]); } catch (_) {}
+          });
+          // 刷新界面
+          try { if (documentManager) { documentManager.render(); documentManager.setActiveId(activeId); } } catch (_) {}
+          try { if (settings[LS.theme]) setThemePreference(settings[LS.theme]); } catch (_) {}
+          try { if (settings[LS.lang]) setLanguage(settings[LS.lang]); } catch (_) {}
+          try { applyI18n(); } catch (_) {}
+          try { showNotification(t('importSuccess'), 'success'); } catch (_) {}
+        } catch (e) {
+          console.error('Import failed:', e);
+          try { showNotification(t('importError'), 'error'); } catch (_) {}
+        }
+      }
+
+      if (exportBtn) exportBtn.addEventListener('click', doExport);
+      if (importBtn && importFile) {
+        importBtn.addEventListener('click', () => importFile.click());
+        importFile.addEventListener('change', () => {
+          const file = importFile.files && importFile.files[0];
+          if (!file) return;
+          const proceed = (cb) => {
+            if (window.showDeleteConfirm) {
+              showDeleteConfirm(t('importConfirmOverwrite'), () => cb && cb(), () => {});
+            } else if (window.confirm ? window.confirm(t('importConfirmOverwrite')) : true) {
+              cb && cb();
+            }
+          };
+          proceed(() => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const text = String(reader.result || '');
+                const obj = JSON.parse(text);
+                applyBackup(obj);
+              } catch (e) {
+                console.error('Invalid backup file:', e);
+                try { showNotification(t('importError'), 'error'); } catch (_) {}
+              } finally {
+                importFile.value = '';
+              }
+            };
+            reader.onerror = () => {
+              try { showNotification(t('importError'), 'error'); } catch (_) {}
+              importFile.value = '';
+            };
+            reader.readAsText(file);
+          });
         });
       }
     } catch (_) {}
