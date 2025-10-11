@@ -436,61 +436,74 @@ body {
 }
 
 
-/* 左侧边栏 - 文档管理 */
+/* 左侧边栏 - Notion风格 */
 .folder-management {
-  background: var(--elevated);
+  background: var(--bg);
   position: relative;
-  transition: width 0.3s ease, transform 0.3s ease;
   overflow: hidden;
   border-right: 1px solid var(--border);
-  padding-top: 0; /* 去掉 header 后不需要顶部间距 */
   display: flex;
   flex-direction: column;
   height: 100vh;
+  width: 240px;
+  flex-shrink: 0;
 }
 
-/* folder-management 底部按钮组 */
+/* folder-management 底部按钮组 - Notion风格 */
 .folder-bottom-buttons {
   display: flex;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: 2px;
+  padding: 6px 8px;
   border-top: 1px solid var(--border);
-  background: var(--elevated);
+  background: var(--bg);
   justify-content: flex-start;
   align-items: center;
   flex-shrink: 0;
+}
+
+.folder-bottom-buttons .theme-icon-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 4px;
+  transition: background 20ms ease-in;
+}
+
+.folder-bottom-buttons .theme-icon-btn:hover {
+  background: var(--elev);
 }
 
 .sidebar-stack {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 0; /* 允许内部滚动容器收缩 */
-  background: var(--elevated);
+  min-height: 0;
+  background: var(--bg);
 }
-/* 单列滚动体 */
+
+/* 单列滚动体 - Notion风格紧凑间距 */
 .sidebar-scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 18px 16px 24px;
+  overflow-x: hidden;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
   scrollbar-width: thin;
 }
 
 .sidebar-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .sidebar-divider {
   height: 1px;
   background: var(--border);
-  border-radius: 1px;
-  opacity: 0.8;
+  margin: 8px 8px;
+  opacity: 0.6;
 }
 /* 文档列表区域嵌入单列导航 */
 .list-panel {
@@ -587,11 +600,14 @@ body {
   min-height: 0;
 }
 
-/* 文件夹标题行与收缩按钮 */
+/* 文件夹标题行 - Notion风格 */
 .folder-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 8px;
+  height: 27px;
+  margin-bottom: 2px;
 }
 
 .folder-collapse-btn {
@@ -620,18 +636,19 @@ body {
   border-bottom: none;
 }
 
-/* 文档列表顶部工具栏样式 */
+/* 文档列表顶部工具栏样式 - Notion风格 */
 .doc-list-toolbar {
   position: sticky;
   top: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 6px 8px;
-  background: var(--elevated);
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
   z-index: 2;
+  height: 32px;
 }
 
 /* 将文件夹折叠按钮推到最左侧 */
@@ -731,95 +748,118 @@ body {
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
-  /* margin-bottom: 12px; */
-  padding: 10px;
+  padding: 0;
+  line-height: 27px;
+  user-select: none;
 }
 
-.list-panel .sidebar-title  {
+.list-panel .sidebar-title {
   display: none;
 }
-/* 文件夹列表样式 */
-.folder-list { margin-top: 4px; }
+
+/* 文件夹列表样式 - Notion风格 */
+.folder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 4px;
+}
+
 .folder-item {
-  padding: 8px 12px;
+  padding: 4px 8px;
   cursor: pointer;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 14px;
+  color: var(--text);
   border-radius: 4px;
-  transition: all 0.2s ease;
-  border-left: 3px solid transparent;
+  transition: background 20ms ease-in;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-height: 27px;
+  user-select: none;
 }
 .folder-item:hover {
-  background: var(--elevated);
-  color: var(--text);
+  background: var(--elev);
 }
-.folder-item.active {
-  background: var(--elevated);
-  color: var(--primary);
-  border-left-color: var(--primary);
-}
-.folder-item svg { opacity: 0.7; flex-shrink: 0; }
 
+.folder-item.active {
+  background: var(--elev);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.folder-item svg {
+  opacity: 0.7;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+/* 文档列表样式 - Notion风格 */
 .doc-list {
-  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 4px;
+  margin-bottom: 8px;
 }
 
 .doc-item {
-  padding: 8px 12px;
-  margin-bottom: 4px;
+  padding: 4px 8px;
   cursor: pointer;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 14px;
+  color: var(--text);
   border-radius: 4px;
-  transition: all 0.2s ease;
-  border-left: 3px solid transparent;
+  transition: background 20ms ease-in;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-height: 27px;
   position: relative;
-  border-bottom: 1px solid var(--border);
+  user-select: none;
 }
 
 .doc-item:hover {
-  background: var(--elevated);
-  color: var(--text);
+  background: var(--elev);
 }
 
 .doc-item.active {
-  background: var(--elevated);
-  color: var(--primary);
-  border-left-color: var(--primary);
+  background: var(--elev);
+  color: var(--text);
+  font-weight: 500;
 }
 
 .doc-item svg {
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.6;
+  width: 18px;
+  height: 18px;
 }
 
 .doc-item-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
 .doc-item-title {
   overflow: hidden;
   text-overflow: ellipsis;
-  /* white-space: nowrap; */
-  font-size: 13px;
+  white-space: nowrap;
+  font-size: 14px;
   color: var(--text);
-  flex: 1;           /* 让标题占据剩余空间 */
-  min-width: 0;      /* 允许在flex容器中正确截断 */
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
 }
 
 .doc-item-time {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
-  opacity: 0.8;
+  opacity: 0.7;
+  line-height: 1.2;
 }
 
 .doc-item-actions {
@@ -2979,7 +3019,7 @@ html {
 .doc-action-btn.favorite-btn:hover { color: var(--text); }
 .doc-item.favorited .doc-action-btn.favorite-btn { color: #f5a623; }
 
-/* 编辑工具栏 */
+/* 编辑工具栏 - 固定在顶部 */
 .editor-toolbar {
   /* 改为两栏布局：左/右分区各占一列 */
   display: grid;
@@ -2987,8 +3027,12 @@ html {
   align-items: center;
   gap: 12px;
   padding: 0 12px;
-  margin: 10px 0 8px 0;
+  height: 44px;
   background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
 }
 .editor-toolbar-left,
 .editor-toolbar-right {
@@ -3536,51 +3580,52 @@ input[type="checkbox"] {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* 快速搜索栏样式 */
+/* 快速搜索栏样式 - Notion风格 */
 .search-section {
-  padding: 0.5rem 1rem 0.75rem;
+  padding: 8px 8px 4px;
   flex-shrink: 0;
 }
 .search-input-wrapper {
   display: flex;
   align-items: center;
-  /* gap: 0.5rem; */
-  /* background: #ffffff; */
-  border-radius: 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
-  border: 1px solid rgba(0,0,0,0.08);
-  padding: 0 5px;
-  max-width: 520px;
+  background: var(--elev);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  padding: 0 8px;
+  height: 28px;
+  transition: background 20ms ease-in;
+}
+
+.search-input-wrapper:hover {
+  background: var(--elevated);
 }
 .search-icon {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
-  color: #9c6b4f;
-  font-size: 0; /* 隐藏 span 内的文本内容 */
-  line-height: 1;
-  position: relative;
+  margin-right: 6px;
+  font-size: 14px;
+  opacity: 0.4;
 }
-.search-icon::before {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><circle cx=%2211%22 cy=%2211%22 r=%226%22/><line x1=%2221%22 y1=%2221%22 x2=%2216.65%22 y2=%2216.65%22/></svg>') no-repeat center / contain;
-}
-.search-input-wrapper:hover .search-icon { color: #8d5f43; }
-:root[data-theme="dark"] .search-icon { color: #c49a6c; opacity: 0.95; }
+
 .search-input-wrapper input#quickSearchInput,
 .search-input-wrapper input#globalSearchInput {
   flex: 1;
   border: none;
   outline: none;
   background: transparent;
-  color: #555;
-  padding: 6px 0;
-  text-indent: 0.5em;
-  font-size: 0.8em;
+  color: var(--text);
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.search-input-wrapper input::placeholder {
+  color: var(--muted);
+  opacity: 0.5;
 }
 .search-clear {
   border: 1px solid rgba(160, 140, 100, 0.18);
