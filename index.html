@@ -40,11 +40,9 @@
                 <button type="button" id="globalSearchClear" class="search-clear" aria-label="清除搜索">×</button>
               </div>
               <button type="button" class="btn-new theme-icon-btn editorNewBtn" id="newDocBtn" aria-label="新建文档" title="新建文档">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                  <path d="M8 3h6l5 5v11a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z" fill="none"></path>
-                  <path d="M14 3v5h5" fill="none"></path>
-                  <path d="M12 11v6" fill="none"></path>
-                  <path d="M9 14h6" fill="none"></path>
+                <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="compose">
+                  <path d="m16.774 4.341-.59.589-1.109-1.11.596-.594a.784.784 0 0 1 1.103 0c.302.302.302.8 0 1.102zM8.65 12.462l6.816-6.813-1.11-1.11-6.822 6.808a1.1 1.1 0 0 0-.236.393l-.289.932c-.052.196.131.38.315.314l.932-.288a.9.9 0 0 0 .394-.236"></path>
+                  <path d="M4.375 6.25c0-1.036.84-1.875 1.875-1.875H11a.625.625 0 1 0 0-1.25H6.25A3.125 3.125 0 0 0 3.125 6.25v7.5c0 1.726 1.4 3.125 3.125 3.125h7.5c1.726 0 3.125-1.4 3.125-3.125V9a.625.625 0 1 0-1.25 0v4.75c0 1.036-.84 1.875-1.875 1.875h-7.5a1.875 1.875 0 0 1-1.875-1.875z"></path>
                 </svg>
               </button>
             </div>
@@ -134,13 +132,30 @@
             </a>
             <button class="theme-icon-btn" id="twoPaneToggle" aria-label="两栏模式" title="两栏模式">
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-                <!-- 左右两栏：左窄右宽 -->
-                <rect x="3" y="4" width="7" height="16" rx="1" ry="1" opacity="0.85"></rect>
-                <rect x="11" y="4" width="10" height="16" rx="1" ry="1" opacity="0.45"></rect>
+                <!-- 左右两栏：对半分 -->
+                <rect x="3" y="4" width="8" height="16" rx="1" ry="1" opacity="0.85"></rect>
+                <rect x="13" y="4" width="8" height="16" rx="1" ry="1" opacity="0.45"></rect>
               </svg>
             </button>
             <span class="editor-date" id="editorDocDate" title="创建日期"></span>
             <span class="editor-count" id="editorCharCount" title="字数">0 字</span>
+            <button type="button" class="editor-star-toggle theme-icon-btn" id="editorStarToggle" aria-pressed="false" title="加星">☆</button>
+            
+            <button class="theme-icon-btn" id="editorDeleteBtn" aria-label="删除文档" title="删除文档">
+              <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="trash">
+                <path d="M8.806 8.505a.55.55 0 0 0-1.1 0v5.979a.55.55 0 1 0 1.1 0zm3.488 0a.55.55 0 0 0-1.1 0v5.979a.55.55 0 1 0 1.1 0z"></path>
+                <path d="M6.386 3.925v1.464H3.523a.625.625 0 1 0 0 1.25h.897l.393 8.646A2.425 2.425 0 0 0 7.236 17.6h5.528a2.425 2.425 0 0 0 2.422-2.315l.393-8.646h.898a.625.625 0 1 0 0-1.25h-2.863V3.925c0-.842-.683-1.525-1.525-1.525H7.91c-.842 0-1.524.683-1.524 1.525M7.91 3.65h4.18c.15 0 .274.123.274.275v1.464H7.636V3.925c0-.152.123-.275.274-.275m-.9 2.99h7.318l-.39 8.588a1.175 1.175 0 0 1-1.174 1.122H7.236a1.175 1.175 0 0 1-1.174-1.122l-.39-8.589z"></path>
+              </svg>
+            </button>
+            
+            <!-- 将阅读模式按钮改为“展开菜单”按钮，样式与功能一致 -->
+            <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M5 7h14" fill="none"></path>
+                <path d="M5 12h14" fill="none"></path>
+                <path d="M5 17h14" fill="none"></path>
+              </svg>
+            </button>
           </div>
           <div class="editor-toolbar-right">
             <!-- 字号滑动手柄（最左侧） -->
@@ -169,24 +184,7 @@
                 <option value="Menlo,Monaco,Consolas,\"Courier New\",monospace">等宽字体</option>
               </select>
             </div>
-            <button class="theme-icon-btn" id="editorDeleteBtn" aria-label="删除文档" title="删除文档">
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path d="M9 4h6l1 2h4" fill="none"></path>
-                <path d="M4 6h16" fill="none"></path>
-                <path d="M7.5 9L8.3 20a2 2 0 0 0 2 1.8h3.4a2 2 0 0 0 2-1.8L17.5 9" fill="none"></path>
-                <path d="M11 12v5" fill="none"></path>
-                <path d="M13 12v5" fill="none"></path>
-              </svg>
-            </button>
-            <button type="button" class="editor-star-toggle theme-icon-btn" id="editorStarToggle" aria-pressed="false" title="加星">☆</button>
-            <!-- 将阅读模式按钮改为“展开菜单”按钮，样式与功能一致 -->
-            <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path d="M5 7h14" fill="none"></path>
-                <path d="M5 12h14" fill="none"></path>
-                <path d="M5 17h14" fill="none"></path>
-              </svg>
-            </button>
+            
           </div>
         </section>
 

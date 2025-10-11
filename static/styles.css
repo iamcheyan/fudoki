@@ -555,7 +555,7 @@ body {
 .main-container.two-pane #editorPanels{display:flex;gap:12px;align-items:stretch}
 .main-container.two-pane #editorPanels .input-section{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
 .main-container.two-pane #editorPanels .content-area{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
-.main-container.two-pane #editorPanels{height:calc(100vh - 47px)}
+.main-container.two-pane #editorPanels{height:calc(100vh - 44px)}
 .main-container.two-pane #editorPanels .input-section{overflow-y:auto; margin: 0 10px 10px 10px;}
 .main-container.two-pane #editorPanels .content-area{overflow-y:auto;}
 .main-container.two-pane .input-section .editor{flex:1 1 auto}
@@ -832,9 +832,12 @@ body {
 }
 
 .doc-item.active {
-  background: var(--elev);
+  background: color-mix(in srgb, var(--primary) 12%, transparent); /* 主题色背景 */
   color: var(--text);
   font-weight: 500;
+  border-left: 3px solid var(--primary); /* 主题色左侧边框 */
+  padding-left: 9px; /* 减少左侧内边距以补偿边框 */
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--primary) 20%, transparent); /* 主题色阴影 */
 }
 
 .doc-item svg {
@@ -1975,8 +1978,8 @@ select, input[type="range"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  /* width: 28px;
+  height: 28px; */
   padding: 0;
   background: var(--bg);
   color: var(--text);
@@ -1985,14 +1988,7 @@ select, input[type="range"] {
   border: none;
 }
 .theme-icon-btn svg { fill: var(--text); }
-/* 仅针对顶部导航的新建文档按钮：路径采用描边渲染，避免 fill="none" 导致不可见 */
-.editorNewBtn svg path {
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-}
+
 /* 顶部同步按钮采用同样的描边风格 */
 #syncBtn svg path {
   stroke: currentColor;
@@ -2996,7 +2992,7 @@ html {
   grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 12px;
-  padding: 0 12px;
+  padding: 0 10px;
   height: 44px;
   background: var(--bg);
   position: sticky;
@@ -3008,7 +3004,7 @@ html {
 .editor-toolbar-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 /* 右侧内容右对齐，使两栏更整齐 */
 .editor-toolbar-right { justify-content: flex-end; }
@@ -3035,6 +3031,17 @@ html {
 }
 /* 窄屏退化为单栏 - 已移至 mobile.css */
 #twoPaneToggle.theme-icon-btn{min-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
+
+/* 两栏模式启用时，图标旋转90度（左右栏变上下栏） */
+#twoPaneToggle.is-active svg {
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+}
+
+/* 默认状态添加过渡动画 */
+#twoPaneToggle svg {
+  transition: transform 0.3s ease;
+}
 .editor-date{font-size:12px;color:var(--muted)}
 .editor-count{font-size:12px;color:var(--text);opacity:.9}
 .editor-star-toggle,.editor-reading-toggle{
@@ -3110,9 +3117,10 @@ html {
   background: #202632;
 }
 [data-theme="dark"] .doc-item.active {
-  background: #222a36;
-  border-left-color: #d9b35a;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  background: color-mix(in srgb, var(--primary) 18%, transparent); /* 深色主题下主题色背景 */
+  border-left: 3px solid var(--primary); /* 主题色边框 */
+  padding-left: 9px;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 28%, transparent); /* 主题色阴影 */
 }
 
 [data-theme="dark"] .input-section {
@@ -3186,7 +3194,6 @@ input[type="checkbox"] {
 /* 导航设置按钮（齿轮）暗色/亮色适配 */
 
 :root[data-theme="dark"] .theme-icon-btn {
-  background: rgba(255,255,255,0.06);
   border-color: var(--control-border);
   color: var(--control-text);
 }
@@ -3429,8 +3436,12 @@ input[type="checkbox"] {
 
 /* 快速搜索栏样式 - Notion风格 */
 .search-section {
-  padding: 8px 8px 4px;
+  padding: 5px 5px 0 0;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
 }
 
 .search-row {
@@ -3440,16 +3451,16 @@ input[type="checkbox"] {
 }
 
 .search-row .btn-new {
-  width: 28px;
+  /* width: 28px;
   height: 28px;
-  padding: 0;
+  padding: 0; */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  border-radius: 6px;
-  cursor: pointer;
+  zoom: 1.3;
+  /* border: 1px solid var(--border); */
+  /* background: var(--bg); */
+  /* border-radius: 6px; */
   transition: background 20ms ease-in;
   flex-shrink: 0;
 }
@@ -3461,7 +3472,7 @@ input[type="checkbox"] {
 .search-row .btn-new svg {
   width: 18px;
   height: 18px;
-  stroke: currentColor;
+  /* stroke: currentColor; */
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -3470,7 +3481,7 @@ input[type="checkbox"] {
 .search-input-wrapper {
   display: flex;
   align-items: center;
-  background: var(--elev);
+  /* background: var(--elev); */
   padding: 0 8px;
   height: 28px;
   transition: background 20ms ease-in;
@@ -3553,9 +3564,14 @@ input[type="checkbox"] {
   background: #fff7ea;
 }
 
+:root[data-theme="dark"] .search-section {
+  background: rgba(28, 33, 41, 0.95); /* 固定时确保遮盖下方内容 */
+  backdrop-filter: blur(8px);
+}
+
 :root[data-theme="dark"] .search-input-wrapper {
-  background: #2b2b2b;
-  border-color: rgba(255,255,255,0.08);
+  /* background: #2b2b2b; */
+  /* border-color: rgba(255,255,255,0.08); */
   box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 :root[data-theme="dark"] .search-input-wrapper input#quickSearchInput,
@@ -3577,7 +3593,7 @@ input[type="checkbox"] {
 
 /* 左侧边栏中的搜索区样式调整 */
 .folder-management .search-section {
-  padding: 10px;
+  /* padding: 0 0 0 0; */
   display: block;
 }
 :root[data-theme="dark"] .token-pill.search-hit { background: #3b2f26; box-shadow: 0 0 0 2px #c49a6c55; }
@@ -3650,6 +3666,33 @@ input[type="checkbox"] {
   /* border-color: rgba(139,105,20,0.14); */
   /* box-shadow: 0 4px 10px rgba(139,105,20,0.08); */
   transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* 需要描边渲染的按钮（菜单等） */
+#collapseMenuBtn svg path {
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* 新建文档按钮图标样式 */
+.btn-new svg.compose {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+/* 删除按钮使用填充渲染 */
+#editorDeleteBtn svg.trash {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: currentColor;
+  flex-shrink: 0;
 }
 
 .editor-toolbar-right .theme-icon-btn svg {
@@ -3799,7 +3842,7 @@ input[type="text"], textarea { font-size: 14px; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-right: 8px;
+  /* margin-right: 8px; */
 }
 .editor-toolbar-right .editor-fontfamily-controls select {
   height: 28px;
@@ -3843,3 +3886,8 @@ input[type="text"], textarea { font-size: 14px; }
   opacity: 0.6;
 }
 /* 播放控制栏移动端适配 - 已移至 mobile.css */
+
+
+#collapseMenuBtn {
+  display: none;
+}
