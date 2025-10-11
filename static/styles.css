@@ -3117,12 +3117,12 @@ html {
 .editor-date{font-size:12px;color:var(--muted)}
 .editor-count{font-size:12px;color:var(--text);opacity:.9}
 .editor-star-toggle,.editor-reading-toggle{
-  background: var(--bg);
-  border: 1px solid var(--border);
+  /* background: var(--bg); */
+  /* border: 1px solid var(--border); */
   padding: 4px 8px;
   font-size: 12px;
-  color: var(--text);
-  border-radius: 6px;
+  /* color: var(--text); */
+  /* border-radius: 6px; */
   cursor: pointer;
   transition: all .2s ease;
 }
@@ -3297,7 +3297,7 @@ input[type="checkbox"] {
   }
   
   .editor-fontsize-control input[type="range"] {
-    width: 45px;  /* 进一步缩短滑块 */
+    width: 60px;  /* 进一步缩短滑块 */
   }
   
   .editor-fontfamily-controls {
@@ -3307,7 +3307,7 @@ input[type="checkbox"] {
   
   .editor-fontfamily-controls select {
     /* 使用"字"表示字体选择 */
-    width: 64px;
+    width: 62px;
     height: 26px;
     font-size: 0;  /* 隐藏下拉选项文字 */
     padding: 0;
@@ -4034,8 +4034,8 @@ input[type="checkbox"] {
 .editor-toolbar-right .theme-icon-btn {
   color: var(--muted);
   /* background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.75)); */
-  border-color: rgba(139,105,20,0.14);
-  box-shadow: 0 4px 10px rgba(139,105,20,0.08);
+  /* border-color: rgba(139,105,20,0.14); */
+  /* box-shadow: 0 4px 10px rgba(139,105,20,0.08); */
   transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
