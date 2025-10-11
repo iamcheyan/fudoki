@@ -623,6 +623,16 @@ body {
   cursor: pointer;
 }
 
+.folder-collapse-btn svg {
+  transition: transform 0.2s ease;
+  transform: rotate(0deg); /* 默认向左箭头 */
+}
+
+/* 收缩状态：向右箭头，表示可以向右展开 */
+.main-container.collapsed .folder-collapse-btn svg {
+  transform: rotate(180deg);
+}
+
 .folder-collapse-btn:hover {
   background: var(--elevated);
 }
@@ -848,7 +858,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text);
   line-height: 1.3;
   flex: 1;
@@ -2275,13 +2285,6 @@ select:focus, input[type="text"]:focus {
   /* background: var(--control-elev); */
   border-color: var(--control-border);
 }
-.folders-collapsed {
-  grid-template-columns: 1fr;
-}
-
-.folders-collapsed #sidebarStack {
-  display: none;
-}
 
 /* 主要按钮（提高浅色主题可读性） */
 .btn-primary, .play-all-btn {
@@ -3056,6 +3059,12 @@ html {
 
 .editor-toolbar-left .folder-collapse-btn {
   margin-right: 4px;
+  border: none;
+  background: transparent;
+}
+
+.editor-toolbar-left .folder-collapse-btn:hover {
+  background: var(--elev);
 }
 /* 窄屏退化为单栏 */
 @media (max-width: 680px) {

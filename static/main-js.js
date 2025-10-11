@@ -6244,15 +6244,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 恢复上次状态
     let collapsed = false;
     try {
-      collapsed = localStorage.getItem('folderToolbarCollapsed') === 'true';
+      collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     } catch (_) {}
     // 切换的是 main-container 上的类，由样式层实现具体折叠动作
-    mainContainer.classList.toggle('folders-collapsed', collapsed);
+    mainContainer.classList.toggle('collapsed', collapsed);
 
     const handleClick = (e) => {
       e.preventDefault();
-      const isCollapsed = mainContainer.classList.toggle('folders-collapsed');
-      try { localStorage.setItem('folderToolbarCollapsed', String(isCollapsed)); } catch (_) {}
+      const isCollapsed = mainContainer.classList.toggle('collapsed');
+      try { localStorage.setItem('sidebarCollapsed', String(isCollapsed)); } catch (_) {}
     };
 
     // 绑定所有触发按钮（标题区与文档列表工具栏）
