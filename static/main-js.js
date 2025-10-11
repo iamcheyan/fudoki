@@ -5337,8 +5337,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function initHeaderScroll() {
     const header = document.querySelector('.header');
     const contentMain = document.querySelector('.content-main');
-    const listContent = document.querySelector('.list-content');
-    if (!header || (!contentMain && !listContent)) return;
+    const sidebarScroll = document.getElementById('sidebarScroll');
+    if (!header || (!contentMain && !sidebarScroll)) return;
 
     const isMobile = () => window.innerWidth <= 768;
     let hidden = false;
@@ -5389,13 +5389,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 初始化绑定（仅移动端）
     if (isMobile()) {
       bind(contentMain);
-      bind(listContent);
+      bind(sidebarScroll);
     }
     // 窗口尺寸变化时的处理
     window.addEventListener('resize', () => {
       if (isMobile()) {
         bind(contentMain);
-        bind(listContent);
+        bind(sidebarScroll);
       } else {
         showHeader();
       }
@@ -5444,9 +5444,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
   // 文档列表区域：滚动时让 .list-panel 顶部偏移由 56px 渐变到 0
   function initListPanelTopOffset() {
     const listPanel = document.querySelector('.list-panel');
-    const listContent = document.querySelector('.list-content');
+    const sidebarScroll = document.getElementById('sidebarScroll');
     const header = document.querySelector('.header');
-    if (!listPanel || !listContent) return;
+    if (!listPanel || !sidebarScroll) return;
+    // 合并后的单列侧边栏无需额外偏移
+    if (sidebarScroll.contains(listPanel)) {
+      listPanel.style.transform = 'translateY(0)';
+      return;
+    }
     const getBaseOffset = () => {
       const h = header ? header.offsetHeight : 56;
       return Math.max(h || 56, 0);
@@ -5459,7 +5464,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         return;
       }
       const base = getBaseOffset();
-      const st = listContent.scrollTop || 0;
+      const st = sidebarScroll.scrollTop || 0;
       const offset = Math.min(st, base);
       listPanel.style.transform = `translateY(${-offset}px)`;
     };
@@ -5472,7 +5477,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         });
       }
     };
-    listContent.addEventListener('scroll', onScroll, { passive: true });
+    sidebarScroll.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', applyOffset, { passive: true });
     // 初始化
     applyOffset();

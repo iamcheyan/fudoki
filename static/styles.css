@@ -421,7 +421,7 @@ body {
 .main-container {
   /* margin: 0 20px; */
   display: grid;
-  grid-template-columns: 500px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
+  grid-template-columns: 320px 1fr; /* 左侧导航 / 内容区 */
   gap: 1px;
   box-shadow: 0 10px 30px var(--border);
   height: 100vh; /* 去掉 header 后，使用完整视口高度 */
@@ -451,7 +451,7 @@ body {
 /* folder-management 底部按钮组 */
 .folder-bottom-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   padding: 8px 12px;
   border-top: 1px solid var(--border);
   background: var(--elevated);
@@ -461,26 +461,43 @@ body {
 }
 
 .sidebar-stack {
-  display: grid;
-  grid-template-columns: 250px 1fr; /* 左右排列：左侧250px，右侧自适应 */
-  height: 100vh; /* 去掉 header 后，使用完整视口高度 */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   min-height: 0; /* 允许内部滚动容器收缩 */
+  background: var(--elevated);
 }
-/* 中间列表面板 */
-.list-panel {
-  border-right: 1px solid var(--border);
-  position: relative;
-  top: 0; /* 去掉 header 后不需要顶部偏移 */
-  height: 100vh; /* 去掉 header 后，使用完整视口高度 */
-  padding-top: 0;                /* 滚动条从可视区域顶部开始 */
-  background: var(--bg);
-  min-height: 0;                 /* 配合父容器高度，避免内容被裁切 */
+/* 单列滚动体 */
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  scrollbar-width: thin;
 }
 
-.list-content {
-  /* padding: 16px 12px; */
-  overflow-y: auto; /* 列表独立滚动 */
-  height: 100%;
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  border-radius: 1px;
+  opacity: 0.8;
+}
+/* 文档列表区域嵌入单列导航 */
+.list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: none;
+  background: transparent;
 }
 
 /* 折叠按钮 */
@@ -611,7 +628,7 @@ body {
   justify-content: flex-end;
   gap: 8px;
   padding: 6px 8px;
-  background: var(--bg);
+  background: var(--elevated);
   border-bottom: 1px solid var(--border);
   z-index: 2;
 }
@@ -1940,9 +1957,9 @@ select, input[type="range"] {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  border-radius: 4px;
+  /* border-radius: 4px; */
   cursor: pointer;
-  border: 1px solid var(--control-border);
+  border: none;
 }
 .theme-icon-btn svg { fill: var(--text); }
 /* 仅针对顶部导航的新建文档按钮：路径采用描边渲染，避免 fill="none" 导致不可见 */
@@ -2218,10 +2235,10 @@ select:focus, input[type="text"]:focus {
   border-color: var(--control-border);
 }
 .folders-collapsed {
-  grid-template-columns: 250px 1fr;
+  grid-template-columns: 1fr;
 }
 
-.folders-collapsed .folder-management {
+.folders-collapsed #sidebarStack {
   display: none;
 }
 
@@ -2341,7 +2358,7 @@ html {
 /* 为常用滚动容器确保显示优化后的滚动条 */
 .sidebar-right .toolbar-content,
 .doc-list,
-.list-content,
+.sidebar-scroll,
 .content-container,
 .editor-panels,
 .token-details,
@@ -2980,10 +2997,34 @@ html {
 }
 /* 右侧内容右对齐，使两栏更整齐 */
 .editor-toolbar-right { justify-content: flex-end; }
+
+/* editor-toolbar 中的 logo 样式调整 */
+.editor-toolbar-left .logo {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+.editor-toolbar-left .logo-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.editor-toolbar-left .folder-collapse-btn {
+  margin-right: 4px;
+}
 /* 窄屏退化为单栏 */
 @media (max-width: 680px) {
   .editor-toolbar { grid-template-columns: 1fr; }
   .editor-toolbar-right { justify-content: flex-start; }
+  
+  /* 移动端隐藏 logo 文字 */
+  .editor-toolbar-left .logo-text {
+    display: none;
+  }
+  
+  .editor-toolbar-left .logo {
+    gap: 0;
+  }
 }
 #twoPaneToggle.theme-icon-btn{min-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
 .editor-date{font-size:12px;color:var(--muted)}
@@ -3011,7 +3052,6 @@ html {
 
 /* 深色主题：常用容器的质感增强 */
 [data-theme="dark"] .folder-management,
-[data-theme="dark"] .list-panel,
 [data-theme="dark"] .input-section,
 [data-theme="dark"] .content-area,
 [data-theme="dark"] .sidebar-right,
@@ -3044,10 +3084,14 @@ html {
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0));
 }
 
-[data-theme="dark"] .folder-management,
-[data-theme="dark"] .list-panel {
+[data-theme="dark"] .folder-management {
   background: rgba(28, 33, 41, 0.72);
   border: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .list-panel {
+  background: transparent;
+  border: none;
 }
 
 [data-theme="dark"] .doc-item {
@@ -3162,7 +3206,7 @@ input[type="checkbox"] {
   .sidebar-toggle-btn { display: none; }
 }
 
-/* 移动端：统一抽屉（sidebar-stack）上下堆叠文件夹与文档 */
+/* 移动端：统一抽屉（sidebar-stack）采用单列结构 */
 @media (max-width: 768px) {
   #twoPaneToggle.theme-icon-btn {
     display: none;
@@ -3172,47 +3216,37 @@ input[type="checkbox"] {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
     bottom: 0;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    z-index: 900; /* 提升层级：抽屉位于遮罩之上 */
+    z-index: 900; /* 抽屉位于遮罩之上 */
     display: flex;
     flex-direction: column;
     background: var(--bg);
     border-right: 1px solid var(--border);
     box-shadow: 0 12px 32px rgba(0,0,0,0.22);
-    width: 80%;
+    width: 82%;
+    max-width: 360px;
   }
   /* 展开时（main-container 不含 collapsed 类）侧滑进入 */
   .main-container:not(.collapsed) #sidebarStack { transform: translateX(0); }
 
-.sidebar-stack .folder-management,
-  .sidebar-stack .list-panel {
-  position: relative;
-  width: 100%;
-  border-right: none;
-  padding-top: 0;
-}
-
   .sidebar-stack .folder-management {
-    max-height: 40vh; /* 上：文件夹 */
-    overflow: auto;
+    border-right: none;
+    height: 100%;
   }
 
-  .sidebar-stack .list-panel {
-    flex: 1; /* 下：文档管理 */
-    overflow: auto;
-    background: var(--bg);
+  .sidebar-scroll {
+    padding: 18px 14px 120px;
   }
 }
 
 /* 移动端：抽屉子元素联动动画（随抽屉展开/收起一起滑动与淡入） */
 @media (max-width: 768px) {
   .sidebar-stack .folder-management,
+  .sidebar-stack .sidebar-scroll,
   .sidebar-stack .list-panel,
-  .sidebar-stack .folder-management .sidebar-content,
-  .sidebar-stack .list-panel .list-content {
+  .sidebar-stack .folder-bottom-buttons {
     transition: transform 0.3s ease, opacity 0.25s ease;
     will-change: transform, opacity;
   }
@@ -3228,8 +3262,8 @@ input[type="checkbox"] {
   /* 抽屉收起：子元素轻微左移并透明（与容器侧滑叠加更自然） */
   .main-container.collapsed #sidebarStack .folder-management,
   .main-container.collapsed #sidebarStack .list-panel,
-  .main-container.collapsed #sidebarStack .folder-management .sidebar-content,
-  .main-container.collapsed #sidebarStack .list-panel .list-content {
+  .main-container.collapsed #sidebarStack .sidebar-scroll,
+  .main-container.collapsed #sidebarStack .folder-bottom-buttons {
     transform: translateX(-16px);
     opacity: 0;
   }
@@ -3237,8 +3271,8 @@ input[type="checkbox"] {
   /* 抽屉展开：子元素归位并淡入 */
   .main-container:not(.collapsed) #sidebarStack .folder-management,
   .main-container:not(.collapsed) #sidebarStack .list-panel,
-  .main-container:not(.collapsed) #sidebarStack .folder-management .sidebar-content,
-  .main-container:not(.collapsed) #sidebarStack .list-panel .list-content {
+  .main-container:not(.collapsed) #sidebarStack .sidebar-scroll,
+  .main-container:not(.collapsed) #sidebarStack .folder-bottom-buttons {
     transform: translateX(0);
     opacity: 1;
   }

@@ -25,29 +25,58 @@
   <div class="main-container">
     <!-- 移动端抽屉：将左侧文件夹与文档列表上下堆叠展示 -->
     <div class="sidebar-stack" id="sidebarStack">
-      
-      <!-- 最上层：文件夹管理 -->
-      <aside class="folder-management" id="sidebar-left">
-        <!-- 全局搜索（位于文件夹管理上方） -->
-        <section class="search-section" id="globalSearch" aria-label="全局搜索">
-          <div class="search-input-wrapper">
-            <span class="search-icon" aria-hidden="true">🔍</span>
-            <input type="text" id="globalSearchInput" placeholder="快速搜索关键词" autocomplete="off" aria-label="搜索全部文档">
-            <button type="button" id="globalSearchClear" class="search-clear" aria-label="清除搜索">×</button>
-          </div>
-          <div class="search-info" id="globalSearchInfo"></div>
-        </section>
-        <div class="sidebar-content">
-          <div class="folder-title-row">
-            <div class="sidebar-title" id="sidebarFolderTitle">文件夹管理</div>
-          </div>
-          <div class="folder-list" id="folderList">
-            <!-- 文件夹列表由 JS 生成 -->
-          </div>
+
+      <!-- Notion风格侧边栏 -->
+      <aside class="folder-management" id="sidebar-left" aria-label="导航侧边栏">
+        <div class="sidebar-scroll" id="sidebarScroll">
+          <!-- 全局搜索（位于顶部） -->
+          <section class="search-section" id="globalSearch" aria-label="全局搜索">
+            <div class="search-input-wrapper">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input type="text" id="globalSearchInput" placeholder="快速搜索关键词" autocomplete="off" aria-label="搜索全部文档">
+              <button type="button" id="globalSearchClear" class="search-clear" aria-label="清除搜索">×</button>
+            </div>
+            <div class="search-info" id="globalSearchInfo"></div>
+          </section>
+
+          <!-- 文件夹区域 -->
+          <section class="sidebar-section folder-section" aria-labelledby="sidebarFolderTitle">
+            <div class="folder-title-row">
+              <div class="sidebar-title" id="sidebarFolderTitle">文件夹管理</div>
+            </div>
+            <div class="folder-list" id="folderList">
+              <!-- 文件夹列表由 JS 生成 -->
+            </div>
+          </section>
+
+          <div class="sidebar-divider" role="separator"></div>
+
+          <!-- 文档列表 -->
+          <section class="list-panel" id="listPanel" aria-label="文档列表">
+            <div class="doc-list-toolbar" id="docListToolbar" aria-label="列表工具栏">
+              <button type="button" class="btn-new theme-icon-btn editorNewBtn" id="newDocBtn" aria-label="新建文档" title="新建文档">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path d="M8 3h6l5 5v11a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z" fill="none"></path>
+                  <path d="M14 3v5h5" fill="none"></path>
+                  <path d="M12 11v6" fill="none"></path>
+                  <path d="M9 14h6" fill="none"></path>
+                </svg>
+              </button>
+              <button type="button" class="btn-sort theme-icon-btn desc" id="docSortToggle" aria-label="切换时间排序" title="切换时间排序">
+                <svg class="sort-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path class="arrow-up" d="M12 7l-4 4h8z"></path>
+                  <path class="arrow-down" d="M12 17l4-4H8z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="doc-list" id="documentList">
+              <!-- 文档列表由 JS 生成 -->
+            </div>
+          </section>
         </div>
+
         <!-- 底部按钮组 -->
         <div class="folder-bottom-buttons">
-          <!-- 应用程序图标 -->
           <button class="theme-icon-btn app-icon" id="appIcon" aria-label="应用程序" title="应用程序">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
               <circle cx="6" cy="6" r="2"/>
@@ -74,57 +103,13 @@
           </button>
           <button class="theme-icon-btn" id="headerDownloadBtn" aria-label="下载" title="下载">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-              <!-- 托盘 -->
               <path d="M5 20h14v-2H5v2z" />
-              <!-- 向下箭头 -->
               <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z" />
             </svg>
           </button>
           <button id="theme-toggle" class="theme-toggle" aria-label="切换到暗色主题" title="切换到暗色主题"><span class="theme-icon">🌙</span></button>
         </div>
       </aside>
-     
-     <!-- 下层：文档列表 -->
-      <section class="list-panel" id="listPanel">
-        <div class="list-content">
-          
-          <!-- 文档列表工具栏：排序按钮 -->
-          <div class="doc-list-toolbar" id="docListToolbar" aria-label="列表工具栏">
-
-            <button type="button" class="folder-collapse-btn" id="folderToolbarCollapseBtn" aria-label="收起文件夹工具栏" title="收起/展开">
-              <!-- 折叠图标（布局样式） -->
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <!-- 外框 -->
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="currentColor" opacity="0.2"></rect>
-                <!-- 顶部栏 -->
-                <rect x="3" y="3" width="18" height="4" fill="currentColor"></rect>
-                <!-- 左侧栏 -->
-                <rect x="3" y="7" width="6" height="14" fill="currentColor"></rect>
-              </svg>
-            </button>
-            <!-- 新建文档按钮：放在排序按钮左侧，风格与大小保持一致 -->
-            <button type="button" class="btn-new theme-icon-btn editorNewBtn" id="newDocBtn" aria-label="新建文档" title="新建文档">
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path d="M8 3h6l5 5v11a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z" fill="none"></path>
-                <path d="M14 3v5h5" fill="none"></path>
-                <path d="M12 11v6" fill="none"></path>
-                <path d="M9 14h6" fill="none"></path>
-              </svg>
-            </button>
-            <button type="button" class="btn-sort theme-icon-btn desc" id="docSortToggle" aria-label="切换时间排序" title="切换时间排序">
-              <svg class="sort-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <!-- 上箭头（升序时高亮） -->
-                <path class="arrow-up" d="M12 7l-4 4h8z"></path>
-                <!-- 下箭头（降序时高亮） -->
-                <path class="arrow-down" d="M12 17l4-4H8z"></path>
-              </svg>
-            </button>
-          </div>
-          <div class="doc-list" id="documentList">
-            <!-- 文档列表由 JS 生成 -->
-          </div>
-        </div>
-      </section>
     </div>
 
     <!-- 右侧列 - 内容区域 -->
@@ -133,6 +118,19 @@
          <!-- 编辑工具栏：显示创建日期、字数、星标与阅读模式 -->
         <section class="editor-toolbar" id="editorToolbar" aria-label="文档工具栏">
           <div class="editor-toolbar-left">
+            <!-- 折叠按钮 -->
+            <button type="button" class="folder-collapse-btn theme-icon-btn" id="folderToolbarCollapseBtn" aria-label="收起文件夹工具栏" title="收起/展开">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="currentColor" opacity="0.2"></rect>
+                <rect x="3" y="3" width="18" height="4" fill="currentColor"></rect>
+                <rect x="3" y="7" width="6" height="14" fill="currentColor"></rect>
+              </svg>
+            </button>
+            <!-- Logo -->
+            <a href="#" class="logo">
+              <img src="static/logo.png" alt="Fudoki" class="logo-icon">
+              <span class="logo-text" id="logoText">Fudoki</span>
+            </a>
             <button class="theme-icon-btn" id="twoPaneToggle" aria-label="两栏模式" title="两栏模式">
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
                 <!-- 左右两栏：左窄右宽 -->
