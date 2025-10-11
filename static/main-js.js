@@ -2703,9 +2703,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
       // 保存当前文档内容
       this.saveCurrentDocument();
       
+      // 如果目标文档有内容，批量删除所有空文档（不立即渲染）
+      if (doc.content.trim().length > 0) {
+        this.deleteAllEmptyDocuments(false); // 传入 false 避免重复渲染
+      }
+      
       // 切换到新文档
       this.setActiveId(id);
       this.loadActiveDocument();
+      
+      // 统一渲染一次
       this.render();
       
       // 自动分析新文档
@@ -2716,10 +2723,28 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return true;
     }
 
-    // 保存当前文档（空内容时不保存并删除该文档）
+    // 保存当前文档（正常保存，不处理空文档删除）
     saveCurrentDocument() {
       const activeId = this.getActiveId();
       if (!activeId) return; // 没有活动文档则不保存
+
+      const docs = this.getAllDocuments();
+      const docIndex = docs.findIndex(d => d.id === activeId);
+      if (docIndex === -1) return;
+
+      // 保存文档内容（包括空内容）
+      const doc = docs[docIndex];
+      doc.content = textInput.value;
+      doc.updatedAt = Date.now();
+      this.saveAllDocuments(docs);
+      // 保存后刷新顶部工具栏的日期显示（改为显示最后保存时间）
+      try { updateEditorToolbar(); } catch (_) {}
+    }
+
+    // 删除空文档（仅在失去焦点时调用）
+    deleteEmptyDocument() {
+      const activeId = this.getActiveId();
+      if (!activeId) return;
 
       const docs = this.getAllDocuments();
       const docIndex = docs.findIndex(d => d.id === activeId);
@@ -2743,16 +2768,44 @@ Try Fudoki and enjoy Japanese language analysis!`;
           }
           this.render();
         }
-        return;
       }
+    }
 
-      // 非空内容：正常保存
-      const doc = docs[docIndex];
-      doc.content = textInput.value;
-      doc.updatedAt = Date.now();
-      this.saveAllDocuments(docs);
-      // 保存后刷新顶部工具栏的日期显示（改为显示最后保存时间）
-      try { updateEditorToolbar(); } catch (_) {}
+    // 删除所有空文档（批量删除，只保存一次）
+    deleteAllEmptyDocuments(shouldRender = true) {
+      const docs = this.getAllDocuments();
+      const activeId = this.getActiveId();
+      
+      // 找出所有空文档（排除锁定的文档）
+      const emptyDocIds = docs
+        .filter(doc => !doc.locked && doc.content.trim().length === 0)
+        .map(doc => doc.id);
+      
+      if (emptyDocIds.length === 0) return false;
+      
+      // 一次性过滤掉所有空文档
+      const filteredDocs = docs.filter(doc => !emptyDocIds.includes(doc.id));
+      
+      // 只保存一次到 localStorage
+      this.saveAllDocuments(filteredDocs);
+      
+      // 如果当前活动文档被删除了，需要重新设置活动文档
+      if (emptyDocIds.includes(activeId)) {
+        if (filteredDocs.length > 0) {
+          this.setActiveId(filteredDocs[0].id);
+          this.loadActiveDocument();
+        } else {
+          this.setActiveId('');
+          if (textInput) textInput.value = '';
+        }
+      }
+      
+      // 只渲染一次
+      if (shouldRender) {
+        this.render();
+      }
+      
+      return true;
     }
 
     // 加载活动文档到编辑器
@@ -4452,6 +4505,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
     textInput.addEventListener('blur', () => {
       const currentSig = computeStructureSignature(textInput.value);
+      
+      // 先检查是否需要删除空文档
+      if (!textInput.value.trim()) {
+        // 内容为空时，删除当前文档
+        docManager.deleteEmptyDocument();
+        return; // 空文档无需分析
+      }
+      
+      // 有内容时，检查是否需要分析
       if (currentSig !== lastStructureSignature) {
         analyzeText();
       } else if (textInput.value.trim()) {
