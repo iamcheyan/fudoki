@@ -197,33 +197,17 @@ body {
   background: var(--bg);
 }
 
-/* 顶部导航栏 - 日式简约 */
+/* 顶部导航栏 - 已移除，按钮移至 folder-management 底部 */
 .header {
-  padding: 10px 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  box-shadow: 0 4px 18px var(--header-shadow-strong), 0 1.5px 6px var(--header-shadow-soft);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  transition: padding 0.2s ease, box-shadow 0.2s ease, transform 0.18s ease;
+  display: none;
 }
 
 .header-content {
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  position: relative;
+  display: none;
 }
 
 .header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: none;
 }
 
 .logo {
@@ -440,7 +424,7 @@ body {
   grid-template-columns: 500px 1fr; /* 三栏：文件夹 / 列表 / 内容 */
   gap: 1px;
   box-shadow: 0 10px 30px var(--border);
-  height: calc(100vh); /* 固定为视口高度（扣除顶部 60px） */
+  height: 100vh; /* 去掉 header 后，使用完整视口高度 */
   /* border-radius: 20px; */
   overflow: hidden;
   transition: grid-template-columns 0.3s ease;
@@ -459,25 +443,38 @@ body {
   transition: width 0.3s ease, transform 0.3s ease;
   overflow: hidden;
   border-right: 1px solid var(--border);
-  padding-top: 56px;
+  padding-top: 0; /* 去掉 header 后不需要顶部间距 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* folder-management 底部按钮组 */
+.folder-bottom-buttons {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--elevated);
+  justify-content: flex-start;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .sidebar-stack {
   display: grid;
   grid-template-columns: 250px 1fr; /* 左右排列：左侧250px，右侧自适应 */
-  height: calc(100vh); /* 与视口同高，避免页面整体滚动 */
+  height: 100vh; /* 去掉 header 后，使用完整视口高度 */
   min-height: 0; /* 允许内部滚动容器收缩 */
 }
 /* 中间列表面板 */
 .list-panel {
   border-right: 1px solid var(--border);
   position: relative;
-  top: 56px;                     /* 初始与头部高度对齐 */
-  height: calc(100vh);    /* 视口高度减去头部高度 */
+  top: 0; /* 去掉 header 后不需要顶部偏移 */
+  height: 100vh; /* 去掉 header 后，使用完整视口高度 */
   padding-top: 0;                /* 滚动条从可视区域顶部开始 */
   background: var(--bg);
   min-height: 0;                 /* 配合父容器高度，避免内容被裁切 */
-  will-change: transform;        /* 优化位移性能 */
 }
 
 .list-content {
@@ -527,14 +524,12 @@ body {
 }
 /* 右侧内容区域：与视口同高并可独立滚动 */
 .content-main {
-  height: calc(100vh );
+  height: 100vh; /* 去掉 header 后，使用完整视口高度 */
   min-height: 0;
   overflow-y: auto;
   padding-top: 0;
   position: relative;
-  top: 56px;
-  transition: top 0.18s ease;
-  will-change: transform;
+  top: 0; /* 去掉 header 后不需要顶部偏移 */
 }
 .content-container { height: 100%; }
 
@@ -542,7 +537,7 @@ body {
 .main-container.two-pane #editorPanels{display:flex;gap:12px;align-items:stretch}
 .main-container.two-pane #editorPanels .input-section{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
 .main-container.two-pane #editorPanels .content-area{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
-.main-container.two-pane #editorPanels{height:calc(100vh - 103px)}
+.main-container.two-pane #editorPanels{height:calc(100vh - 47px)}
 .main-container.two-pane #editorPanels .input-section{overflow-y:auto; margin: 0 10px 10px 10px;}
 .main-container.two-pane #editorPanels .content-area{overflow-y:auto;}
 .main-container.two-pane .input-section .editor{flex:1 1 auto}
@@ -554,7 +549,7 @@ body {
   overflow: hidden;
 }
 .main-container.two-pane #textInput {
-  height: calc(100vh - 171px);
+  height: calc(100vh - 115px);
 }
 @media (max-width: 900px){
   .main-container.two-pane #editorPanels{display:block}
@@ -569,7 +564,9 @@ body {
 /* 侧边栏内容 */
 .sidebar-content {
   padding: 0 12px;
-  /* height: 100%; */
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* 文件夹标题行与收缩按钮 */
@@ -3270,15 +3267,7 @@ input[type="checkbox"] {
     -webkit-backdrop-filter: blur(5px) saturate(160%);
   }
 
-  /* 移动端：向上滚动时收缩隐藏Header，向下滚动时恢复 */
-  body.header-hidden .header {
-    transform: translateY(-100%);
-    box-shadow: none;
-  }
-  body.header-hidden .content-main,
-  body.header-hidden .list-panel {
-    top: 0;
-  }
+  /* 移动端：header 已移除，无需处理滚动隐藏 */
 }
 
 /* 列表面板收缩样式（与左侧边栏一致向左收起） */
@@ -3515,6 +3504,7 @@ input[type="checkbox"] {
 /* 快速搜索栏样式 */
 .search-section {
   padding: 0.5rem 1rem 0.75rem;
+  flex-shrink: 0;
 }
 .search-input-wrapper {
   display: flex;

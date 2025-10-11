@@ -5964,9 +5964,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 头部滚动压缩效果
     initHeaderScroll();
     // 内容滚动联动顶部偏移（56px -> 0px，再回到56px）
-    initContentTopOffset();
+    // initContentTopOffset(); // Header 已移除，不再需要此效果
     // 文档列表滚动也联动顶部偏移
-    initListPanelTopOffset();
+    // initListPanelTopOffset(); // Header 已移除，不再需要此效果
     setupPwaInstaller();
     initGlobalSearch();
     // 两栏模式：读取首选项并绑定按钮
