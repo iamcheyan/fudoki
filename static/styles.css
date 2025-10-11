@@ -514,6 +514,13 @@ body {
   background: transparent;
 }
 
+.doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 4px;
+}
+
 /* 折叠按钮 */
 .sidebar-toggle-btn {
   position: absolute;
@@ -610,6 +617,32 @@ body {
   margin-bottom: 2px;
 }
 
+.folder-title-row .btn-sort {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 20ms ease-in;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.folder-title-row .btn-sort:hover {
+  background: var(--elev);
+  color: var(--text);
+}
+
+.folder-title-row .btn-sort svg {
+  width: 16px;
+  height: 16px;
+}
+
 .folder-collapse-btn {
   width: 28px;
   height: 28px;
@@ -688,7 +721,7 @@ body {
 }
 
 /* 排序图标样式与状态 */
-.doc-list-toolbar .btn-sort .sort-icon { width: 18px; height: 18px; }
+.btn-sort .sort-icon { width: 16px; height: 16px; }
 .btn-sort .arrow-up, .btn-sort .arrow-down { fill: currentColor; transition: opacity .2s ease; }
 .btn-sort.asc .arrow-up { opacity: 1; }
 .btn-sort.asc .arrow-down { opacity: .35; }
@@ -778,9 +811,8 @@ body {
 .folder-item {
   padding: 4px 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text);
-  border-radius: 4px;
   transition: background 20ms ease-in;
   display: flex;
   align-items: center;
@@ -3594,15 +3626,50 @@ input[type="checkbox"] {
   padding: 8px 8px 4px;
   flex-shrink: 0;
 }
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.search-row .btn-new {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 20ms ease-in;
+  flex-shrink: 0;
+}
+
+.search-row .btn-new:hover {
+  background: var(--elev);
+}
+
+.search-row .btn-new svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .search-input-wrapper {
   display: flex;
   align-items: center;
   background: var(--elev);
-  border-radius: 6px;
-  border: 1px solid var(--border);
   padding: 0 8px;
   height: 28px;
   transition: background 20ms ease-in;
+  flex: 1;
+  min-width: 0;
 }
 
 .search-input-wrapper:hover {
@@ -3630,6 +3697,7 @@ input[type="checkbox"] {
   padding: 0;
   font-size: 14px;
   line-height: 1.3;
+  width: 100%;
 }
 
 .search-input-wrapper input::placeholder {

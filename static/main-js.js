@@ -362,7 +362,7 @@ const headerSpeedValue = $('headerSpeedValue');
       // Global search (i18n)
       globalSearchAria: 'Global Search',
       globalSearchInputAria: 'Search all documents',
-      globalSearchPlaceholder: 'Quickly search keywords',
+      globalSearchPlaceholder: 'Search keywords',
       globalSearchClear: 'Clear search',
       voiceTitle: 'Voice Settings',
       voiceSelectLabel: 'Voice',
@@ -2704,7 +2704,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       this.saveCurrentDocument();
       
       // 如果目标文档有内容，批量删除所有空文档（不立即渲染）
-      if (doc.content.trim().length > 0) {
+      const contentText = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
+      if (contentText.trim().length > 0) {
         this.deleteAllEmptyDocuments(false); // 传入 false 避免重复渲染
       }
       
@@ -2778,7 +2779,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       // 找出所有空文档（排除锁定的文档）
       const emptyDocIds = docs
-        .filter(doc => !doc.locked && doc.content.trim().length === 0)
+        .filter(doc => {
+          if (doc.locked) return false;
+          const contentText = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
+          return contentText.trim().length === 0;
+        })
         .map(doc => doc.id);
       
       if (emptyDocIds.length === 0) return false;
