@@ -421,7 +421,7 @@ body {
 .main-container {
   /* margin: 0 20px; */
   display: grid;
-  grid-template-columns: 320px 1fr; /* 左侧导航 / 内容区 */
+  grid-template-columns: 240px 1fr; /* 左侧导航 / 内容区 */
   gap: 1px;
   box-shadow: 0 10px 30px var(--border);
   height: 100vh; /* 去掉 header 后，使用完整视口高度 */
@@ -446,6 +446,7 @@ body {
   padding-top: 0; /* 去掉 header 后不需要顶部间距 */
   display: flex;
   flex-direction: column;
+  height: 100vh;
 }
 
 /* folder-management 底部按钮组 */
