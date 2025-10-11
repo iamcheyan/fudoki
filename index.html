@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>フドキ ― 言葉の「風土」を記す、日本語解析ツール</title>
   <link rel="stylesheet" href="static/styles.css">
+  <!-- 移动端样式：仅在移动设备加载，优先级高于主样式 -->
+  <link rel="stylesheet" href="static/mobile.css" media="(max-width: 768px)">
   <link rel="icon" type="image/png" href="static/logo.png">
 </head>
 <body>
@@ -65,8 +67,6 @@
             </div>
           </section>
 
-          <div class="sidebar-divider" role="separator"></div>
-
           <!-- 文档列表 -->
           <section class="list-panel" id="listPanel" aria-label="文档列表">
             <div class="doc-list" id="documentList">
@@ -112,8 +112,7 @@
       </aside>
     </div>
 
-    <!-- 移动端侧边栏遮罩层 -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+   
     
     <!-- 右侧列 - 内容区域 -->
     <main class="content-main">
@@ -241,7 +240,8 @@
         </div>
       </div>
     </main>
-
+     <!-- 移动端侧边栏遮罩层 -->
+     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <!-- 设置弹窗 -->
     <div class="settings-modal" id="settingsModal">
       <div class="settings-modal-content">
