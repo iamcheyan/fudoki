@@ -479,6 +479,7 @@ body {
   height: 100%;
   min-height: 0;
   background: var(--bg);
+  z-index: 999;
 }
 
 /* 单列滚动体 - Notion风格紧凑间距 */
@@ -1212,7 +1213,7 @@ input:focus, select:focus {
   /* transform: scale(1.05); */
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   animation: pulse-playing 1.5s ease-in-out infinite;
-  z-index: 9999;
+  /* z-index: 9999; */
 }
 /* .token-pill.active .token-content *,
 .token-pill.playing .token-content * {
@@ -2611,7 +2612,7 @@ html {
   position: fixed;
   bottom: 28px;
   right: 28px;
-  z-index: 10050;
+  z-index: 777;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3280,6 +3281,194 @@ input[type="checkbox"] {
   /* 头部更紧凑 */
   .header-content { padding: 0 12px; }
   .logo { gap: 6px; }
+  
+  /* 隐藏编辑工具栏中的日期、字数和字号显示 */
+  .editor-date,
+  .editor-count,
+  .font-size-display {
+    display: none !important;
+  }
+  
+  /* 在移动端显示字体选择和字号控制 - 极度紧凑 */
+  .editor-fontsize-control {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  
+  .editor-fontsize-control input[type="range"] {
+    width: 45px;  /* 进一步缩短滑块 */
+  }
+  
+  .editor-fontfamily-controls {
+    display: flex;
+    gap: 2px;
+  }
+  
+  .editor-fontfamily-controls select {
+    /* 使用"字"表示字体选择 */
+    width: 64px;
+    height: 26px;
+    font-size: 0;  /* 隐藏下拉选项文字 */
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--bg);
+    cursor: pointer;
+    text-align: center;
+    color: var(--text);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    position: relative;
+    /* 使用背景显示"字" */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .editor-fontfamily-controls select::after {
+    content: "字";
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    position: absolute;
+    pointer-events: none;
+  }
+  
+  .editor-fontfamily-controls select:hover {
+    background-color: var(--elev);
+    border-color: var(--accent);
+  }
+  
+  /* 第二个字体选择器显示"A" */
+  .editor-fontfamily-controls select:last-child::after {
+    content: "A";
+    font-family: serif;
+    font-style: italic;
+  }
+  
+  /* 优化编辑工具栏在移动端的显示 - 彻底压缩并强制单行 */
+  .editor-toolbar {
+    /* 改为 flex 布局并强制单行 */
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px;
+    gap: 3px;
+    height: 38px;
+    min-height: 38px;
+  }
+  
+  .editor-toolbar-left,
+  .editor-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 2px;  /* 进一步缩小间距 */
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  
+  /* 左侧可以压缩，右侧按钮保持固定 */
+  .editor-toolbar-left {
+    flex: 1 1 auto;
+    overflow: hidden;
+    min-width: 60px;  /* 确保Logo至少有60px空间 */
+  }
+  
+  .editor-toolbar-right {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    gap: 1px;  /* 右侧按钮间距更紧凑 */
+  }
+  
+  /* 缩小按钮尺寸 */
+  .editor-toolbar .theme-icon-btn {
+    min-width: 26px;
+    width: 26px;
+    height: 26px;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  
+  .editor-toolbar .theme-icon-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+  
+  /* Logo 更紧凑 - 可以被压缩 */
+  .editor-toolbar-left .logo {
+    gap: 3px;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+  
+  .editor-toolbar-left .logo-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+  
+  /* 折叠按钮 */
+  .folder-collapse-btn {
+    min-width: 26px;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+  
+  /* 星标按钮更紧凑 */
+  .editor-star-toggle {
+    font-size: 14px;
+    padding: 2px;
+    min-width: 26px;
+    width: 26px;
+  }
+  
+  /* 压缩输入区域上下边距 */
+  .input-section {
+    margin: 6px 8px;
+    padding: 4px;
+    border-radius: 8px;
+  }
+  
+  /* 压缩文本输入框 */
+  #textInput {
+    min-height: 60px;
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  /* 压缩播放控制栏 */
+  .playback-controls {
+    padding: 4px 6px;
+    gap: 6px;
+  }
+  
+  .playback-controls button {
+    min-width: 32px;
+    height: 32px;
+    padding: 4px;
+  }
+  
+  .playback-controls button svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* 压缩进度条和音量控制 */
+  .progress-container,
+  .volume-container {
+    gap: 4px;
+  }
+  
+  .progress-bar,
+  .volume-slider {
+    height: 32px;
+  }
 }
 /* 移动端：显示左侧边栏（侧滑抽屉） */
 @media (max-width: 768px) {
@@ -3311,8 +3500,8 @@ input[type="checkbox"] {
     background: var(--bg);
     border-right: 1px solid var(--border);
     box-shadow: 0 12px 32px rgba(0,0,0,0.22);
-    width: 82%;
-    max-width: 360px;
+    width: calc(100vw - 80px); /* 留出右侧约80px空间 */
+    max-width: 420px; /* 大屏幕时限制最大宽度 */
   }
   /* 展开时（main-container 不含 collapsed 类）侧滑进入 */
   .main-container:not(.collapsed) #sidebarStack { transform: translateX(0); }
@@ -3320,11 +3509,10 @@ input[type="checkbox"] {
   .sidebar-stack .folder-management {
     border-right: none;
     height: 100%;
+    width: 100%;
   }
 
-  .sidebar-scroll {
-    padding: 18px 14px 120px;
-  }
+
 }
 
 /* 移动端：抽屉子元素联动动画（随抽屉展开/收起一起滑动与淡入） */
@@ -3373,18 +3561,23 @@ input[type="checkbox"] {
     grid-template-columns: 1fr;
   }
   
-  .main-container:not(.collapsed) .content-main::after {
-    content: "";
+  /* 使用真实DOM元素而非伪元素，以便添加点击事件 */
+  .sidebar-overlay {
+    display: none;
     position: fixed;
-    top: 0; /* 与导航高度对齐，必要时调整 */
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.35);
-    z-index: 1050; /* 高于内容与右侧工具栏，低于sidebar-stack */
-    pointer-events: none; /* 仅视觉强调，不拦截交互 */
+    z-index: 888; /* 高于内容与右侧工具栏，低于sidebar-stack */
     backdrop-filter: blur(5px) saturate(160%);
     -webkit-backdrop-filter: blur(5px) saturate(160%);
+    cursor: pointer;
+  }
+  
+  .main-container:not(.collapsed) .sidebar-overlay {
+    display: block;
   }
 
   /* 移动端：header 已移除，无需处理滚动隐藏 */
@@ -3981,9 +4174,7 @@ input[type="text"], textarea { font-size: 14px; }
   margin-right: 8px;
 }
 
-#editorFontSizeRange {
-  width: 130px;
-}
+
 
 #editorFontSizeValue {
   font-size: 12px;

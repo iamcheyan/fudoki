@@ -5225,13 +5225,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 恢复桌面端折叠状态
     function restoreSidebarState() {
       const savedCollapsed = localStorage.getItem('sidebarCollapsed');
-      isCollapsed = savedCollapsed === 'true';
+      if (savedCollapsed === null) {
+        isCollapsed = isMobile(); // 移动端默认收起
+      } else {
+        isCollapsed = savedCollapsed === 'true';
+      }
       mainContainer.classList.toggle('collapsed', isCollapsed);
     }
     
     // 响应窗口大小变化
     function handleResize() {
-      // 保持状态一致，无需额外切换其他类
+      const savedCollapsed = localStorage.getItem('sidebarCollapsed');
+      if (savedCollapsed === null) {
+        isCollapsed = isMobile();
+      }
       mainContainer.classList.toggle('collapsed', isCollapsed);
     }
     
@@ -6244,6 +6251,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function initFolderToolbarCollapse() {
     const buttons = Array.from(document.querySelectorAll('.folder-collapse-btn'));
     const mainContainer = document.querySelector('.main-container');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
     if (!mainContainer || buttons.length === 0) return;
 
     // 恢复上次状态
@@ -6262,6 +6270,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
     // 绑定所有触发按钮（标题区与文档列表工具栏）
     buttons.forEach(btn => btn.addEventListener('click', handleClick));
+    
+    // 点击遮罩时关闭侧边栏（仅移动端）
+    if (sidebarOverlay) {
+      sidebarOverlay.addEventListener('click', () => {
+        mainContainer.classList.add('collapsed');
+        try { localStorage.setItem('sidebarCollapsed', 'true'); } catch (_) {}
+      });
+    }
   }
   // 字号缩放控制
   function initFontSizeControls() {
