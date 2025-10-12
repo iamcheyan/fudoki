@@ -2997,7 +2997,7 @@ html {
   background: var(--bg);
   position: sticky;
   top: 0;
-  z-index: 100;
+  /* z-index: 100; */
   border-bottom: 1px solid var(--border);
 }
 .editor-toolbar-left,
@@ -3442,12 +3442,14 @@ input[type="checkbox"] {
   top: 0;
   background: var(--bg);
   z-index: 10;
+  overflow: visible;
 }
 
 .search-row {
   display: flex;
   align-items: center;
   gap: 4px;
+  overflow: visible;
 }
 
 .search-row .btn-new {
@@ -3476,6 +3478,94 @@ input[type="checkbox"] {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* 新建文档按钮组容器 */
+.new-doc-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* 下拉箭头按钮 */
+.btn-new-dropdown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 20ms ease-in;
+  flex-shrink: 0;
+  color: var(--text-sec);
+}
+
+.btn-new-dropdown:hover {
+  background: var(--elev);
+}
+
+.btn-new-dropdown.active {
+  background: var(--elev);
+}
+
+/* 下拉菜单 */
+.new-doc-dropdown-menu {
+  position: fixed;
+  min-width: 180px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 150ms ease, transform 150ms ease, visibility 150ms;
+  z-index: 1000;
+  background-color: var(--elev);
+}
+
+.new-doc-dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* 下拉菜单项 */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 20ms ease-in, color 20ms ease-in;
+  text-decoration: none;
+  user-select: none;
+}
+
+.dropdown-item:hover {
+  background: var(--elev);
+  color: var(--text);
+}
+
+.dropdown-item:active {
+  background: var(--control-border);
+}
+
+/* 暗色主题下的下拉菜单项hover效果 */
+:root[data-theme="dark"] .dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
 }
 
 .search-input-wrapper {

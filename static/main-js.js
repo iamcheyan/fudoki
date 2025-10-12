@@ -3077,7 +3077,64 @@ Try Fudoki and enjoy Japanese language analysis!`;
         });
       }
 
-      // 顶部编辑工具栏“新建”按钮
+      // 新建文档下拉菜单
+      const newDocDropdownBtn = document.getElementById('newDocDropdownBtn');
+      const newDocDropdownMenu = document.getElementById('newDocDropdownMenu');
+      
+      if (newDocDropdownBtn && newDocDropdownMenu) {
+        // 切换下拉菜单显示/隐藏
+        newDocDropdownBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isVisible = newDocDropdownMenu.classList.contains('show');
+          if (isVisible) {
+            newDocDropdownMenu.classList.remove('show');
+            newDocDropdownBtn.classList.remove('active');
+          } else {
+            // 计算下拉菜单位置（使用fixed定位）
+            const rect = newDocDropdownBtn.getBoundingClientRect();
+            newDocDropdownMenu.style.top = `${rect.bottom + 4}px`;
+            newDocDropdownMenu.style.left = `${rect.left - 156}px`; // 向左偏移，使菜单与按钮组左对齐
+            
+            newDocDropdownMenu.classList.add('show');
+            newDocDropdownBtn.classList.add('active');
+          }
+        });
+
+        // 处理下拉菜单项点击
+        const dropdownItems = newDocDropdownMenu.querySelectorAll('.dropdown-item');
+        dropdownItems.forEach(item => {
+          item.addEventListener('click', (e) => {
+            e.preventDefault(); // 阻止a标签默认跳转行为
+            e.stopPropagation();
+            const docType = item.getAttribute('data-doc-type');
+            
+            // 根据文档类型创建不同的初始内容
+            let initialContent = '';
+            if (docType === 'note') {
+              initialContent = '# 便签\n\n';
+            } else if (docType === 'todo') {
+              initialContent = '# 代办事项\n\n☐ \n☐ \n☐ ';
+            }
+            
+            this.createDocument(initialContent);
+            if (textInput) textInput.focus();
+            
+            // 关闭下拉菜单
+            newDocDropdownMenu.classList.remove('show');
+            newDocDropdownBtn.classList.remove('active');
+          });
+        });
+
+        // 点击页面其他地方关闭下拉菜单
+        document.addEventListener('click', (e) => {
+          if (!newDocDropdownBtn.contains(e.target) && !newDocDropdownMenu.contains(e.target)) {
+            newDocDropdownMenu.classList.remove('show');
+            newDocDropdownBtn.classList.remove('active');
+          }
+        });
+      }
+
+      // 顶部编辑工具栏"新建"按钮
       if (editorNewBtn) {
         editorNewBtn.addEventListener('click', () => {
           this.createDocument('');
