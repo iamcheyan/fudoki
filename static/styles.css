@@ -1035,17 +1035,24 @@ body {
   margin: 0 10px 10px 10px;
   max-width: 860px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .input-group {
   display: flex;
+  flex-direction: column;
   gap: 8px;
   align-items: stretch;
   margin-bottom: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 #textInput {
-  flex: 1;
+  flex: 1 1 auto;
   border: none;
   padding: 5px 10px;
   font-size: calc(14px * var(--font-scale));
@@ -1057,6 +1064,7 @@ body {
   /* 覆盖全局输入控件背景，保持透明以继承容器背景 */
   background: transparent;
   outline: none;
+  overflow: auto;
 }
 
 
@@ -3911,6 +3919,26 @@ input[type="text"], textarea { font-size: 14px; }
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 0 0 auto;
+  padding: 5px 0 0 0;
+  margin: 0;
+  margin-top: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.play-control-bar::-webkit-scrollbar {
+  height: 6px;
+}
+.play-control-bar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+.play-control-bar::-webkit-scrollbar-track {
+  background: transparent;
 }
 .play-control-bar .play-control-bar-buttons {
   display: flex;
@@ -4058,9 +4086,12 @@ input[type="text"], textarea { font-size: 14px; }
 
 /* 编辑器容器适配 */
 .input-group .EasyMDEContainer {
-  flex: 1;
+  flex: 1 1 auto;
   border: none;
   background: transparent;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* 编辑器主体样式 */
@@ -4070,10 +4101,12 @@ input[type="text"], textarea { font-size: 14px; }
   color: var(--text);
   font-family: var(--input-font-family, inherit);
   font-size: calc(14px * var(--font-scale));
-  height: auto;
+  height: 100%;
   min-height: 200px;
   padding: 5px;
   border-radius: 6px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 工具栏样式 */
@@ -4138,6 +4171,8 @@ input[type="text"], textarea { font-size: 14px; }
 .input-section .EasyMDEContainer .CodeMirror-scroll {
   min-height: 200px;
   max-height: 500px;
+  overflow: auto;
+  flex: 1 1 auto;
 }
 
 /* 两栏模式下的编辑器高度 */
@@ -4157,12 +4192,16 @@ input[type="text"], textarea { font-size: 14px; }
   flex: 1 1 auto;
   height: 100%;
   min-height: 300px;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-container.two-pane .input-section .EasyMDEContainer .CodeMirror-scroll {
   height: 100%;
   min-height: 300px;
   max-height: none;
+  overflow: auto;
+  flex: 1 1 auto;
 }
 
 /* 光标颜色 */
@@ -4302,7 +4341,7 @@ input[type="text"], textarea { font-size: 14px; }
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  margin: 0 1px;
+  margin: 10px 2px;
   vertical-align: top;
   position: relative;
   /* min-height: 3.5em;
@@ -4311,7 +4350,7 @@ input[type="text"], textarea { font-size: 14px; }
 
 /* 假名层（顶部） - 固定高度 */
 .input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-reading {
-  font-size: 0.5em;
+  font-size: 0.8em;
   color: var(--muted);
   white-space: nowrap;
   line-height: 1.2;
@@ -4324,7 +4363,7 @@ input[type="text"], textarea { font-size: 14px; }
 
 /* 罗马音层（中间） - 固定高度 */
 .input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-romaji {
-  font-size: 0.45em;
+  font-size: 0.6em;
   color: var(--primary);
   opacity: 0.75;
   font-style: italic;
@@ -4334,7 +4373,7 @@ input[type="text"], textarea { font-size: 14px; }
   height: 0.55em;
   text-align: center;
   order: 2;
-  margin-bottom: 2px;
+  margin: 4px 0;
   display: block;
 }
 

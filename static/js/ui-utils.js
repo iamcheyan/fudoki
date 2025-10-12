@@ -116,6 +116,93 @@
   window.showNotification = window.showNotification || showNotification;
   window.showDeleteConfirm = window.showDeleteConfirm || showDeleteConfirm;
   window.debounce = window.debounce || debounce;
-})();
 
+  // 面板高度拖拽
+  (function initPanelResizer() {
+    if (window.__panelResizerInitialized) return;
+    window.__panelResizerInitialized = true;
+
+    const resizer = document.getElementById('panelResizer');
+    const panels = document.getElementById('editorPanels');
+    const inputSection = document.querySelector('#editorPanels .input-section');
+    const contentArea = document.querySelector('#editorPanels .content-area');
+
+    if (!resizer || !panels || !inputSection || !contentArea) return;
+
+    let startY = 0;
+    let startInputHeight = 0;
+    let startContentHeight = 0;
+    let dragging = false;
+
+    const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+
+    const applyHeights = (inputHeight) => {
+      const total = panels.clientHeight - resizer.offsetHeight;
+      const minInput = 120;
+      const minContent = 160;
+      const clampedInput = clamp(inputHeight, minInput, total - minContent);
+      const contentHeight = total - clampedInput;
+      inputSection.style.flex = '0 0 auto';
+      contentArea.style.flex = '0 0 auto';
+      inputSection.style.height = `${clampedInput}px`;
+      contentArea.style.height = `${contentHeight}px`;
+      inputSection.style.minHeight = `${minInput}px`;
+      contentArea.style.minHeight = `${minContent}px`;
+    };
+
+    const onPointerMove = (event) => {
+      if (!dragging) return;
+      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+      const delta = clientY - startY;
+      applyHeights(startInputHeight + delta);
+      event.preventDefault();
+    };
+
+    const stopDragging = () => {
+      if (!dragging) return;
+      dragging = false;
+      resizer.classList.remove('resizing');
+      document.removeEventListener('mousemove', onPointerMove);
+      document.removeEventListener('mouseup', stopDragging);
+      document.removeEventListener('touchmove', onPointerMove);
+      document.removeEventListener('touchend', stopDragging);
+      document.removeEventListener('touchcancel', stopDragging);
+    };
+
+    const startDragging = (event) => {
+      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+      startY = clientY;
+      startInputHeight = inputSection.getBoundingClientRect().height;
+      startContentHeight = contentArea.getBoundingClientRect().height;
+      if (startInputHeight <= 0 || startContentHeight <= 0) {
+        const total = panels.clientHeight - resizer.offsetHeight;
+        startInputHeight = total * 0.5;
+        startContentHeight = total - startInputHeight;
+      }
+      dragging = true;
+      resizer.classList.add('resizing');
+      document.addEventListener('mousemove', onPointerMove, { passive: false });
+      document.addEventListener('mouseup', stopDragging);
+      document.addEventListener('touchmove', onPointerMove, { passive: false });
+      document.addEventListener('touchend', stopDragging);
+      document.addEventListener('touchcancel', stopDragging);
+      event.preventDefault();
+    };
+
+    resizer.addEventListener('mousedown', startDragging);
+    resizer.addEventListener('touchstart', startDragging, { passive: false });
+    window.addEventListener('resize', () => {
+      if (dragging) return;
+      const total = panels.clientHeight - resizer.offsetHeight;
+      const storedInput = parseFloat(inputSection.style.height) || (total * 0.5);
+      applyHeights(storedInput);
+    });
+
+    // 初始高度：输入区与显示区各占一半
+    setTimeout(() => {
+      const total = panels.clientHeight - resizer.offsetHeight;
+      if (total > 0) applyHeights(total * 0.5);
+    }, 0);
+  })();
+})();
 

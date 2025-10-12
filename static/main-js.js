@@ -4973,7 +4973,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return;
     }
     
-    // 检查是否有分析结果，如果有则使用reading字段
+    // 检查是否有分析结果，优先使用content-area中的token数据（已过滤markdown标记）
     const content = document.getElementById('content');
     if (content && content.innerHTML.trim()) {
       // 从分析结果中提取reading字段
@@ -4984,7 +4984,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           if (tokenDataAttr) {
             try {
               const tokenData = JSON.parse(tokenDataAttr);
-              // 优先使用reading，如果没有则使用surface，保留标点符号
+              // 优先使用reading，如果没有则使用surface
               let textToSpeak = tokenData.reading || tokenData.surface || '';
               
               // 检查自定义词典，如果有自定义读音，优先使用
@@ -4995,8 +4995,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
                 }
               }
               
-              // 特殊处理：助词"は"单字时读作"wa"
-              // 但要注意：如果surface是合并词汇（如"はつか"），则不应应用此规则
+              // 特殊处理：助词"は"读作"わ"
               if (
                 tokenData.surface === 'は' &&
                 tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞' &&
@@ -5016,23 +5015,30 @@ Try Fudoki and enjoy Japanese language analysis!`;
           }
         }).join('');
         
-        // 如果提取的文本没有标点符号，使用原始文本
-        if (!/[。！？]/.test(readingText)) {
-          console.log('提取的文本没有标点符号，使用原始文本');
-          const text = textInput.value.trim();
-          if (text) {
-            speak(text);
-            return;
-          }
+        // 如果从content-area提取到了内容，直接使用（即使没有标点符号）
+        // 这样可以避免读取原始输入中的markdown标记
+        if (readingText.trim()) {
+          console.log('使用content-area中的文本播放（已过滤markdown标记）');
+          speak(readingText);
+          return;
         }
-        speak(readingText);
-        return;
+      }
+      
+      // 如果token-pill为空，尝试提取.punct和普通文本
+      const allTextNodes = content.querySelectorAll('.punct');
+      if (allTextNodes.length > 0) {
+        const simpleText = Array.from(allTextNodes).map(node => node.textContent).join('');
+        if (simpleText.trim()) {
+          speak(simpleText);
+          return;
+        }
       }
     }
     
-    // 如果没有分析结果，使用原始文本
+    // 只有在content-area完全没有内容时，才使用原始输入
     const text = textInput.value.trim();
     if (text) {
+      console.log('content-area无内容，使用原始输入文本');
       speak(text);
     } else {
       showNotification(t('pleaseInputText'), 'warning');
