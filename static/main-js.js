@@ -215,6 +215,89 @@ const headerSpeedValue = $('headerSpeedValue');
           newBtn.classList.add('active');
         }
       }
+
+      // 拦截 EasyMDE 的 fullscreen 按钮，添加隐藏工具栏功能
+      const fullscreenBtn = document.querySelector('.editor-toolbar .fullscreen');
+      if (fullscreenBtn) {
+        // 移除 EasyMDE 的默认事件
+        const newFullscreenBtn = fullscreenBtn.cloneNode(true);
+        fullscreenBtn.parentNode.replaceChild(newFullscreenBtn, fullscreenBtn);
+        
+        // 退出全屏的函数
+        const exitFullscreen = () => {
+          const editorToolbar = document.getElementById('editorToolbar');
+          const sidebarStack = document.getElementById('sidebarStack');
+          const container = easymde.codemirror.getWrapperElement().closest('.EasyMDEContainer');
+          
+          if (container.classList.contains('fullscreen')) {
+            // 关闭 side-by-side 预览
+            if (easymde.isPreviewActive()) {
+              easymde.togglePreview();
+            }
+            if (easymde.isSideBySideActive()) {
+              easymde.toggleSideBySide();
+            }
+            
+            container.classList.remove('fullscreen');
+            easymde.codemirror.setOption('fullScreen', false);
+            newFullscreenBtn.classList.remove('active');
+            
+            // 显示工具栏和侧边栏
+            if (editorToolbar) editorToolbar.style.display = '';
+            if (sidebarStack) sidebarStack.style.display = '';
+            
+            // 刷新 CodeMirror
+            setTimeout(() => {
+              easymde.codemirror.refresh();
+            }, 50);
+          }
+        };
+        
+        // 添加新的点击事件
+        newFullscreenBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const editorToolbar = document.getElementById('editorToolbar');
+          const sidebarStack = document.getElementById('sidebarStack');
+          const container = easymde.codemirror.getWrapperElement().closest('.EasyMDEContainer');
+          
+          // 切换全屏状态
+          if (container.classList.contains('fullscreen')) {
+            exitFullscreen();
+          } else {
+            // 进入全屏
+            container.classList.add('fullscreen');
+            easymde.codemirror.setOption('fullScreen', true);
+            newFullscreenBtn.classList.add('active');
+            
+            // 隐藏工具栏和侧边栏
+            if (editorToolbar) editorToolbar.style.display = 'none';
+            if (sidebarStack) sidebarStack.style.display = 'none';
+            
+            // 启用 side-by-side 预览
+            setTimeout(() => {
+              if (!easymde.isSideBySideActive()) {
+                easymde.toggleSideBySide();
+              }
+              easymde.codemirror.refresh();
+            }, 100);
+          }
+        });
+        
+        // 添加键盘快捷键
+        document.addEventListener('keydown', (e) => {
+          // ESC 键退出全屏
+          if (e.key === 'Escape' || e.keyCode === 27) {
+            exitFullscreen();
+          }
+          // F11 键切换全屏
+          if (e.key === 'F11' || e.keyCode === 122) {
+            e.preventDefault();
+            newFullscreenBtn.click();
+          }
+        });
+      }
     }, 500);
   }
 

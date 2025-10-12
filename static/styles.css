@@ -551,6 +551,48 @@ body {
 }
 .content-container { height: 100%; }
 
+/* 可拖拽的分隔条（仅在非 two-pane 模式显示） */
+.resizer {
+  height: 8px;
+  background: var(--border);
+  cursor: row-resize;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+  margin: 0;
+}
+
+.resizer:hover {
+  background: var(--primary);
+}
+
+.resizer::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--muted);
+  opacity: 0.6;
+}
+
+.resizer:hover::before {
+  background: var(--bg);
+  opacity: 1;
+}
+
+.resizer.resizing {
+  background: var(--primary);
+}
+
+/* 两栏模式下隐藏分隔条 */
+.main-container.two-pane .resizer {
+  display: none;
+}
+
 /* 两栏模式：输入在左，内容在右 */
 .main-container.two-pane #editorPanels{display:flex;gap:12px;align-items:stretch}
 .main-container.two-pane #editorPanels .input-section{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
@@ -3030,7 +3072,6 @@ section.editor-toolbar {
   border-left: none;
   border-right: none;
   border-top: none;
-  z-index: 900;
 }
 
 /* two-pane 模式下：确保顶部工具栏始终固定 */
@@ -4158,11 +4199,122 @@ input[type="text"], textarea { font-size: 14px; }
 /* 全屏模式 */
 .input-section .EasyMDEContainer.fullscreen {
   z-index: 9999;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
 }
 
 .input-section .EasyMDEContainer.fullscreen .CodeMirror {
-  min-height: calc(100vh - 100px);
-  max-height: calc(100vh - 100px);
+  height: 100% !important;
+  min-height: 100vh;
+  max-height: 100vh;
+}
+
+.input-section .EasyMDEContainer.fullscreen .CodeMirror-scroll {
+  height: 100%;
+  min-height: 100vh;
+  max-height: 100vh;
+}
+
+/* 全屏模式下的工具栏样式 */
+.input-section .EasyMDEContainer.fullscreen .editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  flex-shrink: 0;
+}
+
+/* 全屏模式下显示预览区域 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side {
+  display: block !important;
+  width: 50%;
+  height: calc(100vh - 44px); /* 减去工具栏高度 */
+  position: fixed;
+  top: 44px; /* 工具栏高度 */
+  right: 0;
+  overflow: auto;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  z-index: 9999;
+  padding: 20px;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.input-section .EasyMDEContainer.fullscreen .CodeMirror-sided {
+  width: 50% !important;
+}
+
+/* 全屏模式下编辑区域调整 */
+.input-section .EasyMDEContainer.fullscreen .CodeMirror {
+  position: fixed;
+  top: 44px; /* 工具栏高度 */
+  left: 0;
+  width: 50% !important;
+  height: calc(100vh - 44px) !important;
+}
+
+/* 全屏模式下深色主题的预览区 */
+[data-theme="dark"] .input-section .EasyMDEContainer.fullscreen .editor-preview-side {
+  background: rgba(31, 36, 44, 0.95);
+  color: var(--text);
+}
+
+[data-theme="dark"] .input-section .EasyMDEContainer.fullscreen .editor-preview-side code {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .input-section .EasyMDEContainer.fullscreen .editor-preview-side pre {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* 全屏模式下的标题样式 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h1,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h2,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h3 {
+  color: var(--text);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h1 {
+  font-size: 2em;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.3em;
+}
+
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.2em;
+}
+
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+}
+
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side pre {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side blockquote {
+  border-left: 4px solid var(--border);
+  padding-left: 1em;
+  margin-left: 0;
+  color: var(--text-light);
 }
 
 /* 暗色主题适配 */

@@ -354,6 +354,11 @@
   flex-shrink: 0;
 }
 
+section.editor-toolbar {
+  z-index: 999;
+}
+
+
 /* 移动端隐藏分隔符 */
 .input-section .EasyMDEContainer .editor-toolbar i.separator {
   display: none;
