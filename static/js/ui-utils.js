@@ -120,28 +120,46 @@
   // 面板高度拖拽
   (function initPanelResizer() {
     if (window.__panelResizerInitialized) return;
-    window.__panelResizerInitialized = true;
 
     const resizer = document.getElementById('panelResizer');
     const panels = document.getElementById('editorPanels');
     const inputSection = document.querySelector('#editorPanels .input-section');
     const contentArea = document.querySelector('#editorPanels .content-area');
 
-    if (!resizer || !panels || !inputSection || !contentArea) return;
+    // 如果元素还没加载完成，等待 DOM 加载后再试
+    if (!resizer || !panels || !inputSection || !contentArea) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPanelResizer);
+      }
+      return;
+    }
+    
+    // 只有成功找到所有元素后才标记为已初始化
+    window.__panelResizerInitialized = true;
 
     let startY = 0;
     let startInputHeight = 0;
-    let startContentHeight = 0;
+    let layoutTotalHeight = null;
     let dragging = false;
 
     const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
+    const computeTotalHeight = () => {
+      const inputRect = inputSection.getBoundingClientRect();
+      const contentRect = contentArea.getBoundingClientRect();
+      const total = inputRect.height + contentRect.height;
+      return total > 0 ? total : null;
+    };
+
     const applyHeights = (inputHeight) => {
-      const total = panels.clientHeight - resizer.offsetHeight;
-      const minInput = 120;
-      const minContent = 160;
-      const clampedInput = clamp(inputHeight, minInput, total - minContent);
-      const contentHeight = total - clampedInput;
+      const total = layoutTotalHeight || computeTotalHeight();
+      if (!total) return;
+      const minInput = 140;
+      const minContent = 180;
+      const maxInput = Math.max(minInput, total - minContent);
+      const clampedInput = clamp(inputHeight, minInput, maxInput);
+      const contentHeight = Math.max(minContent, total - clampedInput);
+      layoutTotalHeight = total;
       inputSection.style.flex = '0 0 auto';
       contentArea.style.flex = '0 0 auto';
       inputSection.style.height = `${clampedInput}px`;
@@ -161,7 +179,10 @@
     const stopDragging = () => {
       if (!dragging) return;
       dragging = false;
+      layoutTotalHeight = null;
       resizer.classList.remove('resizing');
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
       document.removeEventListener('mousemove', onPointerMove);
       document.removeEventListener('mouseup', stopDragging);
       document.removeEventListener('touchmove', onPointerMove);
@@ -170,39 +191,69 @@
     };
 
     const startDragging = (event) => {
+      // 检查是否在 two-pane 模式下（不应该拖拽）
+      const mainContainer = document.querySelector('.main-container');
+      if (mainContainer && mainContainer.classList.contains('two-pane')) {
+        return;
+      }
+      
       const clientY = event.touches ? event.touches[0].clientY : event.clientY;
       startY = clientY;
       startInputHeight = inputSection.getBoundingClientRect().height;
-      startContentHeight = contentArea.getBoundingClientRect().height;
-      if (startInputHeight <= 0 || startContentHeight <= 0) {
-        const total = panels.clientHeight - resizer.offsetHeight;
-        startInputHeight = total * 0.5;
-        startContentHeight = total - startInputHeight;
+      layoutTotalHeight = computeTotalHeight();
+      if (!layoutTotalHeight) {
+        const autoTotal = panels.getBoundingClientRect().height - resizer.offsetHeight;
+        layoutTotalHeight = autoTotal > 0 ? autoTotal : null;
+      }
+      if (!layoutTotalHeight) {
+        layoutTotalHeight = startInputHeight + contentArea.getBoundingClientRect().height;
       }
       dragging = true;
       resizer.classList.add('resizing');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'row-resize';
       document.addEventListener('mousemove', onPointerMove, { passive: false });
       document.addEventListener('mouseup', stopDragging);
       document.addEventListener('touchmove', onPointerMove, { passive: false });
       document.addEventListener('touchend', stopDragging);
       document.addEventListener('touchcancel', stopDragging);
       event.preventDefault();
+      event.stopPropagation();
     };
 
-    resizer.addEventListener('mousedown', startDragging);
+    resizer.addEventListener('mousedown', startDragging, { passive: false });
     resizer.addEventListener('touchstart', startDragging, { passive: false });
+    
+    // 添加调试信息
+    console.log('Resizer initialized successfully:', {
+      resizer: !!resizer,
+      panels: !!panels,
+      inputSection: !!inputSection,
+      contentArea: !!contentArea
+    });
     window.addEventListener('resize', () => {
       if (dragging) return;
-      const total = panels.clientHeight - resizer.offsetHeight;
+      const mainContainer = document.querySelector('.main-container');
+      // 在 two-pane 模式下不调整高度
+      if (mainContainer && mainContainer.classList.contains('two-pane')) return;
+      layoutTotalHeight = null;
+      const total = computeTotalHeight() || (panels.clientHeight - resizer.offsetHeight);
       const storedInput = parseFloat(inputSection.style.height) || (total * 0.5);
       applyHeights(storedInput);
     });
 
-    // 初始高度：输入区与显示区各占一半
-    setTimeout(() => {
-      const total = panels.clientHeight - resizer.offsetHeight;
-      if (total > 0) applyHeights(total * 0.5);
-    }, 0);
+    // 初始高度：输入区与显示区各占一半（仅在非 two-pane 模式下）
+    // 使用 requestAnimationFrame 确保在首次渲染后执行
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const mainContainer = document.querySelector('.main-container');
+        // 如果是 two-pane 模式，不应用高度设置
+        if (mainContainer && mainContainer.classList.contains('two-pane')) return;
+        layoutTotalHeight = computeTotalHeight() || (panels.clientHeight - resizer.offsetHeight);
+        if (layoutTotalHeight && layoutTotalHeight > 0) {
+          applyHeights(layoutTotalHeight * 0.5);
+        }
+      }, 100);
+    });
   })();
 })();
-

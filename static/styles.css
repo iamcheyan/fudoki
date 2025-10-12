@@ -553,13 +553,29 @@ body {
 
 /* 可拖拽的分隔条（仅在非 two-pane 模式显示） */
 .resizer {
-  height: 8px;
+  height: 12px;
   background: var(--border);
   cursor: row-resize;
   position: relative;
   flex-shrink: 0;
   transition: background 0.2s ease;
   margin: 0;
+  z-index: 10;
+  /* 增加可点击区域 */
+  padding: 4px 0;
+  margin: -4px 0;
+}
+
+/* 使用伪元素创建更大的可交互区域 */
+.resizer::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  cursor: row-resize;
+  z-index: 1;
 }
 
 .resizer:hover {
@@ -577,6 +593,8 @@ body {
   border-radius: 2px;
   background: var(--muted);
   opacity: 0.6;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .resizer:hover::before {
@@ -586,6 +604,11 @@ body {
 
 .resizer.resizing {
   background: var(--primary);
+}
+
+.resizer.resizing::after {
+  top: -100vh;
+  bottom: -100vh;
 }
 
 /* 两栏模式下隐藏分隔条 */
@@ -641,12 +664,23 @@ body {
   background: var(--elev);
 }
 @media (max-width: 900px){
-  .main-container.two-pane #editorPanels{display:block}
+  .main-container.two-pane #editorPanels{
+    display:flex;
+    flex-direction:column;
+  }
   .main-container.two-pane #editorPanels .input-section,
-  .main-container.two-pane #editorPanels .content-area{max-width:100%;flex:1 1 auto}
+  .main-container.two-pane #editorPanels .content-area{
+    max-width:100%;
+    flex:1 1 auto;
+    min-height:calc(100vh - 44px);
+  }
   .main-container.two-pane #editorPanels{height:auto}
-  .main-container.two-pane #editorPanels .input-section,
-  .main-container.two-pane #editorPanels .content-area{height:auto;overflow:visible}
+  .main-container.two-pane #editorPanels .input-section{
+    overflow:visible;
+  }
+  .main-container.two-pane #editorPanels .content-area{
+    overflow-y:auto;
+  }
 }
 
 
@@ -4115,7 +4149,7 @@ input[type="text"], textarea { font-size: 14px; }
   border: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   border-radius: 8px 8px 0 0;
-  padding: 5px 6px;
+  padding: 0;
   opacity: 1;
   display: flex;
   flex-wrap: wrap;

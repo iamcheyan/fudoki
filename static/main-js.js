@@ -193,6 +193,22 @@ const headerSpeedValue = $('headerSpeedValue');
             mainContainer.classList.toggle('two-pane');
             const isActive = mainContainer.classList.contains('two-pane');
             
+            // 切换到 two-pane 模式时，清除手动设置的高度，让flex布局接管
+            if (isActive) {
+              const inputSection = document.querySelector('#editorPanels .input-section');
+              const contentArea = document.querySelector('#editorPanels .content-area');
+              if (inputSection) {
+                inputSection.style.height = '';
+                inputSection.style.flex = '';
+                inputSection.style.minHeight = '';
+              }
+              if (contentArea) {
+                contentArea.style.height = '';
+                contentArea.style.flex = '';
+                contentArea.style.minHeight = '';
+              }
+            }
+            
             // 更新按钮状态
             if (isActive) {
               newBtn.classList.add('active');
@@ -3760,52 +3776,81 @@ Try Fudoki and enjoy Japanese language analysis!`;
   
   // 按标点符号分段文本
   function splitTextByPunctuation(text) {
-    console.log('分段前文本:', text);
+    const normalized = String(text || '').replace(/\r\n/g, '\n');
+    const segments = [];
+    const heavyPause = 720;
+    const mediumPause = 360;
+    const ellipsisPause = 900;
     
-    // 检查是否包含句号、感叹号、问号
-    const hasPunctuation = /[。！？]/.test(text);
+    let buffer = '';
     
-    if (!hasPunctuation) {
-      // 如果没有标点符号，按长度分段（每50个字符一段）
-      const maxLength = 50;
-      const result = [];
+    const pushSegment = (pause) => {
+      const segmentText = buffer.trim();
+      if (segmentText) {
+        segments.push({ text: segmentText, pause });
+      }
+      buffer = '';
+    };
+    
+    for (let i = 0; i < normalized.length; i++) {
+      const ch = normalized[i];
+      const next = normalized[i + 1] || '';
+      const next2 = normalized[i + 2] || '';
       
-      for (let i = 0; i < text.length; i += maxLength) {
-        const segment = text.slice(i, i + maxLength).trim();
-        if (segment) {
-          result.push({
-            text: segment,
-            pause: 300 // 短停顿
-          });
+      if (ch === '\n') {
+        pushSegment(heavyPause);
+        continue;
+      }
+      
+      buffer += ch;
+      
+      // 中文省略号
+      if (ch === '…') {
+        while (normalized[i + 1] === '…') {
+          buffer += normalized[++i];
         }
+        pushSegment(ellipsisPause);
+        continue;
       }
       
-      console.log('没有标点符号，按长度分段:', result);
-      return result;
-    }
-    
-    // 在句号、感叹号、问号后分段
-    const segments = text.split(/([。！？])/);
-    console.log('分割结果:', segments);
-    
-    const result = [];
-    
-    for (let i = 0; i < segments.length; i += 2) {
-      const content = segments[i]?.trim();
-      const punctuation = segments[i + 1];
+      // 英文省略号 ...
+      if (ch === '.' && next === '.' && next2 === '.') {
+        buffer += next + next2;
+        i += 2;
+        pushSegment(ellipsisPause);
+        continue;
+      }
       
-      if (content) {
-        const fullText = content + (punctuation || '');
-        result.push({
-          text: fullText,
-          pause: punctuation ? 800 : 0 // 句号后停顿800ms
-        });
-        console.log(`添加段落: "${fullText}", 停顿: ${punctuation ? 800 : 0}ms`);
+      if ('。！？!?？！'.includes(ch)) {
+        pushSegment(heavyPause);
+        continue;
+      }
+      
+      if ('、，,;；:：'.includes(ch)) {
+        pushSegment(mediumPause);
+        continue;
       }
     }
     
-    console.log('最终分段结果:', result);
-    return result;
+    if (buffer.trim()) {
+      segments.push({ text: buffer.trim(), pause: 0 });
+    }
+    
+    if (!segments.length && normalized.trim()) {
+      segments.push({ text: normalized.trim(), pause: 0 });
+    }
+    
+    // 如果依然没有有效分段，则按固定长度切分
+    if (!segments.length) {
+      const plain = normalized.trim();
+      const maxLength = 60;
+      for (let i = 0; i < plain.length; i += maxLength) {
+        const part = plain.slice(i, i + maxLength).trim();
+        if (part) segments.push({ text: part, pause: 260 });
+      }
+    }
+    
+    return segments;
   }
   
   // 分段播放
@@ -4973,63 +5018,48 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return;
     }
     
-    // 检查是否有分析结果，优先使用content-area中的token数据（已过滤markdown标记）
+    // 检查是否有分析结果，优先使用content-area中的文本（已过滤markdown标记）
     const content = document.getElementById('content');
     if (content && content.innerHTML.trim()) {
-      // 从分析结果中提取reading字段
-      const tokens = content.querySelectorAll('.token-pill');
-      if (tokens.length > 0) {
-        const readingText = Array.from(tokens).map(token => {
-          const tokenDataAttr = token.getAttribute('data-token');
-          if (tokenDataAttr) {
-            try {
-              const tokenData = JSON.parse(tokenDataAttr);
-              // 优先使用reading，如果没有则使用surface
-              let textToSpeak = tokenData.reading || tokenData.surface || '';
-              
-              // 检查自定义词典，如果有自定义读音，优先使用
-              if (window.FudokiDict && window.FudokiDict.getTechOverride) {
-                const techOverride = window.FudokiDict.getTechOverride(tokenData);
-                if (techOverride && techOverride.reading) {
-                  textToSpeak = techOverride.reading;
+      const lineContainers = content.querySelectorAll('.line-container');
+      if (lineContainers.length > 0) {
+        const lines = Array.from(lineContainers).map(line => {
+          const parts = [];
+          line.childNodes.forEach(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const el = node;
+              if (el.classList.contains('token-pill')) {
+                const kanjiEl = el.querySelector('.token-kanji');
+                if (kanjiEl && kanjiEl.textContent) {
+                  parts.push(kanjiEl.textContent);
                 }
+              } else if (el.classList.contains('punct')) {
+                if (el.textContent) parts.push(el.textContent);
+              } else if (!el.classList.contains('play-line-btn')) {
+                const txt = el.textContent;
+                if (txt && txt.trim()) parts.push(txt.trim());
               }
-              
-              // 特殊处理：助词"は"读作"わ"
-              if (
-                tokenData.surface === 'は' &&
-                tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞' &&
-                isHaParticleReadingEnabled()
-              ) {
-                textToSpeak = 'わ';
-              }
-              
-              return textToSpeak;
-            } catch (e) {
-              const kanjiEl = token.querySelector('.token-kanji');
-              return kanjiEl ? kanjiEl.textContent : '';
+            } else if (node.nodeType === Node.TEXT_NODE) {
+              const txt = node.textContent.replace(/\s+/g, '');
+              if (txt) parts.push(txt);
             }
-          } else {
-            const kanjiEl = token.querySelector('.token-kanji');
-            return kanjiEl ? kanjiEl.textContent : '';
+          });
+          return parts.join('');
+        }).filter(Boolean);
+
+        if (lines.length > 0) {
+          const textForSpeech = lines.join('\n').trim();
+          if (textForSpeech) {
+            console.log('使用content-area中的行文本播放');
+            speak(textForSpeech);
+            return;
           }
-        }).join('');
-        
-        // 如果从content-area提取到了内容，直接使用（即使没有标点符号）
-        // 这样可以避免读取原始输入中的markdown标记
-        if (readingText.trim()) {
-          console.log('使用content-area中的文本播放（已过滤markdown标记）');
-          speak(readingText);
-          return;
         }
-      }
-      
-      // 如果token-pill为空，尝试提取.punct和普通文本
-      const allTextNodes = content.querySelectorAll('.punct');
-      if (allTextNodes.length > 0) {
-        const simpleText = Array.from(allTextNodes).map(node => node.textContent).join('');
-        if (simpleText.trim()) {
-          speak(simpleText);
+      } else {
+        const raw = (content.textContent || '').trim();
+        if (raw) {
+          console.log('使用content-area纯文本播放');
+          speak(raw);
           return;
         }
       }
@@ -6601,13 +6631,28 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const on = saved === 'true';
         if (on) {
           mainContainer.classList.add('two-pane');
-          // 同步 side-by-side 按钮状态
+          
+          // 清除手动设置的高度，让flex布局接管
           setTimeout(() => {
+            const inputSection = document.querySelector('#editorPanels .input-section');
+            const contentArea = document.querySelector('#editorPanels .content-area');
+            if (inputSection) {
+              inputSection.style.height = '';
+              inputSection.style.flex = '';
+              inputSection.style.minHeight = '';
+            }
+            if (contentArea) {
+              contentArea.style.height = '';
+              contentArea.style.flex = '';
+              contentArea.style.minHeight = '';
+            }
+            
+            // 同步 side-by-side 按钮状态
             const sideBySideBtn = document.querySelector('.editor-toolbar .side-by-side');
             if (sideBySideBtn) {
               sideBySideBtn.classList.add('active');
             }
-          }, 600);
+          }, 100);
         }
       } catch (_) {}
     })();
