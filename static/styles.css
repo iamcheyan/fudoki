@@ -4120,13 +4120,14 @@ input[type="text"], textarea { font-size: 14px; }
   opacity: 0.6;
 }
 
-/* 预览模式 */
+/* 预览模式样式 */
 .input-section .EasyMDEContainer .editor-preview,
 .input-section .EasyMDEContainer .editor-preview-side {
   background: var(--bg);
   color: var(--text);
   padding: 15px;
   font-family: var(--content-font-family, inherit);
+  line-height: 1.8;
 }
 
 /* 预览内容的日语文本样式 */
