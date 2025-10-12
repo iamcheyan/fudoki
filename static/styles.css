@@ -919,44 +919,56 @@ body {
 .doc-list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 0 4px;
+  gap: 5px;
+  padding: 0 0 0 5px;
   margin-bottom: 8px;
 }
 
 .doc-item {
-  padding: 4px 8px;
+  padding: 5px 10px;
   cursor: pointer;
   font-size: 14px;
   color: var(--text);
-  border-radius: 4px;
-  transition: background 20ms ease-in;
+  border-radius: 8px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 27px;
+  gap: 10px;
+  min-height: 48px;
   position: relative;
   user-select: none;
+  background: var(--bg);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .doc-item:hover {
   background: var(--elev);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
 }
 
 .doc-item.active {
-  background: color-mix(in srgb, var(--primary) 12%, transparent); /* 主题色背景 */
+  background: color-mix(in srgb, var(--primary) 10%, var(--bg)); /* 主题色背景 */
   color: var(--text);
   font-weight: 500;
   border-left: 3px solid var(--primary); /* 主题色左侧边框 */
-  padding-left: 9px; /* 减少左侧内边距以补偿边框 */
-  box-shadow: 0 1px 3px color-mix(in srgb, var(--primary) 20%, transparent); /* 主题色阴影 */
+  padding-left: 13px; /* 减少左侧内边距以补偿边框 */
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 15%, transparent); /* 主题色阴影 */
+  border-color: color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .doc-item svg {
   flex-shrink: 0;
-  opacity: 0.6;
-  width: 18px;
-  height: 18px;
+  opacity: 0.5;
+  width: 20px;
+  height: 20px;
+  transition: opacity 0.2s ease;
+}
+
+.doc-item:hover svg {
+  opacity: 0.7;
 }
 
 .doc-item-content {
@@ -964,44 +976,71 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .doc-item-title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--text);
-  line-height: 1.3;
+  line-height: 1.4;
   flex: 1;
   min-width: 0;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .doc-item-time {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--muted);
-  opacity: 0.7;
-  line-height: 1.2;
+  opacity: 0.65;
+  line-height: 1.3;
+  transition: opacity 0.2s ease;
+}
+
+.doc-item:hover .doc-item-time {
+  opacity: 0.8;
 }
 
 .doc-item-actions {
-  opacity: 0; /* 默认隐藏星号 */
-  transition: opacity 0.2s ease;
+  position: absolute;
+  right: 12px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   gap: 4px;
-  flex-shrink: 0;     /* 防止压缩星号区域 */
-  margin-left: 8px;   /* 与标题留出间距，避免覆盖 */
+  flex-shrink: 0;
+  pointer-events: none;
+  padding-left: 20px;
 }
 
-/* 鼠标悬停时显示星号 */
 .doc-item:hover .doc-item-actions {
   opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+
+
+/* 鼠标悬停时挤压内容区域 */
+.doc-item:hover .doc-item-content {
+  padding-right: 40px;
 }
 
 /* 已加星标的文档始终显示星号 */
 .doc-item:has(.fav-btn.active) .doc-item-actions {
   opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.doc-item:has(.fav-btn.active) .doc-item-content {
+  padding-right: 40px;
 }
 
 .doc-action-btn {
@@ -3235,17 +3274,33 @@ section.editor-toolbar {
 }
 
 [data-theme="dark"] .doc-item {
-  background: #1b2027;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+  background: rgba(30, 35, 42, 0.6);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.03);
 }
 [data-theme="dark"] .doc-item:hover {
-  background: #202632;
+  background: rgba(40, 45, 55, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 [data-theme="dark"] .doc-item.active {
-  background: color-mix(in srgb, var(--primary) 18%, transparent); /* 深色主题下主题色背景 */
+  background: color-mix(in srgb, var(--primary) 15%, rgba(30, 35, 42, 0.8)); /* 深色主题下主题色背景 */
   border-left: 3px solid var(--primary); /* 主题色边框 */
-  padding-left: 9px;
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 28%, transparent); /* 主题色阴影 */
+  padding-left: 13px;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 25%, transparent); /* 主题色阴影 */
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+[data-theme="dark"] .doc-item-actions {
+  background: linear-gradient(to left, rgba(30, 35, 42, 0.6) 0%, rgba(30, 35, 42, 0.6) 70%, transparent 100%);
+}
+
+[data-theme="dark"] .doc-item:hover .doc-item-actions {
+  background: linear-gradient(to left, rgba(40, 45, 55, 0.8) 0%, rgba(40, 45, 55, 0.8) 70%, transparent 100%);
+}
+
+[data-theme="dark"] .doc-item.active .doc-item-actions {
+  background: linear-gradient(to left, color-mix(in srgb, var(--primary) 15%, rgba(30, 35, 42, 0.8)) 0%, color-mix(in srgb, var(--primary) 15%, rgba(30, 35, 42, 0.8)) 70%, transparent 100%);
 }
 
 [data-theme="dark"] .input-section {
@@ -3561,7 +3616,7 @@ input[type="checkbox"] {
 
 /* 快速搜索栏样式 - Notion风格 */
 .search-section {
-  padding: 5px 5px 0 0;
+  /* padding: 5px 5px 0 0; */
   flex-shrink: 0;
   position: sticky;
   top: 0;

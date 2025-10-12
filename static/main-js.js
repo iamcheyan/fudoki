@@ -310,7 +310,23 @@ const headerSpeedValue = $('headerSpeedValue');
           
           // 处理每个文本节点
           for (const textNode of textNodes) {
-            const text = textNode.textContent;
+            let text = textNode.textContent;
+            if (!text.trim()) continue;
+            
+            // 预处理：过滤括号内容（如果全是假名或标点就移除）
+            // 处理全角括号
+            text = text.replace(/（([^）]+)）/g, (match, content) => {
+              const hasKanji = /[\u4E00-\u9FAF]/.test(content);
+              const hasEnglish = /[a-zA-Z]/.test(content);
+              return (hasKanji || hasEnglish) ? match : '';
+            });
+            // 处理半角括号
+            text = text.replace(/\(([^)]+)\)/g, (match, content) => {
+              const hasKanji = /[\u4E00-\u9FAF]/.test(content);
+              const hasEnglish = /[a-zA-Z]/.test(content);
+              return (hasKanji || hasEnglish) ? match : '';
+            });
+            
             if (!text.trim()) continue;
             
             try {
@@ -1044,6 +1060,7 @@ const headerSpeedValue = $('headerSpeedValue');
       play: '播放',
       stop: '停止',
       pause: '暂停',
+      resume: '继续',
       playThisLine: '播放这一行',
       expand: '展开',
       collapse: '收缩',
@@ -1893,7 +1910,13 @@ const headerSpeedValue = $('headerSpeedValue');
     // 重新渲染文件夹列表以应用新语言
     try { renderFolders(); } catch (_) {}
 
-    if (textInput) textInput.placeholder = t('textareaPlaceholder');
+    if (textInput) {
+      const placeholderText = t('textareaPlaceholder');
+      textInput.placeholder = placeholderText;
+      if (easymde && easymde.codemirror && typeof easymde.codemirror.setOption === 'function') {
+        easymde.codemirror.setOption('placeholder', placeholderText);
+      }
+    }
     // 全局搜索输入及按钮的多语言适配
     const globalSearch = $('globalSearch');
     if (globalSearch) globalSearch.setAttribute('aria-label', t('globalSearchAria'));
@@ -4215,14 +4238,49 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   function applyVoice(u) { if (window.TTS && window.TTS.applyVoice) { window.TTS.applyVoice(u, currentVoice, 'ja-JP'); } }
 
+  // 过滤括号内容：如果括号里全是假名或标点符号就移除，如果包含汉字或英文就保留
+  function filterParentheses(text) {
+    // 先处理全角括号
+    const result = text.replace(/（([^）]+)）/g, (match, content) => {
+      // 检查是否包含汉字
+      const hasKanji = /[\u4E00-\u9FAF]/.test(content);
+      // 检查是否包含英文字母
+      const hasEnglish = /[a-zA-Z]/.test(content);
+      
+      console.log(`括号内容: "${content}", 包含汉字: ${hasKanji}, 包含英文: ${hasEnglish}, 保留: ${hasKanji || hasEnglish}`);
+      
+      // 如果包含汉字或英文，保留括号和内容
+      if (hasKanji || hasEnglish) {
+        return match;
+      }
+      
+      // 否则移除整个括号及内容
+      return '';
+    });
+    
+    // 再处理半角括号
+    const finalResult = result.replace(/\(([^)]+)\)/g, (match, content) => {
+      const hasKanji = /[\u4E00-\u9FAF]/.test(content);
+      const hasEnglish = /[a-zA-Z]/.test(content);
+      console.log(`半角括号内容: "${content}", 包含汉字: ${hasKanji}, 包含英文: ${hasEnglish}, 保留: ${hasKanji || hasEnglish}`);
+      return (hasKanji || hasEnglish) ? match : '';
+    });
+    
+    console.log(`原文本: "${text}"\n过滤后: "${finalResult}"`);
+    return finalResult;
+  }
+
   // 文本分析功能
   async function analyzeText() {
-    const text = textInput.value.trim();
+    let text = textInput.value.trim();
     
     if (!text) {
       showEmptyState();
       return;
     }
+
+    // 预处理：过滤括号内容
+    text = filterParentheses(text);
 
     showLoadingState();
 
