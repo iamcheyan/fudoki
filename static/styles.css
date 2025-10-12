@@ -440,6 +440,7 @@ body {
   height: 100vh;
   z-index: 1; /* PC端保持低z-index */
   width: 240px;
+  padding-top: 44px; /* 为固定的 editor-toolbar 留出空间 */
 }
 
 .collapsed .sidebar-stack {
@@ -549,7 +550,15 @@ body {
   padding-top: 0;
   position: relative;
 }
-.content-container { height: 100%; }
+
+.content-container { 
+  height: 100%; 
+  padding-top: 44px; /* 为固定的 editor-toolbar 留出空间 */
+}
+
+.collapsed .content-container {
+  padding-top: 0;
+}
 
 /* 可拖拽的分隔条（仅在非 two-pane 模式显示） */
 .resizer {
@@ -563,7 +572,7 @@ body {
   z-index: 10;
   /* 增加可点击区域 */
   padding: 4px 0;
-  margin: -4px 0;
+  /* margin: -4px 0; */
 }
 
 /* 使用伪元素创建更大的可交互区域 */
@@ -648,8 +657,6 @@ body {
 .main-container.two-pane .input-section .play-control-bar {
   flex: 0 0 auto;
   margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
   background: var(--bg);
   position: sticky;
   bottom: 0;
@@ -3108,25 +3115,31 @@ section.editor-toolbar {
   padding: 0 10px 0 0;
   height: 44px;
   background: var(--bg);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   border-bottom: 1px solid var(--border);
   border-left: none;
   border-right: none;
   border-top: none;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* two-pane 模式下：确保顶部工具栏始终固定 */
 .main-container.two-pane section.editor-toolbar {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 900;
+  z-index: 1000;
 }
 .editor-toolbar-left,
 .editor-toolbar-right {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 10px;
 }
 /* 右侧内容右对齐，使两栏更整齐 */
 .editor-toolbar-right { justify-content: flex-end; }
@@ -3135,6 +3148,8 @@ section.editor-toolbar {
 .editor-toolbar-left .logo {
   font-size: 16px;
   margin-right: 4px;
+  position: relative;
+  left: -5px;
 }
 
 .editor-toolbar-left .logo-icon {
@@ -3954,14 +3969,12 @@ input[type="text"], textarea { font-size: 14px; }
   align-items: center;
   gap: 10px;
   flex: 0 0 auto;
-  padding: 5px 0 0 0;
   margin: 0;
   margin-top: auto;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
-  border-top: 1px solid var(--border);
   background: var(--bg);
 }
 .play-control-bar::-webkit-scrollbar {

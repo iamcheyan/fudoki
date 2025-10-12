@@ -3778,9 +3778,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function splitTextByPunctuation(text) {
     const normalized = String(text || '').replace(/\r\n/g, '\n');
     const segments = [];
-    const heavyPause = 720;
-    const mediumPause = 360;
-    const ellipsisPause = 900;
+    // 停顿时间设置（毫秒）
+    const heavyPause = 800;      // 句号、感叹号、问号、换行 - 长停顿
+    const mediumPause = 400;     // 逗号、顿号、分号 - 中等停顿
+    const lightPause = 200;      // 冒号 - 轻微停顿
+    const ellipsisPause = 1000;  // 省略号 - 更长停顿
     
     let buffer = '';
     
@@ -3821,13 +3823,21 @@ Try Fudoki and enjoy Japanese language analysis!`;
         continue;
       }
       
+      // 句号、感叹号、问号 - 长停顿
       if ('。！？!?？！'.includes(ch)) {
         pushSegment(heavyPause);
         continue;
       }
       
-      if ('、，,;；:：'.includes(ch)) {
+      // 逗号、顿号、分号 - 中等停顿
+      if ('、，,;；'.includes(ch)) {
         pushSegment(mediumPause);
+        continue;
+      }
+      
+      // 冒号 - 轻微停顿（用于列表、说明等场景）
+      if (':：'.includes(ch)) {
+        pushSegment(lightPause);
         continue;
       }
     }
@@ -5018,48 +5028,118 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return;
     }
     
-    // 检查是否有分析结果，优先使用content-area中的文本（已过滤markdown标记）
+    // 检查是否有分析结果，优先使用content-area中的token数据（已过滤markdown标记）
     const content = document.getElementById('content');
     if (content && content.innerHTML.trim()) {
+      // 从 line-container 逐行提取，保留标点符号和换行结构
       const lineContainers = content.querySelectorAll('.line-container');
       if (lineContainers.length > 0) {
-        const lines = Array.from(lineContainers).map(line => {
-          const parts = [];
-          line.childNodes.forEach(node => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const el = node;
-              if (el.classList.contains('token-pill')) {
-                const kanjiEl = el.querySelector('.token-kanji');
-                if (kanjiEl && kanjiEl.textContent) {
-                  parts.push(kanjiEl.textContent);
+        const lines = Array.from(lineContainers).map(lineContainer => {
+          const lineParts = [];
+          
+          // 遍历 line-container 的所有子节点，按顺序提取内容
+          lineContainer.childNodes.forEach(node => {
+            // 跳过播放按钮
+            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('play-line-btn')) {
+              return;
+            }
+            
+            // 处理 token-pill（词汇）
+            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('token-pill')) {
+              const tokenDataAttr = node.getAttribute('data-token');
+              if (tokenDataAttr) {
+                try {
+                  const tokenData = JSON.parse(tokenDataAttr);
+                  let textToSpeak = tokenData.reading || tokenData.surface || '';
+                  
+                  // 检查自定义词典
+                  if (window.FudokiDict && window.FudokiDict.getTechOverride) {
+                    const techOverride = window.FudokiDict.getTechOverride(tokenData);
+                    if (techOverride && techOverride.reading) {
+                      textToSpeak = techOverride.reading;
+                    }
+                  }
+                  
+                  // 特殊处理：助词"は"读作"わ"
+                  if (
+                    tokenData.surface === 'は' &&
+                    tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞' &&
+                    isHaParticleReadingEnabled()
+                  ) {
+                    textToSpeak = 'わ';
+                  }
+                  
+                  lineParts.push(textToSpeak);
+                } catch (e) {
+                  const kanjiEl = node.querySelector('.token-kanji');
+                  if (kanjiEl) lineParts.push(kanjiEl.textContent);
                 }
-              } else if (el.classList.contains('punct')) {
-                if (el.textContent) parts.push(el.textContent);
-              } else if (!el.classList.contains('play-line-btn')) {
-                const txt = el.textContent;
-                if (txt && txt.trim()) parts.push(txt.trim());
               }
-            } else if (node.nodeType === Node.TEXT_NODE) {
-              const txt = node.textContent.replace(/\s+/g, '');
-              if (txt) parts.push(txt);
+            }
+            // 处理标点符号（.punct）
+            else if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('punct')) {
+              const punctText = node.textContent;
+              if (punctText) lineParts.push(punctText);
+            }
+            // 处理纯文本节点（非markdown标记的文本）
+            else if (node.nodeType === Node.TEXT_NODE) {
+              const text = node.textContent.trim();
+              if (text) lineParts.push(text);
             }
           });
-          return parts.join('');
-        }).filter(Boolean);
-
-        if (lines.length > 0) {
-          const textForSpeech = lines.join('\n').trim();
-          if (textForSpeech) {
-            console.log('使用content-area中的行文本播放');
-            speak(textForSpeech);
-            return;
-          }
+          
+          return lineParts.join('');
+        });
+        
+        // 用换行符连接各行，这样 splitTextByPunctuation 可以识别换行停顿
+        const fullText = lines.filter(line => line.trim()).join('\n');
+        
+        if (fullText.trim()) {
+          console.log('使用content-area中的文本播放（已过滤markdown标记，保留标点和换行）');
+          speak(fullText);
+          return;
         }
-      } else {
-        const raw = (content.textContent || '').trim();
-        if (raw) {
-          console.log('使用content-area纯文本播放');
-          speak(raw);
+      }
+      
+      // 如果没有 line-container，尝试直接提取所有内容
+      const tokens = content.querySelectorAll('.token-pill, .punct');
+      if (tokens.length > 0) {
+        const readingParts = Array.from(tokens).map(node => {
+          if (node.classList.contains('token-pill')) {
+            const tokenDataAttr = node.getAttribute('data-token');
+            if (tokenDataAttr) {
+              try {
+                const tokenData = JSON.parse(tokenDataAttr);
+                let textToSpeak = tokenData.reading || tokenData.surface || '';
+                
+                if (window.FudokiDict && window.FudokiDict.getTechOverride) {
+                  const techOverride = window.FudokiDict.getTechOverride(tokenData);
+                  if (techOverride && techOverride.reading) {
+                    textToSpeak = techOverride.reading;
+                  }
+                }
+                
+                if (
+                  tokenData.surface === 'は' &&
+                  tokenData.pos && Array.isArray(tokenData.pos) && tokenData.pos[0] === '助詞' &&
+                  isHaParticleReadingEnabled()
+                ) {
+                  textToSpeak = 'わ';
+                }
+                
+                return textToSpeak;
+              } catch (e) {
+                return node.textContent || '';
+              }
+            }
+          } else if (node.classList.contains('punct')) {
+            return node.textContent || '';
+          }
+          return '';
+        }).join('');
+        
+        if (readingParts.trim()) {
+          speak(readingParts);
           return;
         }
       }
