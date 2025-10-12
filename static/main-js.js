@@ -4166,11 +4166,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
         
         // 检查是否为标点符号
         const isPunct = (pos[0] === '記号' || pos[0] === '補助記号');
-        // 检查是否为需要过滤的装饰性符号
+        // 检查是否为需要过滤的装饰性符号（包括markdown标记）
+        const isMarkdownSymbol = /^[#*_`>~\-=\[\]]+$/.test(surface);
         const isDecorativeSymbol = /^[•·\/\s\u00A0\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000]+$/.test(surface);
 
-        if (isDecorativeSymbol) {
-          // 过滤掉装饰性符号，不显示
+        if (isDecorativeSymbol || isMarkdownSymbol) {
+          // 过滤掉装饰性符号和markdown标记，不显示
           return '';
         } else if (isPunct) {
           // 标点符号以普通文本显示，不作为卡片
