@@ -237,6 +237,14 @@ const headerSpeedValue = $('headerSpeedValue');
       let furiganaObserver = null;
       
       // 为预览区域的日语文本添加假名和罗马音
+      // 转换片假名到平假名
+      function katakanaToHiragana(str) {
+        return str.replace(/[\u30A1-\u30F6]/g, match => {
+          const chr = match.charCodeAt(0) - 0x60;
+          return String.fromCharCode(chr);
+        });
+      }
+
       async function addFuriganaToPreview() {
         const previewSide = document.querySelector('.editor-preview-side');
         if (!previewSide || isProcessingFurigana) return;
@@ -271,6 +279,7 @@ const headerSpeedValue = $('headerSpeedValue');
                 if (parent.classList.contains('furigana-wrapper') || 
                     parent.classList.contains('furigana-base') ||
                     parent.classList.contains('furigana-reading') ||
+                    parent.classList.contains('furigana-hiragana') ||
                     parent.classList.contains('furigana-romaji') ||
                     parent.classList.contains('furigana-annotation')) {
                   return NodeFilter.FILTER_REJECT;
@@ -331,13 +340,22 @@ const headerSpeedValue = $('headerSpeedValue');
                 const wrapper = document.createElement('span');
                 wrapper.className = 'furigana-wrapper';
                 
-                // 假名（顶部）
+                // 假名（顶部，第1层）
                 const readingSpan = document.createElement('span');
                 readingSpan.className = 'furigana-reading';
                 readingSpan.textContent = reading || '';
                 wrapper.appendChild(readingSpan);
                 
-                // 罗马音（中间）
+                // 平假名（第2层）
+                const hiraganaSpan = document.createElement('span');
+                hiraganaSpan.className = 'furigana-hiragana';
+                const hiraganaText = katakanaToHiragana(reading || '');
+                if (hiraganaText && hiraganaText !== reading) {
+                  hiraganaSpan.textContent = hiraganaText;
+                }
+                wrapper.appendChild(hiraganaSpan);
+                
+                // 罗马音（第3层）
                 const romajiSpan = document.createElement('span');
                 romajiSpan.className = 'furigana-romaji';
                 if (hasKanji || /[\u30A0-\u30FF]/.test(surface)) {
@@ -348,7 +366,7 @@ const headerSpeedValue = $('headerSpeedValue');
                 }
                 wrapper.appendChild(romajiSpan);
                 
-                // 主文本/汉字（底部）
+                // 主文本/汉字（底部，第4层）
                 const baseSpan = document.createElement('span');
                 baseSpan.className = 'furigana-base';
                 baseSpan.textContent = surface;
@@ -364,6 +382,11 @@ const headerSpeedValue = $('headerSpeedValue');
                 const readingSpan = document.createElement('span');
                 readingSpan.className = 'furigana-reading';
                 wrapper.appendChild(readingSpan);
+                
+                // 空的平假名层（保留空间）
+                const hiraganaSpan = document.createElement('span');
+                hiraganaSpan.className = 'furigana-hiragana';
+                wrapper.appendChild(hiraganaSpan);
                 
                 // 空的罗马音层（保留空间）
                 const romajiSpan = document.createElement('span');

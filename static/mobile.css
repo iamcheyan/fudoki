@@ -135,9 +135,7 @@
   min-width: 0;
   overflow: hidden;
 }
-section.editor-toolbar {
-  height: 40px;
-}
+
 .editor-toolbar-left .logo-icon {
   width: auto;
   height: 28px;
