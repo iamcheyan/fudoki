@@ -6313,43 +6313,48 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       if (!inputGroup || !contentArea || !mainContainer) return;
       
-      let isSyncing = false; // 防止循环触发
-      let syncTimeout = null;
+      let isSyncingLeft = false; // 防止左侧循环触发
+      let isSyncingRight = false; // 防止右侧循环触发
       
-      // 同步滚动函数
-      function syncScroll(source, target) {
-        if (isSyncing) return;
-        
+      // 同步滚动函数（改进版）
+      function syncScroll(source, target, isSyncingFlag) {
         // 只在 two-pane 模式下同步
         if (!mainContainer.classList.contains('two-pane')) return;
         
         const sourceScrollTop = source.scrollTop;
         const sourceScrollHeight = source.scrollHeight - source.clientHeight;
         
-        // 如果源容器没有滚动空间，不同步
-        if (sourceScrollHeight <= 0) return;
+        // 如果源容器没有滚动空间，将目标也滚动到顶部
+        if (sourceScrollHeight <= 0) {
+          if (!isSyncingFlag) {
+            target.scrollTop = 0;
+          }
+          return;
+        }
         
         // 计算滚动比例
-        const scrollRatio = sourceScrollTop / sourceScrollHeight;
+        let scrollRatio = sourceScrollTop / sourceScrollHeight;
+        
+        // 确保比例在 0-1 范围内
+        scrollRatio = Math.max(0, Math.min(1, scrollRatio));
         
         // 计算目标滚动位置
         const targetScrollHeight = target.scrollHeight - target.clientHeight;
-        const targetScrollTop = scrollRatio * targetScrollHeight;
         
-        // 应用到目标容器
-        isSyncing = true;
-        target.scrollTop = targetScrollTop;
+        // 如果目标没有滚动空间，不需要滚动
+        if (targetScrollHeight <= 0) return;
         
-        // 清除之前的超时
-        if (syncTimeout) {
-          clearTimeout(syncTimeout);
+        let targetScrollTop = scrollRatio * targetScrollHeight;
+        
+        // 边界处理：确保顶部和底部精确对齐
+        if (sourceScrollTop <= 1) {
+          targetScrollTop = 0;
+        } else if (sourceScrollTop >= sourceScrollHeight - 1) {
+          targetScrollTop = targetScrollHeight;
         }
         
-        // 延迟重置标志，避免循环触发
-        syncTimeout = setTimeout(() => {
-          isSyncing = false;
-          syncTimeout = null;
-        }, 100);
+        // 应用到目标容器
+        target.scrollTop = targetScrollTop;
       }
       
       // 使用 requestAnimationFrame 优化滚动性能
@@ -6358,25 +6363,45 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       // 监听左侧滚动
       inputGroup.addEventListener('scroll', () => {
+        if (isSyncingRight) {
+          isSyncingRight = false;
+          return;
+        }
+        
         if (leftRafId) {
           cancelAnimationFrame(leftRafId);
         }
         
         leftRafId = requestAnimationFrame(() => {
-          syncScroll(inputGroup, contentArea);
+          isSyncingLeft = true;
+          syncScroll(inputGroup, contentArea, false);
           leftRafId = null;
+          // 立即重置标志，使用微任务
+          Promise.resolve().then(() => {
+            isSyncingLeft = false;
+          });
         });
       }, { passive: true });
       
       // 监听右侧滚动
       contentArea.addEventListener('scroll', () => {
+        if (isSyncingLeft) {
+          isSyncingLeft = false;
+          return;
+        }
+        
         if (rightRafId) {
           cancelAnimationFrame(rightRafId);
         }
         
         rightRafId = requestAnimationFrame(() => {
-          syncScroll(contentArea, inputGroup);
+          isSyncingRight = true;
+          syncScroll(contentArea, inputGroup, false);
           rightRafId = null;
+          // 立即重置标志，使用微任务
+          Promise.resolve().then(() => {
+            isSyncingRight = false;
+          });
         });
       }, { passive: true });
     })();

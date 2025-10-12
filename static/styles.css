@@ -4280,7 +4280,7 @@ input[type="text"], textarea { font-size: 14px; }
 .input-section .EasyMDEContainer.fullscreen .editor-preview-side h2,
 .input-section .EasyMDEContainer.fullscreen .editor-preview-side h3 {
   color: var(--text);
-  margin-top: 1.5em;
+  /* margin-top: 1.5em; */
   margin-bottom: 0.5em;
 }
 
