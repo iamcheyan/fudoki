@@ -3981,3 +3981,195 @@ input[type="text"], textarea { font-size: 14px; }
 #collapseMenuBtn {
   display: none;
 }
+
+/* ========================================
+   EasyMDE Markdown 编辑器自定义样式
+   ======================================== */
+
+/* 编辑器容器适配 */
+.input-group .EasyMDEContainer {
+  flex: 1;
+  border: none;
+  background: transparent;
+}
+
+/* 编辑器主体样式 */
+.input-section .EasyMDEContainer .CodeMirror {
+  border: none;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--input-font-family, inherit);
+  font-size: calc(14px * var(--font-scale));
+  height: auto;
+  min-height: 200px;
+  padding: 5px;
+  border-radius: 6px;
+}
+
+/* 工具栏样式 */
+.input-section .EasyMDEContainer .editor-toolbar {
+  background: var(--elev);
+  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 8px 8px 0 0;
+  padding: 6px 8px;
+  opacity: 1;
+}
+
+.input-section .EasyMDEContainer .editor-toolbar::before,
+.input-section .EasyMDEContainer .editor-toolbar::after {
+  display: none;
+}
+
+/* 工具栏按钮 */
+.input-section .EasyMDEContainer .editor-toolbar button {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  border-radius: 4px;
+  padding: 6px 8px;
+  transition: all 0.2s;
+}
+
+.input-section .EasyMDEContainer .editor-toolbar button:hover {
+  background: var(--toolbar-chip-hover);
+  color: var(--text);
+  border: none;
+}
+
+.input-section .EasyMDEContainer .editor-toolbar button.active {
+  background: var(--toolbar-chip-bg);
+  color: var(--primary);
+  border: 1px solid var(--toolbar-chip-border);
+}
+
+.input-section .EasyMDEContainer .editor-toolbar i.separator {
+  border-left: 1px solid var(--border);
+  border-right: none;
+}
+
+/* CodeMirror 内容区 */
+.input-section .EasyMDEContainer .CodeMirror-scroll {
+  min-height: 200px;
+  max-height: 500px;
+}
+
+/* 两栏模式下的编辑器高度 */
+.main-container.two-pane .input-section .EasyMDEContainer .CodeMirror {
+  min-height: calc(100vh - 200px);
+  max-height: calc(100vh - 200px);
+}
+
+.main-container.two-pane .input-section .EasyMDEContainer .CodeMirror-scroll {
+  min-height: calc(100vh - 200px);
+  max-height: calc(100vh - 200px);
+}
+
+/* 光标颜色 */
+.input-section .EasyMDEContainer .CodeMirror-cursor {
+  border-left: 2px solid var(--primary);
+}
+
+/* 选中文本 */
+.input-section .EasyMDEContainer .CodeMirror-selected {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+/* placeholder 样式 */
+.input-section .EasyMDEContainer .CodeMirror-placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* 预览模式 */
+.input-section .EasyMDEContainer .editor-preview,
+.input-section .EasyMDEContainer .editor-preview-side {
+  background: var(--bg);
+  color: var(--text);
+  padding: 15px;
+  font-family: var(--content-font-family, inherit);
+}
+
+/* 预览内容的日语文本样式 */
+.input-section .EasyMDEContainer .editor-preview p,
+.input-section .EasyMDEContainer .editor-preview-side p {
+  line-height: 1.8;
+  margin-bottom: 1em;
+}
+
+/* 全屏模式 */
+.input-section .EasyMDEContainer.fullscreen {
+  z-index: 9999;
+}
+
+.input-section .EasyMDEContainer.fullscreen .CodeMirror {
+  min-height: calc(100vh - 100px);
+  max-height: calc(100vh - 100px);
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .input-section .EasyMDEContainer .CodeMirror {
+  background: rgba(31, 36, 44, 0.72);
+  color: var(--text);
+}
+
+[data-theme="dark"] .input-section .EasyMDEContainer .editor-toolbar {
+  background: rgba(25, 29, 35, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .input-section .EasyMDEContainer .editor-toolbar button {
+  color: var(--muted);
+}
+
+[data-theme="dark"] .input-section .EasyMDEContainer .editor-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+[data-theme="dark"] .input-section .EasyMDEContainer .editor-preview,
+[data-theme="dark"] .input-section .EasyMDEContainer .editor-preview-side {
+  background: rgba(31, 36, 44, 0.72);
+  color: var(--text);
+}
+
+/* Markdown 语法高亮 */
+.input-section .EasyMDEContainer .cm-header {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.input-section .EasyMDEContainer .cm-quote {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.input-section .EasyMDEContainer .cm-link {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.input-section .EasyMDEContainer .cm-strong {
+  font-weight: bold;
+}
+
+.input-section .EasyMDEContainer .cm-em {
+  font-style: italic;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .input-section .EasyMDEContainer .editor-toolbar {
+    padding: 4px 6px;
+  }
+  
+  .input-section .EasyMDEContainer .editor-toolbar button {
+    padding: 4px 6px;
+    font-size: 14px;
+  }
+  
+  .input-section .EasyMDEContainer .CodeMirror {
+    min-height: 150px;
+    font-size: calc(13px * var(--font-scale));
+  }
+}

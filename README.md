@@ -16,6 +16,7 @@
 Fudoki is a browser-based tool that segments Japanese text, shows part-of-speech tags and readings, and reads text aloud via the Web Speech API.
 
 ### Features
+- **Markdown Editor**: Built-in EasyMDE markdown editor for rich text formatting while maintaining full Japanese analysis capabilities.
 - Text analysis: Kuromoji.js-based segmentation, POS tags, kana and romaji.
 - Speech synthesis: play word/line/all; speed 0.5–2.0; voice selection.
 - Playback controls: separate Pause/Resume; Play button shows a stop icon while playing.
@@ -43,6 +44,18 @@ python -m http.server 8000
 | 🟣 | Adverb |
 | 🔴 | Particle |
 | 🟡 | Interjection |
+
+### Markdown Support
+
+The app now features a built-in **EasyMDE** markdown editor that replaces the standard textarea while maintaining full compatibility with Japanese analysis features:
+
+- **Rich text editing**: Use the toolbar for quick formatting (bold, italic, headers, lists, quotes, links, images)
+- **Live preview**: Side-by-side markdown preview mode
+- **Full-screen mode**: Distraction-free writing experience
+- **Syntax highlighting**: Visual markdown syntax support
+- **Seamless integration**: Japanese analysis works automatically on your markdown content
+
+For detailed documentation about the markdown integration, see [MARKDOWN_README.md](./MARKDOWN_README.md).
 
 ### Development
 ```
@@ -79,6 +92,7 @@ Pull requests are welcome. For issues and feature requests, use GitHub Issues: h
 Fudoki はブラウザで動作する日本語テキスト解析・音声読み上げツールです。Kuromoji.js による分かち書き、品詞、読み（かな・ローマ字）を表示し、Web Speech API で朗読します。
 
 ### 主な機能
+- **Markdown エディタ**：日本語解析機能を保ちながら、リッチテキスト編集ができる EasyMDE エディタを搭載。
 - 形態素解析：分割、品詞、読み（かな／ローマ字）。
 - 音声合成：単語・行・全文の再生、話速 0.5–2.0、音色選択。
 - 再生制御：一時停止／再開は専用ボタン。再生中は再生ボタンが停止アイコンになります。
@@ -107,6 +121,18 @@ python -m http.server 8000
 | 🔴 | 助詞 |
 | 🟡 | 感動詞 |
 
+### Markdown サポート
+
+標準的なテキストエリアを **EasyMDE** Markdown エディタに置き換えました。日本語解析機能とは完全に互換性があります：
+
+- **リッチテキスト編集**：ツールバーでクイック書式設定（太字、斜体、見出し、リスト、引用、リンク、画像）
+- **ライブプレビュー**：サイドバイサイドの Markdown プレビューモード
+- **全画面モード**：集中執筆環境
+- **シンタックスハイライト**：視覚的な Markdown 構文サポート
+- **シームレスな統合**：Markdown コンテンツで日本語解析が自動的に機能
+
+Markdown 統合の詳細なドキュメントは [MARKDOWN_README.md](./MARKDOWN_README.md) をご覧ください。
+
 ### 開発情報
 - テーマカラー：`static/styles.css` の CSS 変数を編集。
 - JMdict データ：`static/libs/dict/` に配置。
@@ -127,9 +153,10 @@ Issue／PR を歓迎します。https://github.com/iamcheyan/fudoki/issues
 Fudoki 是一款基于浏览器的日语文本分析与语音朗读工具。使用 Kuromoji.js 进行分词与词性标注，显示假名和罗马音，并通过 Web Speech API 朗读文本。
 
 ### 功能
+- **Markdown 编辑器**：内置 EasyMDE markdown 编辑器，支持富文本格式，同时保持完整的日语分析能力。
 - 文本分析：分词、词性、假名与罗马音。
 - 语音合成：按单词/按行/全文播放；语速 0.5–2.0；音色选择。
-- 播放控制：暂停/继续为独立按钮；播放中播放按钮显示“停止”图标。
+- 播放控制：暂停/继续为独立按钮；播放中播放按钮显示"停止"图标。
 - 即时设置生效：播放中更改语速或音色，会先暂停再在当前段附近按新设置续播；设置持久化到 localStorage。
 - 词典：整合 JMdict；点击词卡查看释义。
 - 文档：多文档管理、自动保存、快速切换。
@@ -154,6 +181,18 @@ python -m http.server 8000
 | 🟣 | 副词 |
 | 🔴 | 助词 |
 | 🟡 | 感叹词 |
+
+### Markdown 支持
+
+应用现在内置了 **EasyMDE** markdown 编辑器，替换了标准的 textarea，同时完全保持日语分析功能的兼容性：
+
+- **富文本编辑**：使用工具栏快速格式化（粗体、斜体、标题、列表、引用、链接、图片）
+- **实时预览**：并排 markdown 预览模式
+- **全屏模式**：专注写作体验
+- **语法高亮**：可视化 markdown 语法支持
+- **无缝集成**：日语分析功能自动作用于 markdown 内容
+
+有关 markdown 集成的详细文档，请参阅 [MARKDOWN_README.md](./MARKDOWN_README.md)。
 
 ### 开发信息
 - 主题颜色：编辑 `static/styles.css` 中的 CSS 变量。

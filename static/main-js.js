@@ -102,6 +102,78 @@ const headerSpeedValue = $('headerSpeedValue');
     tokenAlignLeft: 'tokenAlignLeft'
   };
 
+  // 初始化 EasyMDE Markdown 编辑器
+  let easymde = null;
+  
+  if (textInput && typeof EasyMDE !== 'undefined') {
+    easymde = new EasyMDE({
+      element: textInput,
+      placeholder: textInput.placeholder || '在此输入日语文本进行分析...',
+      spellChecker: false,
+      status: false,
+      toolbar: [
+        'bold', 'italic', 'heading', '|',
+        'quote', 'unordered-list', 'ordered-list', '|',
+        'link', 'image', '|',
+        'preview', 'side-by-side', 'fullscreen', '|',
+        'guide'
+      ],
+      autofocus: false,
+      lineWrapping: true,
+      indentWithTabs: false,
+      tabSize: 4,
+      renderingConfig: {
+        codeSyntaxHighlighting: false
+      }
+    });
+
+    // 覆盖 textInput 对象的属性和方法，使其与 markdown 编辑器兼容
+    // 由于 textInput 本身是一个 HTML 元素，我们可以添加新的属性/方法
+    const originalGetValue = function() { return this.value; };
+    const originalSetValue = function(val) { this.value = val; };
+    
+    Object.defineProperty(textInput, 'value', {
+      get: function() {
+        return easymde ? easymde.value() : '';
+      },
+      set: function(val) {
+        if (easymde) {
+          easymde.value(val || '');
+        }
+      },
+      configurable: true
+    });
+
+    // 保存原始的 addEventListener 方法
+    const originalAddEventListener = textInput.addEventListener.bind(textInput);
+    
+    textInput.addEventListener = function(event, handler, options) {
+      if (event === 'input' && easymde) {
+        easymde.codemirror.on('change', handler);
+      } else if (event === 'focus' && easymde) {
+        easymde.codemirror.on('focus', handler);
+      } else if (event === 'blur' && easymde) {
+        easymde.codemirror.on('blur', handler);
+      } else {
+        originalAddEventListener(event, handler, options);
+      }
+    };
+
+    // 保存原始的 focus 方法
+    const originalFocus = textInput.focus.bind(textInput);
+    
+    textInput.focus = function() {
+      if (easymde && easymde.codemirror) {
+        easymde.codemirror.focus();
+      } else {
+        originalFocus();
+      }
+    };
+
+    // 将 markdown 编辑器实例保存到全局，方便调试
+    window._markdownEditor = easymde;
+  }
+
   const PWA_MANIFEST_URL = 'static/pwa-assets.json';
   const PWA_CACHE_PREFIX = 'fudoki-cache';
   const PWA_STATE = {
