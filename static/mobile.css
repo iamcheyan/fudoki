@@ -211,8 +211,7 @@
 
 /* 折叠按钮在移动端不需要显示 */
 .sidebar-toggle-btn,
-#headerSpeedValue,
-#twoPaneToggle.theme-icon-btn {
+#headerSpeedValue {
   display: none;
 }
 

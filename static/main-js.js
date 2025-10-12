@@ -188,23 +188,16 @@ const headerSpeedValue = $('headerSpeedValue');
           
           // 触发 two-pane 切换
           const mainContainer = document.querySelector('.main-container');
-          const twoPaneToggle = document.getElementById('twoPaneToggle');
           
-          if (mainContainer && twoPaneToggle) {
+          if (mainContainer) {
             mainContainer.classList.toggle('two-pane');
             const isActive = mainContainer.classList.contains('two-pane');
             
             // 更新按钮状态
             if (isActive) {
               newBtn.classList.add('active');
-              twoPaneToggle.classList.add('is-active');
-              twoPaneToggle.setAttribute('aria-pressed', 'true');
-              twoPaneToggle.setAttribute('title', window.t ? window.t('twoPaneOn') : '两栏模式');
             } else {
               newBtn.classList.remove('active');
-              twoPaneToggle.classList.remove('is-active');
-              twoPaneToggle.setAttribute('aria-pressed', 'false');
-              twoPaneToggle.setAttribute('title', window.t ? window.t('twoPaneOff') : '单栏模式');
             }
             
             // 保存状态
@@ -6170,38 +6163,21 @@ Try Fudoki and enjoy Japanese language analysis!`;
     (function initTwoPane() {
       const mainContainer = document.querySelector('.main-container');
       if (!mainContainer) return;
-      // 恢复
+      // 恢复 two-pane 状态
       try {
         const saved = localStorage.getItem(LS.twoPane);
         const on = saved === 'true';
-        if (on) mainContainer.classList.add('two-pane');
-        if (twoPaneToggle) {
-          twoPaneToggle.classList.toggle('is-active', on);
-          twoPaneToggle.setAttribute('aria-pressed', String(on));
+        if (on) {
+          mainContainer.classList.add('two-pane');
+          // 同步 side-by-side 按钮状态
+          setTimeout(() => {
+            const sideBySideBtn = document.querySelector('.editor-toolbar .side-by-side');
+            if (sideBySideBtn) {
+              sideBySideBtn.classList.add('active');
+            }
+          }, 600);
         }
       } catch (_) {}
-
-      if (twoPaneToggle) {
-        twoPaneToggle.addEventListener('click', () => {
-          const next = !mainContainer.classList.contains('two-pane');
-          mainContainer.classList.toggle('two-pane', next);
-          // 同步与保存
-          twoPaneToggle.classList.toggle('is-active', next);
-          twoPaneToggle.setAttribute('aria-pressed', String(next));
-          twoPaneToggle.title = next ? (t('twoPaneOn') || '两栏模式已启用') : (t('twoPaneOff') || '两栏模式已关闭');
-          try { localStorage.setItem(LS.twoPane, String(next)); } catch (_) {}
-          
-          // 同步 EasyMDE 的 side-by-side 按钮状态
-          const sideBySideBtn = document.querySelector('.editor-toolbar .side-by-side');
-          if (sideBySideBtn) {
-            if (next) {
-              sideBySideBtn.classList.add('active');
-            } else {
-              sideBySideBtn.classList.remove('active');
-            }
-          }
-        });
-      }
     })();
     initQuickSearch();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能

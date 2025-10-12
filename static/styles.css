@@ -3051,18 +3051,6 @@ section.editor-toolbar {
   background: var(--elev);
 }
 /* 窄屏退化为单栏 - 已移至 mobile.css */
-#twoPaneToggle.theme-icon-btn{min-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
-
-/* 两栏模式启用时，图标旋转90度（左右栏变上下栏） */
-#twoPaneToggle.is-active svg {
-  transform: rotate(90deg);
-  transition: transform 0.3s ease;
-}
-
-/* 默认状态添加过渡动画 */
-#twoPaneToggle svg {
-  transition: transform 0.3s ease;
-}
 .editor-date{font-size:12px;color:var(--muted)}
 .editor-count{font-size:12px;color:var(--text);opacity:.9}
 .editor-star-toggle,.editor-reading-toggle{
