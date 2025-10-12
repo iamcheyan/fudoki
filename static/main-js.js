@@ -4402,19 +4402,27 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const mergedTokens = mergeTokensForDisplay(preSplit);
       const tokensForDisplay = splitKatakanaCompounds(mergedTokens);
       const lineHtml = tokensForDisplay.map((token, tokenIndex) => {
-        const surface = token.surface || '';
-        const reading = token.reading || '';
-        const lemma = token.lemma || surface;
-        const pos = Array.isArray(token.pos) ? token.pos : [token.pos || ''];
+        const override = (window.FudokiDict && window.FudokiDict.getTechOverride) ? window.FudokiDict.getTechOverride(token) : null;
+        const tokenForUi = (override && override.reading) ? { ...token, reading: override.reading } : token;
+        const surface = tokenForUi.surface || '';
+        const reading = tokenForUi.reading || '';
+        const lemma = tokenForUi.lemma || surface;
+        const pos = Array.isArray(tokenForUi.pos) ? tokenForUi.pos : [tokenForUi.pos || ''];
         
         // 解析词性信息
-          const posInfo = (window.FudokiDict && window.FudokiDict.parsePartOfSpeech) ? window.FudokiDict.parsePartOfSpeech(pos) : { main: '未知', details: [], original: pos };
+        const posInfo = (window.FudokiDict && window.FudokiDict.parsePartOfSpeech) ? window.FudokiDict.parsePartOfSpeech(pos) : { main: '未知', details: [], original: pos };
         const posDisplay = posInfo.main || '未知';
-        const detailInfo = (window.FudokiDict && window.FudokiDict.formatDetailInfo) ? window.FudokiDict.formatDetailInfo(token, posInfo, I18N[currentLang] || {}) : '';
+        const detailInfo = (window.FudokiDict && window.FudokiDict.formatDetailInfo) ? window.FudokiDict.formatDetailInfo(tokenForUi, posInfo, I18N[currentLang] || {}) : '';
         
         // 获取罗马音（仅针对日文读音；英文字母或数字时不显示）
         let romaji = '';
-        const r = reading || surface;
+        let r = reading || surface;
+        
+        // 特殊处理：助词「は」读作「わ」
+        if (surface === 'は' && pos[0] === '助詞' && isHaParticleReadingEnabled()) {
+          r = 'わ';
+        }
+        
         const isLatinOrNumber = /^[A-Za-z0-9 .,:;!?\-_/+()\[\]{}'"%&@#*]+$/.test(r);
         if (!isLatinOrNumber) {
           romaji = getRomaji(r);
@@ -4453,9 +4461,17 @@ Try Fudoki and enjoy Japanese language analysis!`;
           return surface;
         }
         
-        const readingText = formatReading(token, getReadingScript());
+        const readingText = formatReading(tokenForUi, getReadingScript());
+        
+        // 确定播放时使用的文本（考虑助词「は」的特殊情况）
+        let playText = reading || surface;
+        if (surface === 'は' && pos[0] === '助詞' && isHaParticleReadingEnabled()) {
+          playText = 'わ';
+        }
+        const sanitizedPlayText = String(playText || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n');
+        
         return `
-          <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(token).replace(/'/g, "&apos;")}' data-pos="${posDisplay}">
+          <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(tokenForUi).replace(/'/g, "&apos;")}' data-pos="${posDisplay}">
             <div class="token-content">
               <div class="token-kana display-kana">${readingText}</div>
               ${romaji ? `<div class="token-romaji display-romaji">${romaji}</div>` : ''}
@@ -4464,7 +4480,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
             </div>
             <div class="token-details" style="display: none;">
               ${detailInfo}
-              <button class="play-token-btn" onclick="playToken('${reading || surface}', event)" title="${t('play')}">
+              <button class="play-token-btn" onclick="playToken('${sanitizedPlayText}', event)" title="${t('play')}">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
@@ -4529,6 +4545,31 @@ Try Fudoki and enjoy Japanese language analysis!`;
       textToSpeak = resolvedToken.reading;
     }
     
+    // 检查自定义词典，如果有自定义读音，优先使用
+    if (resolvedToken && window.FudokiDict && window.FudokiDict.getTechOverride) {
+      const techOverride = window.FudokiDict.getTechOverride(resolvedToken);
+      if (techOverride && techOverride.reading) {
+        textToSpeak = techOverride.reading;
+        console.log('使用自定义词典读音:', {
+          surface: resolvedToken.surface,
+          originalReading: resolvedToken.reading,
+          customReading: techOverride.reading
+        });
+      }
+    }
+    
+    // 特殊处理：助词"は"读作"わ"
+    // 检查surface而不是text，因为text可能已经是读音
+    if (
+      resolvedToken && 
+      resolvedToken.surface === 'は' &&
+      resolvedToken.pos && Array.isArray(resolvedToken.pos) && resolvedToken.pos[0] === '助詞' &&
+      isHaParticleReadingEnabled()
+    ) {
+      textToSpeak = 'わ';
+      console.log('助词「は」特殊处理: は → わ');
+    }
+    
     // 调试信息
     console.log('TTS播放调试:', {
       text: text,
@@ -4537,46 +4578,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
       isHaParticleReadingEnabled: isHaParticleReadingEnabled()
     });
     
-    // 特殊处理：如果是"はつか"，直接播放，避免被长文本影响
-    if (textToSpeak === 'はつか') {
-      console.log('特殊处理：直接播放はつか');
-      const utterance = new SpeechSynthesisUtterance('はつか');
-      utterance.lang = 'ja-JP';
-      utterance.rate = rate;
-      utterance.pitch = 1.0;
-      applyVoice(utterance);
-      utterance.onstart = () => {
-        isPlaying = true;
-        updatePlayButtonStates();
-      };
-      utterance.onend = () => {
-        isPlaying = false;
-        updatePlayButtonStates();
-        clearTokenHighlight();
-      };
-      utterance.onerror = (e) => {
-        console.error('Speech synthesis error:', e);
-        isPlaying = false;
-        updatePlayButtonStates();
-        clearTokenHighlight();
-      };
-      window.speechSynthesis.speak(utterance);
-      return;
-    }
-    
-    // 特殊处理：助词"は"单字时读作"wa"
-    // 但要注意：如果text是合并词汇（如"はつか"），则不应应用此规则
-    // 只有当text确实是单个"は"字符且为助词时才转换
-    if (
-      text === 'は' &&
-      resolvedToken && resolvedToken.pos && Array.isArray(resolvedToken.pos) && resolvedToken.pos[0] === '助詞' &&
-      isHaParticleReadingEnabled()
-    ) {
-      textToSpeak = 'わ';
-    }
-    
-    // 高亮当前播放的词汇（仍然使用surface形式）
-    highlightToken(text);
+    // 高亮当前播放的词汇（优先使用解析到的 token 元素）
+    const pillElement = event && event.target && event.target.closest ? event.target.closest('.token-pill') : null;
+    const highlightText = resolvedToken && resolvedToken.surface ? resolvedToken.surface : text;
+    highlightToken(highlightText, pillElement);
     speak(textToSpeak);
   };
 
@@ -4927,6 +4932,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
             // 优先使用reading字段，如果没有则使用surface
             let textToSpeak = tokenData.reading || tokenData.surface || '';
             
+            // 检查自定义词典，如果有自定义读音，优先使用
+            if (window.FudokiDict && window.FudokiDict.getTechOverride) {
+              const techOverride = window.FudokiDict.getTechOverride(tokenData);
+              if (techOverride && techOverride.reading) {
+                textToSpeak = techOverride.reading;
+              }
+            }
+            
             // 特殊处理：助词"は"单字时读作"wa"
             // 但要注意：如果surface是合并词汇（如"はつか"），则不应应用此规则
             if (
@@ -4973,6 +4986,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
               const tokenData = JSON.parse(tokenDataAttr);
               // 优先使用reading，如果没有则使用surface，保留标点符号
               let textToSpeak = tokenData.reading || tokenData.surface || '';
+              
+              // 检查自定义词典，如果有自定义读音，优先使用
+              if (window.FudokiDict && window.FudokiDict.getTechOverride) {
+                const techOverride = window.FudokiDict.getTechOverride(tokenData);
+                if (techOverride && techOverride.reading) {
+                  textToSpeak = techOverride.reading;
+                }
+              }
               
               // 特殊处理：助词"は"单字时读作"wa"
               // 但要注意：如果surface是合并词汇（如"はつか"），则不应应用此规则
