@@ -333,3 +333,61 @@
 .sidebar-scroll {
   height: 94vh;
 }
+
+/* ========================================
+   EasyMDE Markdown 编辑器移动端优化
+   ======================================== */
+
+/* 移动端默认样式（≤768px） */
+.input-section .EasyMDEContainer .editor-toolbar {
+  padding: 3px 4px;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.input-section .EasyMDEContainer .editor-toolbar button {
+  padding: 4px 5px;
+  font-size: 14px;
+  min-width: 28px;
+  flex-shrink: 0;
+}
+
+/* 移动端隐藏分隔符 */
+.input-section .EasyMDEContainer .editor-toolbar i.separator {
+  display: none;
+}
+
+.input-section .EasyMDEContainer .CodeMirror {
+  min-height: 150px;
+  font-size: calc(13px * var(--font-scale));
+}
+.editor-panels {
+  padding-top: 0px;
+}
+/* 小屏移动端：超紧凑工具栏（≤480px） */
+@media (max-width: 480px) {
+  .input-section .EasyMDEContainer .editor-toolbar {
+    padding: 2px 3px;
+    gap: 1px;
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  /* 隐藏滚动条 */
+  .input-section .EasyMDEContainer .editor-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .input-section .EasyMDEContainer .editor-toolbar button {
+    padding: 3px 4px;
+    height: 28px;
+    min-width: 26px;
+  }
+  
+  /* 按钮图标更小 */
+  .input-section .EasyMDEContainer .editor-toolbar button i {
+    font-size: 14px;
+  }
+}

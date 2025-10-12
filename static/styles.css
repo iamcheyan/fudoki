@@ -3002,6 +3002,7 @@ section.editor-toolbar {
   border-left: none;
   border-right: none;
   border-top: none;
+  z-index: 999;
 }
 .editor-toolbar-left,
 .editor-toolbar-right {
@@ -4015,8 +4016,11 @@ input[type="text"], textarea { font-size: 14px; }
   border: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   border-radius: 8px 8px 0 0;
-  padding: 6px 8px;
+  padding: 5px 6px;
   opacity: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
 }
 
 .input-section .EasyMDEContainer .editor-toolbar::before,
@@ -4030,8 +4034,9 @@ input[type="text"], textarea { font-size: 14px; }
   border: none;
   color: var(--muted);
   border-radius: 4px;
-  padding: 6px 8px;
+  padding: 5px 7px;
   transition: all 0.2s;
+  margin: 0;
 }
 
 .input-section .EasyMDEContainer .editor-toolbar button:hover {
@@ -4046,9 +4051,11 @@ input[type="text"], textarea { font-size: 14px; }
   border: 1px solid var(--toolbar-chip-border);
 }
 
+/* 桌面端分隔符样式（移动端会被 mobile.css 隐藏） */
 .input-section .EasyMDEContainer .editor-toolbar i.separator {
   border-left: 1px solid var(--border);
   border-right: none;
+  margin: 0 2px;
 }
 
 /* CodeMirror 内容区 */
@@ -4158,21 +4165,4 @@ input[type="text"], textarea { font-size: 14px; }
 
 .input-section .EasyMDEContainer .cm-em {
   font-style: italic;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .input-section .EasyMDEContainer .editor-toolbar {
-    padding: 4px 6px;
-  }
-  
-  .input-section .EasyMDEContainer .editor-toolbar button {
-    padding: 4px 6px;
-    font-size: 14px;
-  }
-  
-  .input-section .EasyMDEContainer .CodeMirror {
-    min-height: 150px;
-    font-size: calc(13px * var(--font-scale));
-  }
 }
