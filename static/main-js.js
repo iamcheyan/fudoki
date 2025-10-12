@@ -241,7 +241,7 @@ const headerSpeedValue = $('headerSpeedValue');
   // 简易i18n词典（默认日语）
   const I18N = {
     ja: {
-      title: 'Fudoki',
+      title: 'フドキ',
       navAnalyze: 'テキスト解析',
       navTTS: '音声読み上げ',
       navHelp: 'ヘルプ',
@@ -465,7 +465,7 @@ const headerSpeedValue = $('headerSpeedValue');
       ,importConfirmOverwrite: 'Import will overwrite current data and settings. Continue?'
     },
     zh: {
-      title: 'Fudoki',
+      title: 'フドキ',
       navAnalyze: '文本分析',
       navTTS: '语音朗读',
       navHelp: '帮助',
