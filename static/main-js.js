@@ -1429,9 +1429,50 @@ const headerSpeedValue = $('headerSpeedValue');
       try {
         const original = document.getElementById('content');
         if (original) {
-          contentWrap.innerHTML = original.innerHTML;
+          // 检查是否有日语分析内容（有 token-pill 或 analysis-section）
+          const hasAnalysisContent = original.querySelector('.token-pill, .analysis-section, .line-container');
+          
+          if (hasAnalysisContent) {
+            // 有日语分析内容，直接克隆
+            contentWrap.innerHTML = original.innerHTML;
+          } else {
+            // 没有分析内容，可能是纯文本或 Markdown
+            // 尝试获取原始输入文本
+            const inputText = textInput ? textInput.value : '';
+            
+            if (inputText && inputText.trim()) {
+              // 检测是否包含 Markdown 语法
+              const hasMarkdown = /[#*_\[\]`]/.test(inputText) || 
+                                  /^[-*+]\s/m.test(inputText) || 
+                                  /^\d+\.\s/m.test(inputText) ||
+                                  /^>\s/m.test(inputText);
+              
+              if (hasMarkdown && typeof marked !== 'undefined') {
+                // 使用 marked 渲染 Markdown
+                try {
+                  const renderedHtml = marked.parse(inputText);
+                  contentWrap.innerHTML = renderedHtml;
+                  contentWrap.classList.add('markdown-content');
+                } catch (e) {
+                  console.warn('Markdown 渲染失败:', e);
+                  contentWrap.innerHTML = original.innerHTML || '<p class="empty-state">暂无内容</p>';
+                }
+              } else {
+                // 纯文本，保留换行
+                const formattedText = inputText.split('\n').map(line => 
+                  `<p>${line || '<br>'}</p>`
+                ).join('');
+                contentWrap.innerHTML = formattedText;
+              }
+            } else {
+              // 如果没有输入文本，显示原始内容或空状态
+              contentWrap.innerHTML = original.innerHTML || '<p class="empty-state">暂无内容</p>';
+            }
+          }
         }
-      } catch (_) {}
+      } catch (e) {
+        console.error('创建阅读浮层内容失败:', e);
+      }
 
       overlay.appendChild(backdrop);
       overlay.appendChild(contentWrap);
@@ -6261,6 +6302,82 @@ Try Fudoki and enjoy Japanese language analysis!`;
           }, 600);
         }
       } catch (_) {}
+    })();
+    
+    // 两栏模式滚动同步
+    (function initScrollSync() {
+      const inputGroup = document.querySelector('.input-section .input-group');
+      const contentArea = document.querySelector('.content-area');
+      const mainContainer = document.querySelector('.main-container');
+      
+      if (!inputGroup || !contentArea || !mainContainer) return;
+      
+      let isSyncing = false; // 防止循环触发
+      let syncTimeout = null;
+      
+      // 同步滚动函数
+      function syncScroll(source, target) {
+        if (isSyncing) return;
+        
+        // 只在 two-pane 模式下同步
+        if (!mainContainer.classList.contains('two-pane')) return;
+        
+        const sourceScrollTop = source.scrollTop;
+        const sourceScrollHeight = source.scrollHeight - source.clientHeight;
+        
+        // 如果源容器没有滚动空间，不同步
+        if (sourceScrollHeight <= 0) return;
+        
+        // 计算滚动比例
+        const scrollRatio = sourceScrollTop / sourceScrollHeight;
+        
+        // 计算目标滚动位置
+        const targetScrollHeight = target.scrollHeight - target.clientHeight;
+        const targetScrollTop = scrollRatio * targetScrollHeight;
+        
+        // 应用到目标容器
+        isSyncing = true;
+        target.scrollTop = targetScrollTop;
+        
+        // 清除之前的超时
+        if (syncTimeout) {
+          clearTimeout(syncTimeout);
+        }
+        
+        // 延迟重置标志，避免循环触发
+        syncTimeout = setTimeout(() => {
+          isSyncing = false;
+          syncTimeout = null;
+        }, 100);
+      }
+      
+      // 使用 requestAnimationFrame 优化滚动性能
+      let leftRafId = null;
+      let rightRafId = null;
+      
+      // 监听左侧滚动
+      inputGroup.addEventListener('scroll', () => {
+        if (leftRafId) {
+          cancelAnimationFrame(leftRafId);
+        }
+        
+        leftRafId = requestAnimationFrame(() => {
+          syncScroll(inputGroup, contentArea);
+          leftRafId = null;
+        });
+      }, { passive: true });
+      
+      // 监听右侧滚动
+      contentArea.addEventListener('scroll', () => {
+        if (rightRafId) {
+          cancelAnimationFrame(rightRafId);
+        }
+        
+        rightRafId = requestAnimationFrame(() => {
+          syncScroll(contentArea, inputGroup);
+          rightRafId = null;
+        });
+      }, { passive: true });
     })();
     initQuickSearch();
     // initSidebarAutoCollapse(); // 已禁用自动收缩功能
