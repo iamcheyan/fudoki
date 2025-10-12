@@ -2985,20 +2985,23 @@ html {
 .doc-action-btn.favorite-btn:hover { color: var(--text); }
 .doc-item.favorited .doc-action-btn.favorite-btn { color: #f5a623; }
 
-/* 编辑工具栏 - 固定在顶部 */
-.editor-toolbar {
+/* 编辑工具栏 - 固定在顶部（使用 section.editor-toolbar 更具体的选择器） */
+section.editor-toolbar {
   /* 改为两栏布局：左/右分区各占一列 */
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 12px;
-  padding: 0 10px;
+  padding: 0 10px 0 0;
   height: 44px;
   background: var(--bg);
   position: sticky;
   top: 0;
   /* z-index: 100; */
   border-bottom: 1px solid var(--border);
+  border-left: none;
+  border-right: none;
+  border-top: none;
 }
 .editor-toolbar-left,
 .editor-toolbar-right {
@@ -3058,10 +3061,10 @@ html {
 .editor-star-toggle.is-active{color:#f5a623;border-color:#f5a623;}
 
 /* 阅读模式隐藏顶部编辑工具栏 */
-#reading-mode .editor-toolbar{display:none!important}
+#reading-mode section.editor-toolbar{display:none!important}
 
 /* 深色主题适配 */
-:root[data-theme="dark"] .editor-toolbar{background:rgba(30,34,41,.78);border-color:rgba(255,255,255,.08);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="dark"] section.editor-toolbar{background:rgba(30,34,41,.78);border-color:rgba(255,255,255,.08);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 :root[data-theme="dark"] .editor-date{color:var(--muted)}
 :root[data-theme="dark"] .editor-star-toggle.is-active{color:#f5d083;border-color:#f5d083;background:rgba(245,208,131,.08)}
 
