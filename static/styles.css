@@ -3571,6 +3571,7 @@ input[type="checkbox"] {
   transition: background 20ms ease-in;
   flex-shrink: 0;
   color: var(--text-sec);
+  display: none;
 }
 
 .btn-new-dropdown:hover {
@@ -3595,6 +3596,7 @@ input[type="checkbox"] {
   transition: opacity 150ms ease, transform 150ms ease, visibility 150ms;
   z-index: 1000;
   background-color: var(--elev);
+  
 }
 
 .new-doc-dropdown-menu.show {
@@ -4196,6 +4198,24 @@ input[type="text"], textarea { font-size: 14px; }
   margin-bottom: 1em;
 }
 
+/* 全屏模式下的段落样式优化 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side p,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side li,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h1,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h2,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h3,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side h4,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side blockquote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  /* border-bottom: 1px solid var(--border); */
+  padding-bottom: 10px;
+  /* line-height: 4em;
+  min-height: 4em; */
+}
+
 /* 全屏模式 */
 .input-section .EasyMDEContainer.fullscreen {
   z-index: 9999;
@@ -4246,6 +4266,7 @@ input[type="text"], textarea { font-size: 14px; }
   padding: 20px;
   font-size: 16px;
   line-height: 1.8;
+  padding: 10px 40px;
 }
 
 .input-section .EasyMDEContainer.fullscreen .CodeMirror-sided {
@@ -4275,6 +4296,82 @@ input[type="text"], textarea { font-size: 14px; }
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* 全屏模式下的假名和罗马音样式 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 1px;
+  vertical-align: top;
+  position: relative;
+  /* min-height: 3.5em;
+  height: 3.5em; */
+}
+
+/* 假名层（顶部） - 固定高度 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-reading {
+  font-size: 0.5em;
+  color: var(--muted);
+  white-space: nowrap;
+  line-height: 1.2;
+  min-height: 0.6em;
+  height: 0.6em;
+  text-align: center;
+  order: 1;
+  display: block;
+}
+
+/* 罗马音层（中间） - 固定高度 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-romaji {
+  font-size: 0.45em;
+  color: var(--primary);
+  opacity: 0.75;
+  font-style: italic;
+  white-space: nowrap;
+  line-height: 1.2;
+  min-height: 0.55em;
+  height: 0.55em;
+  text-align: center;
+  order: 2;
+  margin-bottom: 2px;
+  display: block;
+}
+
+/* 主文本层（底部） - 固定高度 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-base {
+  font-size: 1em;
+  line-height: 1.4;
+  color: var(--text);
+  white-space: nowrap;
+  min-height: 1.4em;
+  text-align: center;
+  order: 3;
+}
+
+/* 纯文本（无假名）的wrapper也保持相同高度 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-wrapper.furigana-plain .furigana-reading,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-wrapper.furigana-plain .furigana-romaji {
+  visibility: hidden;
+}
+
+/* 确保空的假名和罗马音层也有高度 */
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-reading:empty::before,
+.input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-romaji:empty::before {
+  content: '\00a0'; /* 不间断空格 */
+  opacity: 0;
+}
+
+/* 深色主题下的假名颜色调整 */
+[data-theme="dark"] .input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-reading {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .input-section .EasyMDEContainer.fullscreen .editor-preview-side .furigana-romaji {
+  color: var(--primary);
+  opacity: 0.8;
+}
+
 /* 全屏模式下的标题样式 */
 .input-section .EasyMDEContainer.fullscreen .editor-preview-side h1,
 .input-section .EasyMDEContainer.fullscreen .editor-preview-side h2,
@@ -4286,13 +4383,11 @@ input[type="text"], textarea { font-size: 14px; }
 
 .input-section .EasyMDEContainer.fullscreen .editor-preview-side h1 {
   font-size: 2em;
-  border-bottom: 2px solid var(--border);
   padding-bottom: 0.3em;
 }
 
 .input-section .EasyMDEContainer.fullscreen .editor-preview-side h2 {
   font-size: 1.5em;
-  border-bottom: 1px solid var(--border);
   padding-bottom: 0.2em;
 }
 

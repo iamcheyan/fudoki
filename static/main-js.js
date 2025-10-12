@@ -216,6 +216,224 @@ const headerSpeedValue = $('headerSpeedValue');
         }
       }
 
+      // 全局变量：标记是否正在处理
+      let isProcessingFurigana = false;
+      let furiganaObserver = null;
+      
+      // 为预览区域的日语文本添加假名和罗马音
+      async function addFuriganaToPreview() {
+        const previewSide = document.querySelector('.editor-preview-side');
+        if (!previewSide || isProcessingFurigana) return;
+        
+        // 检查是否已经处理过（通过标记属性）
+        if (previewSide.hasAttribute('data-furigana-processed')) {
+          return;
+        }
+        
+        isProcessingFurigana = true;
+        
+        try {
+          // 等待分词器初始化
+          if (!segmenter) {
+            await initSegmenter();
+          }
+          
+          // 获取所有文本节点
+          const walker = document.createTreeWalker(
+            previewSide,
+            NodeFilter.SHOW_TEXT,
+            {
+              acceptNode: (node) => {
+                // 跳过代码块和已处理的节点
+                const parent = node.parentElement;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+                const tagName = parent.tagName.toLowerCase();
+                if (tagName === 'code' || tagName === 'pre' || tagName === 'script' || tagName === 'style') {
+                  return NodeFilter.FILTER_REJECT;
+                }
+                // 跳过已经处理过的假名标签
+                if (parent.classList.contains('furigana-wrapper') || 
+                    parent.classList.contains('furigana-base') ||
+                    parent.classList.contains('furigana-reading') ||
+                    parent.classList.contains('furigana-romaji') ||
+                    parent.classList.contains('furigana-annotation')) {
+                  return NodeFilter.FILTER_REJECT;
+                }
+                // 向上检查祖先元素
+                let ancestor = parent.parentElement;
+                while (ancestor && ancestor !== previewSide) {
+                  if (ancestor.classList.contains('furigana-wrapper')) {
+                    return NodeFilter.FILTER_REJECT;
+                  }
+                  ancestor = ancestor.parentElement;
+                }
+                // 只处理包含日语字符的文本
+                const text = node.textContent.trim();
+                if (text && /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text)) {
+                  return NodeFilter.FILTER_ACCEPT;
+                }
+                return NodeFilter.FILTER_REJECT;
+              }
+            }
+          );
+          
+          const textNodes = [];
+          let node;
+          while (node = walker.nextNode()) {
+            textNodes.push(node);
+          }
+          
+          // 处理每个文本节点
+          for (const textNode of textNodes) {
+            const text = textNode.textContent;
+            if (!text.trim()) continue;
+            
+            try {
+              // 对文本进行分词
+              const result = await segmenter.segment(text, 'B');
+              if (!result.lines || result.lines.length === 0) continue;
+              
+              const tokens = result.lines[0]; // 单行处理
+              if (!tokens || tokens.length === 0) continue;
+              
+              // 创建包含ruby标签的HTML
+              const fragment = document.createDocumentFragment();
+              
+            for (const token of tokens) {
+              const surface = token.surface || '';
+              const reading = token.reading || '';
+              
+              // 检查是否为日语词汇（包含汉字或假名）
+              const hasKanji = /[\u4E00-\u9FAF]/.test(surface);
+              const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(surface);
+              
+              // 跳过纯英文/数字/符号
+              const isPureAscii = /^[a-zA-Z0-9\s\.,!?;:'"()\-_/\\]+$/.test(surface);
+              
+              if (hasJapanese && reading && reading !== surface && !isPureAscii) {
+                // 创建包装元素
+                const wrapper = document.createElement('span');
+                wrapper.className = 'furigana-wrapper';
+                
+                // 假名（顶部）
+                const readingSpan = document.createElement('span');
+                readingSpan.className = 'furigana-reading';
+                readingSpan.textContent = reading || '';
+                wrapper.appendChild(readingSpan);
+                
+                // 罗马音（中间）
+                const romajiSpan = document.createElement('span');
+                romajiSpan.className = 'furigana-romaji';
+                if (hasKanji || /[\u30A0-\u30FF]/.test(surface)) {
+                  const romaji = getRomaji(reading);
+                  if (romaji && romaji !== reading) {
+                    romajiSpan.textContent = romaji;
+                  }
+                }
+                wrapper.appendChild(romajiSpan);
+                
+                // 主文本/汉字（底部）
+                const baseSpan = document.createElement('span');
+                baseSpan.className = 'furigana-base';
+                baseSpan.textContent = surface;
+                wrapper.appendChild(baseSpan);
+                
+                fragment.appendChild(wrapper);
+              } else {
+                // 所有文本（包括纯英文）都用wrapper包装以保持底部对齐
+                const wrapper = document.createElement('span');
+                wrapper.className = 'furigana-wrapper furigana-plain';
+                
+                // 空的假名层（保留空间）
+                const readingSpan = document.createElement('span');
+                readingSpan.className = 'furigana-reading';
+                wrapper.appendChild(readingSpan);
+                
+                // 空的罗马音层（保留空间）
+                const romajiSpan = document.createElement('span');
+                romajiSpan.className = 'furigana-romaji';
+                wrapper.appendChild(romajiSpan);
+                
+                // 主文本
+                const baseSpan = document.createElement('span');
+                baseSpan.className = 'furigana-base';
+                baseSpan.textContent = surface;
+                wrapper.appendChild(baseSpan);
+                
+                fragment.appendChild(wrapper);
+              }
+          }
+          
+          // 替换原文本节点
+          textNode.parentNode.replaceChild(fragment, textNode);
+        } catch (error) {
+          console.error('处理文本节点时出错:', error);
+        }
+      }
+      
+      // 标记已处理
+      previewSide.setAttribute('data-furigana-processed', 'true');
+    } finally {
+      isProcessingFurigana = false;
+    }
+  }
+      
+      // 设置MutationObserver监听预览区域的变化
+      function setupFuriganaObserver() {
+        const previewSide = document.querySelector('.editor-preview-side');
+        if (!previewSide) return;
+        
+        // 如果已经有observer，先断开
+        if (furiganaObserver) {
+          furiganaObserver.disconnect();
+        }
+        
+        // 创建新的observer
+        furiganaObserver = new MutationObserver((mutations) => {
+          // 检查是否有实质性的DOM变化
+          let hasChanges = false;
+          for (const mutation of mutations) {
+            // 如果有节点添加或删除，且不是我们添加的假名节点
+            if (mutation.type === 'childList') {
+              const addedNodes = Array.from(mutation.addedNodes);
+              const removedNodes = Array.from(mutation.removedNodes);
+              
+              // 检查是否有非假名节点的变化
+              const hasNonFuriganaChanges = 
+                addedNodes.some(node => 
+                  node.nodeType === Node.ELEMENT_NODE && 
+                  !node.classList?.contains('furigana-wrapper')
+                ) ||
+                removedNodes.some(node => 
+                  node.nodeType === Node.ELEMENT_NODE && 
+                  !node.classList?.contains('furigana-wrapper')
+                );
+              
+              if (hasNonFuriganaChanges) {
+                hasChanges = true;
+                break;
+              }
+            }
+          }
+          
+          if (hasChanges) {
+            // 移除已处理标记，以便重新处理
+            previewSide.removeAttribute('data-furigana-processed');
+            // 延迟处理，等待DOM稳定
+            setTimeout(() => {
+              addFuriganaToPreview();
+            }, 100);
+          }
+        });
+        
+        // 开始观察
+        furiganaObserver.observe(previewSide, {
+          childList: true,
+          subtree: true,
+          characterData: false
+        });
+      }
+      
       // 拦截 EasyMDE 的 fullscreen 按钮，添加隐藏工具栏功能
       const fullscreenBtn = document.querySelector('.editor-toolbar .fullscreen');
       if (fullscreenBtn) {
@@ -245,6 +463,18 @@ const headerSpeedValue = $('headerSpeedValue');
             // 显示工具栏和侧边栏
             if (editorToolbar) editorToolbar.style.display = '';
             if (sidebarStack) sidebarStack.style.display = '';
+            
+            // 断开假名观察器
+            if (furiganaObserver) {
+              furiganaObserver.disconnect();
+              furiganaObserver = null;
+            }
+            
+            // 清除处理标记
+            const previewSide = document.querySelector('.editor-preview-side');
+            if (previewSide) {
+              previewSide.removeAttribute('data-furigana-processed');
+            }
             
             // 刷新 CodeMirror
             setTimeout(() => {
@@ -281,7 +511,33 @@ const headerSpeedValue = $('headerSpeedValue');
                 easymde.toggleSideBySide();
               }
               easymde.codemirror.refresh();
+              
+              // 等待预览渲染完成后添加假名和设置观察器
+              setTimeout(() => {
+                addFuriganaToPreview().then(() => {
+                  // 设置观察器，监听后续的DOM变化
+                  setupFuriganaObserver();
+                });
+              }, 300);
             }, 100);
+          }
+        });
+        
+        // 监听编辑器内容变化，实时更新假名（作为备用机制）
+        let updateTimeout = null;
+        easymde.codemirror.on('change', () => {
+          const container = easymde.codemirror.getWrapperElement().closest('.EasyMDEContainer');
+          if (container && container.classList.contains('fullscreen')) {
+            const previewSide = document.querySelector('.editor-preview-side');
+            if (previewSide) {
+              // 防抖处理，避免频繁更新
+              if (updateTimeout) clearTimeout(updateTimeout);
+              updateTimeout = setTimeout(() => {
+                // 清除标记以允许重新处理
+                previewSide.removeAttribute('data-furigana-processed');
+                addFuriganaToPreview();
+              }, 1000);
+            }
           }
         });
         
@@ -4164,18 +4420,37 @@ Try Fudoki and enjoy Japanese language analysis!`;
           romaji = getRomaji(r);
         }
         
-        // 检查是否为标点符号
-        const isPunct = (pos[0] === '記号' || pos[0] === '補助記号');
-        // 检查是否为需要过滤的装饰性符号（包括markdown标记）
+        // 日文常用标点符号（只有这些可以显示为带样式的punct）
+        const japaneseCommonPunct = /^[。、！？「」『』（）【】〜・※…ー〇]$/;
+        
+        // Markdown标记和装饰性符号（这些需要完全过滤）
         const isMarkdownSymbol = /^[#*_`>~\-=\[\]]+$/.test(surface);
         const isDecorativeSymbol = /^[•·\/\s\u00A0\u2000-\u200F\u2028-\u202F\u205F-\u206F\u3000]+$/.test(surface);
 
+        // 先过滤掉markdown标记和装饰性符号
         if (isDecorativeSymbol || isMarkdownSymbol) {
-          // 过滤掉装饰性符号和markdown标记，不显示
           return '';
-        } else if (isPunct) {
-          // 标点符号以普通文本显示，不作为卡片
+        }
+        
+        // 检查surface中是否包含任何标点符号字符
+        const containsPunctuation = /[#*_`>~\-=\[\](){}|\\/:;,.<>!?'"@$%^&+：・×]/.test(surface);
+        
+        // 如果包含标点符号但不是日文常用标点
+        if (containsPunctuation && !japaneseCommonPunct.test(surface)) {
+          // 直接显示为普通文本，不用token-pill
+          return surface;
+        }
+        
+        // 如果是日文常用标点符号
+        if (japaneseCommonPunct.test(surface)) {
           return `<span class="punct">${surface}</span>`;
+        }
+        
+        // 检查词性是否为标点
+        const isPunct = (pos[0] === '記号' || pos[0] === '補助記号');
+        if (isPunct) {
+          // 其他词性为記号的，也直接显示为普通文本
+          return surface;
         }
         
         const readingText = formatReading(token, getReadingScript());
@@ -4199,6 +4474,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
         `;
       }).join('');
       
+      // 如果行内容为空（所有token都被过滤），不生成line-container
+      if (!lineHtml.trim()) {
+        return '';
+      }
+      
       return `
         <div class="line-container" data-line-index="${lineIndex}" tabindex="-1">
           ${lineHtml}
@@ -4209,7 +4489,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           </button>
         </div>
       `;
-    }).join('');
+    }).filter(html => html).join('');
 
     content.innerHTML = html;
     syncReadingLineAttributes(isReadingMode);
