@@ -556,7 +556,7 @@ body {
 .main-container.two-pane #editorPanels .input-section{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
 .main-container.two-pane #editorPanels .content-area{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
 .main-container.two-pane #editorPanels{height:calc(100vh - 44px)}
-.main-container.two-pane #editorPanels .input-section{overflow:hidden; margin: 0 10px 10px 10px;}
+.main-container.two-pane #editorPanels .input-section{overflow:visible; margin: 0 10px 10px 10px;}
 .main-container.two-pane #editorPanels .content-area{overflow-y:auto;}
 .main-container.two-pane .input-section .editor{flex:1 1 auto}
 .main-container.two-pane .content-area .content{flex:1 1 auto}
@@ -576,6 +576,7 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  max-height: calc(100vh - 44px - 60px); /* 减去工具栏和播放控制栏高度 */
 }
 
 /* two-pane 模式下：play-control-bar 固定在底部 */
@@ -585,6 +586,17 @@ body {
   padding-top: 8px;
   border-top: 1px solid var(--border);
   background: var(--bg);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+/* two-pane 模式下：确保 EasyMDE 工具栏也固定 */
+.main-container.two-pane .input-section .EasyMDEContainer .editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--elev);
 }
 @media (max-width: 900px){
   .main-container.two-pane #editorPanels{display:block}
@@ -3014,12 +3026,18 @@ section.editor-toolbar {
   background: var(--bg);
   position: sticky;
   top: 0;
-  /* z-index: 100; */
   border-bottom: 1px solid var(--border);
   border-left: none;
   border-right: none;
   border-top: none;
-  z-index: 800;
+  z-index: 900;
+}
+
+/* two-pane 模式下：确保顶部工具栏始终固定 */
+.main-container.two-pane section.editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 900;
 }
 .editor-toolbar-left,
 .editor-toolbar-right {
