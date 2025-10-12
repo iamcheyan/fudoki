@@ -556,7 +556,7 @@ body {
 .main-container.two-pane #editorPanels .input-section{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
 .main-container.two-pane #editorPanels .content-area{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
 .main-container.two-pane #editorPanels{height:calc(100vh - 44px)}
-.main-container.two-pane #editorPanels .input-section{overflow-y:auto; margin: 0 10px 10px 10px;}
+.main-container.two-pane #editorPanels .input-section{overflow:hidden; margin: 0 10px 10px 10px;}
 .main-container.two-pane #editorPanels .content-area{overflow-y:auto;}
 .main-container.two-pane .input-section .editor{flex:1 1 auto}
 .main-container.two-pane .content-area .content{flex:1 1 auto}
@@ -568,6 +568,23 @@ body {
 }
 .main-container.two-pane #textInput {
   height: calc(100vh - 125px);
+}
+
+/* two-pane 模式下：input-section 内部布局 */
+.main-container.two-pane .input-section .input-group {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* two-pane 模式下：play-control-bar 固定在底部 */
+.main-container.two-pane .input-section .play-control-bar {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
 }
 @media (max-width: 900px){
   .main-container.two-pane #editorPanels{display:block}
@@ -3002,7 +3019,7 @@ section.editor-toolbar {
   border-left: none;
   border-right: none;
   border-top: none;
-  z-index: 999;
+  z-index: 800;
 }
 .editor-toolbar-left,
 .editor-toolbar-right {
@@ -4058,6 +4075,16 @@ input[type="text"], textarea { font-size: 14px; }
   margin: 0 2px;
 }
 
+/* side-by-side 按钮旋转效果 */
+.input-section .EasyMDEContainer .editor-toolbar button.side-by-side i {
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.input-section .EasyMDEContainer .editor-toolbar button.side-by-side.active i {
+  transform: rotate(90deg);
+}
+
 /* CodeMirror 内容区 */
 .input-section .EasyMDEContainer .CodeMirror-scroll {
   min-height: 200px;
@@ -4065,14 +4092,28 @@ input[type="text"], textarea { font-size: 14px; }
 }
 
 /* 两栏模式下的编辑器高度 */
+.main-container.two-pane .input-section .EasyMDEContainer {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-container.two-pane .input-section .EasyMDEContainer .CodeMirror-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .main-container.two-pane .input-section .EasyMDEContainer .CodeMirror {
-  min-height: calc(100vh - 200px);
-  max-height: calc(100vh - 200px);
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 300px;
 }
 
 .main-container.two-pane .input-section .EasyMDEContainer .CodeMirror-scroll {
-  min-height: calc(100vh - 200px);
-  max-height: calc(100vh - 200px);
+  height: 100%;
+  min-height: 300px;
+  max-height: none;
 }
 
 /* 光标颜色 */

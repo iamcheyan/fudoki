@@ -172,6 +172,57 @@ const headerSpeedValue = $('headerSpeedValue');
 
     // 将 markdown 编辑器实例保存到全局，方便调试
     window._markdownEditor = easymde;
+
+    // 拦截 EasyMDE 的 side-by-side 按钮，改为切换 two-pane 模式
+    setTimeout(() => {
+      const sideBySideBtn = document.querySelector('.editor-toolbar .side-by-side');
+      if (sideBySideBtn) {
+        // 移除 EasyMDE 的默认事件
+        const newBtn = sideBySideBtn.cloneNode(true);
+        sideBySideBtn.parentNode.replaceChild(newBtn, sideBySideBtn);
+        
+        // 添加新的点击事件
+        newBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // 触发 two-pane 切换
+          const mainContainer = document.querySelector('.main-container');
+          const twoPaneToggle = document.getElementById('twoPaneToggle');
+          
+          if (mainContainer && twoPaneToggle) {
+            mainContainer.classList.toggle('two-pane');
+            const isActive = mainContainer.classList.contains('two-pane');
+            
+            // 更新按钮状态
+            if (isActive) {
+              newBtn.classList.add('active');
+              twoPaneToggle.classList.add('is-active');
+              twoPaneToggle.setAttribute('aria-pressed', 'true');
+              twoPaneToggle.setAttribute('title', window.t ? window.t('twoPaneOn') : '两栏模式');
+            } else {
+              newBtn.classList.remove('active');
+              twoPaneToggle.classList.remove('is-active');
+              twoPaneToggle.setAttribute('aria-pressed', 'false');
+              twoPaneToggle.setAttribute('title', window.t ? window.t('twoPaneOff') : '单栏模式');
+            }
+            
+            // 保存状态
+            try {
+              localStorage.setItem('twoPane', isActive ? 'true' : 'false');
+            } catch (e) {
+              console.warn('无法保存 two-pane 状态:', e);
+            }
+          }
+        });
+        
+        // 初始化按钮状态
+        const mainContainer = document.querySelector('.main-container');
+        if (mainContainer && mainContainer.classList.contains('two-pane')) {
+          newBtn.classList.add('active');
+        }
+      }
+    }, 500);
   }
 
   const PWA_MANIFEST_URL = 'static/pwa-assets.json';
@@ -6139,6 +6190,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
           twoPaneToggle.setAttribute('aria-pressed', String(next));
           twoPaneToggle.title = next ? (t('twoPaneOn') || '两栏模式已启用') : (t('twoPaneOff') || '两栏模式已关闭');
           try { localStorage.setItem(LS.twoPane, String(next)); } catch (_) {}
+          
+          // 同步 EasyMDE 的 side-by-side 按钮状态
+          const sideBySideBtn = document.querySelector('.editor-toolbar .side-by-side');
+          if (sideBySideBtn) {
+            if (next) {
+              sideBySideBtn.classList.add('active');
+            } else {
+              sideBySideBtn.classList.remove('active');
+            }
+          }
         });
       }
     })();
