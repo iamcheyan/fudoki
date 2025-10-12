@@ -3770,9 +3770,10 @@ input[type="checkbox"] {
   box-shadow: 0 0 0 2px rgba(78,161,255,0.35), 0 2px 6px rgba(0,0,0,0.12);
 }
 .search-info {
-  margin-top: 0.25rem;
-  font-size: 0.8rem;
+  /* margin-top: 0.25rem; */
+  font-size: 12px;
   color: #888;
+  margin: 10px;
 }
 
 /* 搜索高亮 */

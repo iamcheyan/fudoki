@@ -841,6 +841,15 @@ const headerSpeedValue = $('headerSpeedValue');
       close: '閉じる',
       confirmExit: '終了しますか？',
       exitInDevelopment: '終了機能は開発中です...'
+      ,backupTitle: 'バックアップとインポート'
+      ,exportBtn: 'データをエクスポート'
+      ,importBtn: 'データをインポート'
+      ,exportSuccess: 'バックアップJSONをエクスポートしました。'
+      ,exportError: 'エクスポートに失敗しました。'
+      ,importSuccess: 'バックアップをインポートしました。'
+      ,importError: 'インポートに失敗しました。'
+      ,importConfirmOverwrite: 'インポートすると現在のデータと設定が上書きされます。続行しますか？'
+      ,resume: '再開'
     },
     en: {
       title: 'Fudoki',
@@ -918,6 +927,7 @@ const headerSpeedValue = $('headerSpeedValue');
       play: 'Play',
       stop: 'Stop',
       pause: 'Pause',
+      resume: 'Resume',
       playThisLine: 'Play this line',
       expand: 'Expand',
       collapse: 'Collapse',
