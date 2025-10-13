@@ -858,6 +858,14 @@ const headerSpeedValue = $('headerSpeedValue');
       confirmExit: '終了しますか？',
       exitInDevelopment: '終了機能は開発中です...'
       ,backupTitle: 'バックアップとインポート'
+      ,userMenuSyncData: 'データを同期'
+      ,userMenuSettings: '設定'
+      ,userMenuDataManagement: 'データ管理'
+      ,userMenuExport: 'エクスポート'
+      ,userMenuImport: 'インポート'
+      ,userMenuDownload: 'ダウンロード'
+      ,userMenuSwitchAccount: 'アカウントを切り替え'
+      ,userMenuLogout: 'ログアウト'
       ,exportBtn: 'データをエクスポート'
       ,importBtn: 'データをインポート'
       ,exportSuccess: 'バックアップJSONをエクスポートしました。'
@@ -976,6 +984,14 @@ const headerSpeedValue = $('headerSpeedValue');
       confirmExit: 'Are you sure you want to exit?',
       exitInDevelopment: 'Exit feature is under development...'
       ,backupTitle: 'Backup & Import'
+      ,userMenuSyncData: 'Sync Data'
+      ,userMenuSettings: 'Settings'
+      ,userMenuDataManagement: 'Data Management'
+      ,userMenuExport: 'Export'
+      ,userMenuImport: 'Import'
+      ,userMenuDownload: 'Download'
+      ,userMenuSwitchAccount: 'Switch Account'
+      ,userMenuLogout: 'Logout'
       ,exportBtn: 'Export Data'
       ,importBtn: 'Import Data'
       ,exportSuccess: 'Exported backup JSON.'
@@ -1092,6 +1108,14 @@ const headerSpeedValue = $('headerSpeedValue');
       confirmExit: '确定要退出吗？',
       exitInDevelopment: '退出功能开发中...'
       ,backupTitle: '备份与导入'
+      ,userMenuSyncData: '同步数据'
+      ,userMenuSettings: '设置'
+      ,userMenuDataManagement: '数据管理'
+      ,userMenuExport: '导出'
+      ,userMenuImport: '导入'
+      ,userMenuDownload: '下载'
+      ,userMenuSwitchAccount: '切换账户'
+      ,userMenuLogout: '登出'
       ,exportBtn: '导出数据'
       ,importBtn: '导入数据'
       ,exportSuccess: '已导出备份 JSON。'
@@ -3238,7 +3262,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const doc = docs[index];
       if (doc.locked) {
         if (!skipConfirm) {
-          alert(t('cannotDeleteDefault'));
+          showErrorToast(t('cannotDeleteDefault'));
         }
         return false;
       }
@@ -3810,7 +3834,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
             if (typeof window.performDataSync === 'function') {
               await window.performDataSync();
             } else {
-              alert('同期機能が利用できません');
+              showErrorToast('同期機能が利用できません');
             }
           } finally {
             syncBtn.classList.remove('is-loading');
@@ -6718,8 +6742,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
           const proceed = (cb) => {
             if (window.showDeleteConfirm) {
               showDeleteConfirm(t('importConfirmOverwrite'), () => cb && cb(), () => {});
-            } else if (window.confirm ? window.confirm(t('importConfirmOverwrite')) : true) {
-              cb && cb();
+            } else {
+              // 直接执行导入，不再需要 confirm
+              showInfoToast(t('importConfirmOverwrite'), 1500);
+              setTimeout(() => {
+                cb && cb();
+              }, 500);
             }
           };
           proceed(() => {
@@ -7242,10 +7270,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (logoutBtn) {
       logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (confirm(t('confirmExit'))) {
-          alert(t('exitInDevelopment'));
-          // 这里可以添加实际的退出逻辑
-        }
+        // 直接显示提示信息，移除 confirm
+        showInfoToast(t('exitInDevelopment'));
+        // 这里可以添加实际的退出逻辑
       });
     }
 
@@ -7792,6 +7819,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
       userProfileContainer.classList.remove('open');
       
       try {
+        // 设置登出标志，防止 login.html 自动重新登录
+        sessionStorage.setItem('fudoki_logging_out', 'true');
+        
         // 使用 Firebase signOut
         if (window.firebaseAuth && typeof window.firebaseAuth.signOut === 'function') {
           await window.firebaseAuth.signOut();
@@ -7804,6 +7834,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       } catch (error) {
         console.error('Sign out error:', error);
         // 即使出错也清除本地数据并跳转
+        sessionStorage.setItem('fudoki_logging_out', 'true');
         localStorage.removeItem('fudoki_user');
         window.location.href = 'login.html';
       }
@@ -7812,9 +7843,16 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 登出功能
     logoutBtn.addEventListener('click', async () => {
       userProfileContainer.classList.remove('open');
-      // 确认登出
-      if (confirm('本当にログアウトしますか？')) {
+      
+      // 显示确认提示
+      showInfoToast('ログアウトしています...', 1000);
+      
+      // 延迟执行登出，让用户看到提示
+      setTimeout(async () => {
         try {
+          // 设置登出标志，防止 login.html 自动重新登录
+          sessionStorage.setItem('fudoki_logging_out', 'true');
+          
           // 使用 Firebase signOut
           if (window.firebaseAuth && typeof window.firebaseAuth.signOut === 'function') {
             await window.firebaseAuth.signOut();
@@ -7827,10 +7865,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
         } catch (error) {
           console.error('Logout error:', error);
           // 即使出错也清除本地数据并跳转
+          sessionStorage.setItem('fudoki_logging_out', 'true');
           localStorage.removeItem('fudoki_user');
           window.location.href = 'login.html';
         }
-      }
+      }, 500);
     });
 
     // 数据导出功能
@@ -7864,7 +7903,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const file = userImportFile.files && userImportFile.files[0];
         if (!file) return;
 
-        if (confirm('インポートすると現在のデータが上書きされます。続行しますか？')) {
+        // 使用 toast 提示而非 confirm
+        showInfoToast('データをインポート中...', 1000);
+        
+        setTimeout(() => {
           const reader = new FileReader();
           reader.onload = () => {
             try {
@@ -7884,9 +7926,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
             userImportFile.value = '';
           };
           reader.readAsText(file);
-        } else {
-          userImportFile.value = '';
-        }
+        }, 500);
       });
     }
 
@@ -7966,6 +8006,25 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }, 2000);
       }
     }
+
+    // 通用信息 Toast（用于替代 alert）
+    function showInfoToast(message, duration = 3000) {
+      // 复用 syncProgressToast 作为通用信息提示
+      const toast = document.getElementById('syncProgressToast');
+      const text = document.getElementById('syncProgressText');
+      if (toast && text) {
+        text.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, duration);
+      }
+    }
+
+    // 暴露 toast 函数到全局
+    window.showSuccessToast = showSuccessToast;
+    window.showErrorToast = showErrorToast;
+    window.showInfoToast = showInfoToast;
 
     // ========== 主题切换功能 ==========
     try {

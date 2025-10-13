@@ -4139,7 +4139,8 @@ input[type="checkbox"] {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 2px;
+  /* gap: 2px; */
+  padding-right: 5px;
 }
 
 /* 下拉箭头按钮 */
@@ -4696,7 +4697,7 @@ input[type="text"], textarea { font-size: 14px; }
   opacity: 1;
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: 0;
 }
 
 .input-section .EasyMDEContainer .editor-toolbar::before,
