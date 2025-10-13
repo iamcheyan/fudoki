@@ -34,10 +34,19 @@ self.addEventListener('activate', (event) => {
 // Fetch strategy
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  const url = new URL(req.url);
-
+  
+  // Early return for non-GET requests
   if (req.method !== 'GET') return;
-  if (url.protocol.startsWith('chrome-extension')) return;
+  
+  try {
+    const url = new URL(req.url);
+    
+    // Ignore chrome-extension, chrome://, and other special protocols
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+  } catch (error) {
+    // Invalid URL, ignore
+    return;
+  }
 
   // Navigation requests: prefer network, fallback to cached HTML
   if (isNavigationRequest(event)) {
@@ -70,14 +79,24 @@ self.addEventListener('message', (event) => {
 
 // ===== Strategies =====
 async function cacheFirst(request) {
+  // Additional safety check for cacheable requests
+  if (!isCacheableRequest(request)) {
+    return fetch(request);
+  }
+
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request, { ignoreSearch: true });
   if (cached) return cached;
 
   try {
     const response = await fetch(request);
-    if (shouldCacheResponse(response)) {
-      await cache.put(request, response.clone());
+    if (shouldCacheResponse(response) && isCacheableRequest(request)) {
+      try {
+        await cache.put(request, response.clone());
+      } catch (cacheError) {
+        // Log but don't throw - still return the response
+        console.warn('[SW] Cache put failed:', cacheError);
+      }
     }
     return response;
   } catch (error) {
@@ -92,8 +111,13 @@ async function networkFirst(request, fallbackUrl) {
   const cache = await caches.open(CACHE_NAME);
   try {
     const response = await fetch(request);
-    if (shouldCacheResponse(response)) {
-      await cache.put(request, response.clone());
+    if (shouldCacheResponse(response) && isCacheableRequest(request)) {
+      try {
+        await cache.put(request, response.clone());
+      } catch (cacheError) {
+        // Log but don't throw - still return the response
+        console.warn('[SW] Cache put failed:', cacheError);
+      }
     }
     return response;
   } catch (error) {
@@ -124,6 +148,23 @@ function isSameOrigin(request) {
 
 function shouldCacheResponse(response) {
   return response && response.ok && (response.type === 'basic' || response.type === 'default');
+}
+
+function isCacheableRequest(request) {
+  try {
+    const url = new URL(request.url);
+    // Only cache http/https protocols
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return false;
+    }
+    // Only cache same-origin requests
+    if (url.origin !== self.location.origin) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 // ===== Controlled caching via messages =====

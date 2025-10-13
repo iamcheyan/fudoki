@@ -98,7 +98,87 @@
 
         <!-- 底部按钮组 -->
         <div class="folder-bottom-buttons">
-          <button class="theme-icon-btn app-icon" id="appIcon" aria-label="应用程序" title="应用程序">
+          <!-- 用户头像和下拉菜单 -->
+          <div class="user-profile-container" id="userProfileContainer" style="display: none;">
+            <button class="user-avatar-btn" id="userAvatarBtn" aria-label="用户菜单" title="用户菜单">
+              <img id="userAvatarImg" src="" alt="User Avatar" style="display: none;">
+              <svg viewBox="0 0 24 24" id="userAvatarPlaceholder">
+                <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+              </svg>
+            </button>
+            <div class="user-dropdown-menu" id="userDropdownMenu">
+              <div class="user-dropdown-header">
+                <div class="user-dropdown-name" id="userDisplayName">用户名</div>
+                <div class="user-dropdown-email" id="userEmail">user@example.com</div>
+              </div>
+                <button class="user-dropdown-item" id="syncDataBtn">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                  </svg>
+                  <span>データを同期</span>
+                </button>
+                
+                <!-- 主题选择 -->
+                <div class="user-dropdown-item submenu-parent" id="userThemeBtn">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A1.5,1.5 0 0,0 13.5,19.5C13.5,19.11 13.35,18.76 13.11,18.5C12.88,18.23 12.73,17.88 12.73,17.5A1.5,1.5 0 0,1 14.23,16H16A5,5 0 0,0 21,11C21,6.58 16.97,3 12,3Z"/>
+                  </svg>
+                  <span id="currentThemeName">Paper White</span>
+                  <svg class="submenu-arrow" viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+                  </svg>
+                  <div class="user-submenu" id="themeSubmenu">
+                    <button class="submenu-item active" data-theme="paper">Paper White</button>
+                    <button class="submenu-item" data-theme="sakura">Sakura</button>
+                    <button class="submenu-item" data-theme="sticky">Sticky Note</button>
+                    <button class="submenu-item" data-theme="green">Green</button>
+                    <button class="submenu-item" data-theme="blue">Blue</button>
+                  </div>
+                </div>
+                
+                <!-- 语言选择 -->
+                <div class="user-dropdown-item submenu-parent" id="userLangBtn">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12.87,15.07L10.33,12.56L10.36,12.53C12.1,10.59 13.34,8.36 14.07,6H17V4H10V2H8V4H1V6H12.17C11.5,7.92 10.44,9.75 9,11.35C8.07,10.32 7.3,9.19 6.69,8H4.69C5.42,9.63 6.42,11.17 7.67,12.56L2.58,17.58L4,19L9,14L12.11,17.11L12.87,15.07M18.5,10H16.5L12,22H14L15.12,19H19.87L21,22H23L18.5,10M15.88,17L17.5,12.67L19.12,17H15.88Z"/>
+                  </svg>
+                  <span id="currentLangName">日本語</span>
+                  <svg class="submenu-arrow" viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+                  </svg>
+                  <div class="user-submenu" id="langSubmenu">
+                    <button class="submenu-item" data-lang="zh">中文</button>
+                    <button class="submenu-item active" data-lang="ja">日本語</button>
+                    <button class="submenu-item" data-lang="en">English</button>
+                  </div>
+                </div>
+                <button class="user-dropdown-item" id="userSettingsBtn">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.13,5.91,7.63,6.29L5.23,5.33c-0.22-0.09-0.47,0-0.59,0.22L2.72,8.87c-0.11,0.2-0.06,0.46,0.12,0.61l2.03,1.58c-0.05,0.3-0.07,0.62-0.07,0.94c0,0.33,0.02,0.64,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.04,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.48-0.41l0.36-2.54c0.59-0.24,1.12-0.56,1.62-0.94l2.39,0.96c0.22,0.09,0.47,0,0.59-0.22l1.92-3.32c0.11-0.2,0.06-0.46-0.12-0.61L19.14,12.94z M12,15.5c-1.93,0-3.5-1.57-3.5-3.5S10.07,8.5,12,8.5s3.5,1.57,3.5,3.5S13.93,15.5,12,15.5z"/>
+                  </svg>
+                  <span>設定</span>
+                </button>
+                <button class="user-dropdown-item" id="userDownloadBtn">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M5 20h14v-2H5v2z"/>
+                    <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z"/>
+                  </svg>
+                  <span>ダウンロード</span>
+                </button>
+                <button class="user-dropdown-item" id="switchAccountBtn">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M16 17v2H2v-2s0-4 7-4 7 4 7 4m-3.5-9.5A3.5 3.5 0 1 0 9 11a3.5 3.5 0 0 0 3.5-3.5m3.44 5.5A5.32 5.32 0 0 1 18 17v2h4v-2s0-3.63-6.06-4M15 4a3.4 3.4 0 0 0-1.93.59a5 5 0 0 1 0 5.82A3.4 3.4 0 0 0 15 11a3.5 3.5 0 0 0 0-7z"/>
+                  </svg>
+                  <span>アカウントを切り替え</span>
+                </button>
+              <button class="user-dropdown-item logout" id="logoutBtn">
+                <svg viewBox="0 0 24 24">
+                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                </svg>
+                <span>ログアウト</span>
+              </button>
+            </div>
+          </div>
+          <!-- <button class="theme-icon-btn app-icon" id="appIcon" aria-label="应用程序" title="应用程序">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
               <circle cx="6" cy="6" r="2"/>
               <circle cx="12" cy="6" r="2"/>
@@ -110,22 +190,11 @@
               <circle cx="12" cy="18" r="2"/>
               <circle cx="18" cy="18" r="2"/>
             </svg>
-          </button>
+          </button> -->
           <button class="theme-icon-btn" id="syncBtn" aria-label="同步" title="同步">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-refresh" aria-hidden="true">
               <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
               <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
-            </svg>
-          </button>
-          <button class="theme-icon-btn" id="settingsButton" aria-label="设置" title="设置">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-              <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.13,5.91,7.63,6.29L5.23,5.33c-0.22-0.09-0.47,0-0.59,0.22L2.72,8.87c-0.11,0.2-0.06,0.46,0.12,0.61l2.03,1.58c-0.05,0.3-0.07,0.62-0.07,0.94c0,0.33,0.02,0.64,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.04,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.48-0.41l0.36-2.54c0.59-0.24,1.12-0.56,1.62-0.94l2.39,0.96c0.22,0.09,0.47,0,0.59-0.22l1.92-3.32c0.11-0.2,0.06-0.46-0.12-0.61L19.14,12.94z M12,15.5c-1.93,0-3.5-1.57-3.5-3.5S10.07,8.5,12,8.5s3.5,1.57,3.5,3.5S13.93,15.5,12,15.5z"/>
-            </svg>
-          </button>
-          <button class="theme-icon-btn" id="headerDownloadBtn" aria-label="下载" title="下载">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-              <path d="M5 20h14v-2H5v2z" />
-              <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z" />
             </svg>
           </button>
           <button id="theme-toggle" class="theme-toggle" aria-label="切换到暗色主题" title="切换到暗色主题"><span class="theme-icon">🌙</span></button>
@@ -164,7 +233,7 @@
               </svg>
             </button>
             
-            <!-- 将阅读模式按钮改为“展开菜单”按钮，样式与功能一致 -->
+            <!-- 将阅读模式按钮改为"展开菜单"按钮，样式与功能一致 -->
             <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                 <path d="M5 7h14" fill="none"></path>
@@ -172,6 +241,8 @@
                 <path d="M5 17h14" fill="none"></path>
               </svg>
             </button>
+
+            
           </div>
           <div class="editor-toolbar-right">
             <!-- 字号滑动手柄（最左侧） -->
@@ -361,8 +432,44 @@
     </span>
   </button>
 
+  <!-- 同步进度提示 -->
+  <div class="sync-progress-toast" id="syncProgressToast">
+    <div class="sync-progress-content">
+      <div class="sync-spinner"></div>
+      <div class="sync-progress-text" id="syncProgressText">データを同期中...</div>
+    </div>
+  </div>
+
   
   <!-- JavaScript文件 -->
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCULsnd2JYsVTbMP-XTSOaCFS7ae4-a2hw",
+      authDomain: "fudoki-f370e.firebaseapp.com",
+      projectId: "fudoki-f370e",
+      storageBucket: "fudoki-f370e.firebasestorage.app",
+      messagingSenderId: "1031570984525",
+      appId: "1:1031570984525:web:6b173b3764a99ed0091604",
+      measurementId: "G-747S3VQ0YJ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // 暴露到全局，供其他脚本使用
+    window.firebaseDB = db;
+    window.firebaseAuth = auth;
+    window.firestoreHelpers = { collection, doc, setDoc, getDocs, serverTimestamp };
+  </script>
+  
   <!-- EasyMDE Markdown 编辑器 -->
   <script src="static/libs/easymde/easymde.min.js"></script>
   <script src="static/libs/kuromoji.js"></script>

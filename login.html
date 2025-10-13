@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - Fudoki</title>
+  <link rel="icon" type="image/png" href="static/logo.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* 动态渐变背景 */
+    .gradient-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, 
+        #8B6914 0%, 
+        #c58b3b 25%, 
+        #d97ea8 50%, 
+        #5188dd 75%, 
+        #4aa96d 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      z-index: 1;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 浮动装饰元素 - 日语假名 */
+    .floating-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .shape {
+      position: absolute;
+      color: white;
+      font-weight: 600;
+      opacity: 0.12;
+      animation: float 20s infinite ease-in-out;
+      font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* あ */
+    .shape:nth-child(1) {
+      font-size: 100px;
+      top: 8%;
+      left: 12%;
+      animation-delay: 0s;
+      animation-duration: 25s;
+    }
+
+    /* カ */
+    .shape:nth-child(2) {
+      font-size: 140px;
+      top: 55%;
+      left: 78%;
+      animation-delay: 2s;
+      animation-duration: 20s;
+      opacity: 0.08;
+    }
+
+    /* さ */
+    .shape:nth-child(3) {
+      font-size: 90px;
+      top: 75%;
+      left: 18%;
+      animation-delay: 4s;
+      animation-duration: 22s;
+    }
+
+    /* ナ */
+    .shape:nth-child(4) {
+      font-size: 70px;
+      top: 28%;
+      left: 68%;
+      animation-delay: 1s;
+      animation-duration: 18s;
+      opacity: 0.15;
+    }
+
+    /* は */
+    .shape:nth-child(5) {
+      font-size: 110px;
+      top: 48%;
+      left: 8%;
+      animation-delay: 3s;
+      animation-duration: 24s;
+    }
+
+    /* ラ */
+    .shape:nth-child(6) {
+      font-size: 85px;
+      top: 12%;
+      left: 82%;
+      animation-delay: 5s;
+      animation-duration: 21s;
+    }
+
+    /* む */
+    .shape:nth-child(7) {
+      font-size: 95px;
+      top: 65%;
+      left: 45%;
+      animation-delay: 2.5s;
+      animation-duration: 23s;
+      opacity: 0.1;
+    }
+
+    /* キ */
+    .shape:nth-child(8) {
+      font-size: 75px;
+      top: 35%;
+      left: 25%;
+      animation-delay: 1.5s;
+      animation-duration: 19s;
+    }
+
+    /* ん */
+    .shape:nth-child(9) {
+      font-size: 80px;
+      top: 85%;
+      left: 60%;
+      animation-delay: 4.5s;
+      animation-duration: 26s;
+      opacity: 0.13;
+    }
+
+    /* ツ */
+    .shape:nth-child(10) {
+      font-size: 105px;
+      top: 20%;
+      left: 50%;
+      animation-delay: 3.5s;
+      animation-duration: 27s;
+    }
+
+    /* り */
+    .shape:nth-child(11) {
+      font-size: 65px;
+      top: 42%;
+      left: 88%;
+      animation-delay: 2.8s;
+      animation-duration: 21s;
+      opacity: 0.14;
+    }
+
+    /* ワ */
+    .shape:nth-child(12) {
+      font-size: 90px;
+      top: 70%;
+      left: 92%;
+      animation-delay: 4.2s;
+      animation-duration: 24s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+      25% {
+        transform: translate(30px, -30px) rotate(90deg);
+      }
+      50% {
+        transform: translate(-20px, 20px) rotate(180deg);
+      }
+      75% {
+        transform: translate(20px, 30px) rotate(270deg);
+      }
+    }
+
+    /* 主容器 */
+    .login-container {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    /* 登录卡片 */
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 60px 50px;
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      animation: cardFadeIn 0.8s ease-out;
+      position: relative;
+      overflow: visible;
+    }
+
+    @keyframes cardFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* 装饰性光晕 */
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(139, 105, 20, 0.1) 0%, transparent 70%);
+      animation: rotate 20s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Logo */
+    .logo-container {
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    }
+
+    /* 标题 */
+    .login-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-subtitle {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Google 登录按钮 */
+    .google-login-btn {
+      width: 100%;
+      padding: 16px 24px;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .google-login-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(66, 133, 244, 0.1);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .google-login-btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .google-login-btn:hover {
+      border-color: #4285f4;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(66, 133, 244, 0.2);
+    }
+
+    .google-login-btn:active {
+      transform: translateY(0);
+    }
+
+    .google-icon {
+      width: 24px;
+      height: 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .btn-text {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* 底部文字 */
+    .login-footer {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #888;
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-footer a {
+      color: #8B6914;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .login-footer a:hover {
+      color: #c58b3b;
+    }
+
+    /* 装饰线 */
+    .divider {
+      margin: 30px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+    }
+
+    .divider-text {
+      position: relative;
+      display: inline-block;
+      padding: 0 20px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #999;
+      font-size: 14px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .login-card {
+        padding: 40px 30px;
+        border-radius: 20px;
+      }
+
+      .login-title {
+        font-size: 28px;
+      }
+
+      .login-subtitle {
+        font-size: 14px;
+      }
+
+      .logo {
+        width: 70px;
+        height: 70px;
+      }
+
+      .google-login-btn {
+        padding: 14px 20px;
+        font-size: 15px;
+      }
+
+      .shape {
+        opacity: 0.1;
+        font-size: 60px !important;
+      }
+      
+      .shape:nth-child(2),
+      .shape:nth-child(7),
+      .shape:nth-child(10) {
+        font-size: 80px !important;
+      }
+    }
+
+    /* 加载动画 */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #4285f4;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .google-login-btn.loading .btn-text {
+      opacity: 0.6;
+    }
+
+    .google-login-btn.loading .loading {
+      display: inline-block;
+    }
+
+    /* 特色装饰 - 日语文字背景 */
+    .japanese-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.03;
+      font-size: 120px;
+      font-weight: 900;
+      color: #8B6914;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+    }
+
+    /* 语言切换器 - 下拉菜单 */
+    .language-switcher {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      width: fit-content;
+    }
+
+    .lang-dropdown-toggle {
+      background: rgba(139, 105, 20, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(139, 105, 20, 0.2);
+      color: #8B6914;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 50px;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(139, 105, 20, 0.1);
+    }
+
+    .lang-dropdown-toggle:hover {
+      background: rgba(139, 105, 20, 0.12);
+      border-color: rgba(139, 105, 20, 0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(139, 105, 20, 0.15);
+    }
+
+    .lang-current {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lang-arrow {
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 4px solid #8B6914;
+      transition: transform 0.3s ease;
+    }
+    
+    .language-switcher #currentLangName {
+      display: none;
+    }
+    .language-switcher.open .lang-arrow {
+      transform: rotate(180deg);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: auto;
+      min-width: 60px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+
+    .language-switcher.open .lang-dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .lang-option {
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      color: #333;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: center;
+    }
+
+    .lang-option span {
+      display: none;
+    }
+
+    .lang-option:hover {
+      background: rgba(139, 105, 20, 0.1);
+    }
+
+    .lang-option.active {
+      background: rgba(139, 105, 20, 0.15);
+      color: #8B6914;
+      font-weight: 600;
+    }
+
+    .lang-option:not(:last-child) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .flag-icon {
+      width: auto;
+      height: 14px;
+      border-radius: 3px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      .language-switcher {
+        top: 15px;
+        right: 15px;
+      }
+
+      .lang-dropdown-toggle {
+        padding: 5px 10px;
+        font-size: 11px;
+        min-width: 45px;
+      }
+
+      .lang-option {
+        padding: 8px;
+      }
+
+      .flag-icon {
+        width: 18px;
+        height: 18px;
+      }
+      
+      .login-card {
+        padding: 50px 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 动态渐变背景 -->
+  <div class="gradient-bg"></div>
+
+  <!-- 浮动装饰元素 - 日语假名 -->
+  <div class="floating-shapes">
+    <div class="shape">あ</div>
+    <div class="shape">カ</div>
+    <div class="shape">さ</div>
+    <div class="shape">ナ</div>
+    <div class="shape">は</div>
+    <div class="shape">ラ</div>
+    <div class="shape">む</div>
+    <div class="shape">キ</div>
+    <div class="shape">ん</div>
+    <div class="shape">ツ</div>
+    <div class="shape">り</div>
+    <div class="shape">ワ</div>
+  </div>
+
+  <!-- 登录容器 -->
+  <div class="login-container">
+    <div class="login-card">
+      <!-- 语言切换器 - 下拉菜单 -->
+      <div class="language-switcher" id="languageSwitcher">
+        <button class="lang-dropdown-toggle" id="langDropdownToggle">
+          <div class="lang-current">
+            <img src="static/flags/zh.svg" alt="中文" class="flag-icon" id="currentFlag" onerror="this.style.display='none'">
+            <span id="currentLangName">中文</span>
+          </div>
+          <div class="lang-arrow"></div>
+        </button>
+        <div class="lang-dropdown-menu" id="langDropdownMenu">
+          <button class="lang-option" data-lang="zh" data-name="中文">
+            <img src="static/flags/zh.svg" alt="中文" class="flag-icon" onerror="this.style.display='none'">
+            <span>中文</span>
+          </button>
+          <button class="lang-option" data-lang="ja" data-name="日本語">
+            <img src="static/flags/ja.svg" alt="日本語" class="flag-icon" onerror="this.style.display='none'">
+            <span>日本語</span>
+          </button>
+          <button class="lang-option" data-lang="en" data-name="English">
+            <img src="static/flags/en.svg" alt="English" class="flag-icon" onerror="this.style.display='none'">
+            <span>English</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 日语装饰背景 -->
+      <div class="japanese-bg">フドキ</div>
+
+      <!-- Logo -->
+      <div class="logo-container">
+        <div class="logo">
+          <img src="static/logo.png" alt="Fudoki Logo">
+        </div>
+        <h1 class="login-title" data-i18n="title">欢迎来到 Fudoki</h1>
+        <p class="login-subtitle" data-i18n="subtitle">记录语言的风土，探索文字的奥秘</p>
+      </div>
+
+      <!-- Google 登录按钮 -->
+      <button class="google-login-btn" id="googleLoginBtn">
+        <svg class="google-icon" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        <span class="btn-text" data-i18n="loginButton">使用 Google 账号登录</span>
+        <div class="loading"></div>
+      </button>
+
+      <!-- 装饰线 -->
+      <div class="divider">
+        <span class="divider-text" data-i18n="divider">安全且快速</span>
+      </div>
+
+      <!-- 底部信息 -->
+      <div class="login-footer">
+        <div class="footer-inner">
+          <span class="footer-copy">©</span>
+          <a href="https://iamcheyan.com/" target="_blank" rel="noreferrer noopener" class="footer-brand" title="iamcheyan.com">Cheyan</a>
+          <span class="footer-copy">All Rights Reserved</span>
+          <span class="footer-sep">•</span>
+          <a href="https://github.com/iamcheyan/fudoki" target="_blank" rel="noreferrer noopener" class="footer-link" aria-label="GitHub" title="GitHub">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.58.11.8-.25.8-.56v-2.02c-3.26.71-3.95-1.4-3.95-1.4-.53-1.36-1.3-1.72-1.3-1.72-1.06-.72.08-.71.08-.71 1.18.08 1.8 1.21 1.8 1.21 1.04 1.79 2.73 1.27 3.4.97.11-.76.41-1.27.75-1.56-2.6-.3-5.33-1.3-5.33-5.8 0-1.28.46-2.32 1.21-3.14-.12-.3-.52-1.52.11-3.17 0 0 .98-.31 3.2 1.2.94-.26 1.95-.39 2.95-.39s2.01.13 2.95.39c2.22-1.51 3.19-1.2 3.19-1.2.64 1.65.24 2.87.12 3.17.76.82 1.21 1.86 1.21 3.14 0 4.51-2.73 5.5-5.34 5.79.42.36.8 1.08.8 2.18v3.23c0 .31.21.68.81.56A11.5 11.5 0 0 0 12 .5Z"></path></svg>
+            <span class="footer-link-label">GitHub</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCULsnd2JYsVTbMP-XTSOaCFS7ae4-a2hw",
+      authDomain: "fudoki-f370e.firebaseapp.com",
+      projectId: "fudoki-f370e",
+      storageBucket: "fudoki-f370e.firebasestorage.app",
+      messagingSenderId: "1031570984525",
+      appId: "1:1031570984525:web:6b173b3764a99ed0091604",
+      measurementId: "G-747S3VQ0YJ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // 多语言翻译
+    const translations = {
+      zh: {
+        title: '欢迎来到 Fudoki',
+        subtitle: '记录语言的风土，探索文字的奥秘',
+        loginButton: '使用 Google 账号登录',
+        divider: '安全且快速',
+        footerText: '继续即表示您同意我们的',
+        terms: '服务条款',
+        and: '和',
+        privacy: '隐私政策',
+        termsAlert: '这里将显示服务条款',
+        privacyAlert: '这里将显示隐私政策',
+        loginClick: 'Google 登录被点击',
+        oauthNotice: 'Google 登录功能需要配置 OAuth。点击确定查看控制台。',
+        loginError: '登录失败，请重试',
+        pageTitle: '登录 - Fudoki'
+      },
+      ja: {
+        title: 'Fudoki へようこそ',
+        subtitle: '言葉の風土を記し、文字の奥義を探る',
+        loginButton: 'Google アカウントでログイン',
+        divider: '安全で高速',
+        footerText: '続行することで、当社の',
+        terms: '利用規約',
+        and: 'と',
+        privacy: 'プライバシーポリシー',
+        termsAlert: 'ここに利用規約が表示されます',
+        privacyAlert: 'ここにプライバシーポリシーが表示されます',
+        loginClick: 'Google ログインがクリックされました',
+        oauthNotice: 'Google ログイン機能には OAuth の設定が必要です。OK をクリックしてコンソールを確認してください。',
+        loginError: 'ログインに失敗しました。もう一度お試しください',
+        pageTitle: 'ログイン - Fudoki'
+      },
+      en: {
+        title: 'Welcome to Fudoki',
+        subtitle: 'Record the landscape of language, explore the mysteries of text',
+        loginButton: 'Sign in with Google',
+        divider: 'Secure & Fast',
+        footerText: 'By continuing, you agree to our',
+        terms: 'Terms of Service',
+        and: 'and',
+        privacy: 'Privacy Policy',
+        termsAlert: 'Terms of Service will be displayed here',
+        privacyAlert: 'Privacy Policy will be displayed here',
+        loginClick: 'Google login clicked',
+        oauthNotice: 'Google login requires OAuth configuration. Click OK to check the console.',
+        loginError: 'Login failed, please try again',
+        pageTitle: 'Login - Fudoki'
+      }
+    };
+
+    // 语言名称映射
+    const langNames = {
+      zh: { name: '中文', flag: 'static/flags/zh.svg' },
+      ja: { name: '日本語', flag: 'static/flags/ja.svg' },
+      en: { name: 'English', flag: 'static/flags/en.svg' }
+    };
+
+    // 当前语言
+    let currentLang = localStorage.getItem('fudoki_lang') || 'zh';
+
+    // 下拉菜单元素
+    const languageSwitcher = document.getElementById('languageSwitcher');
+    const langDropdownToggle = document.getElementById('langDropdownToggle');
+    const langDropdownMenu = document.getElementById('langDropdownMenu');
+    const currentFlag = document.getElementById('currentFlag');
+    const currentLangName = document.getElementById('currentLangName');
+
+    // 更新页面语言
+    function updateLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('fudoki_lang', lang);
+      document.documentElement.lang = lang;
+      document.title = translations[lang].pageTitle;
+
+      // 更新所有带 data-i18n 属性的元素
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
+      });
+
+      // 更新下拉菜单显示的当前语言
+      currentFlag.src = langNames[lang].flag;
+      currentFlag.alt = langNames[lang].name;
+      currentLangName.textContent = langNames[lang].name;
+
+      // 更新选项的激活状态
+      document.querySelectorAll('.lang-option').forEach(option => {
+        option.classList.toggle('active', option.getAttribute('data-lang') === lang);
+      });
+
+      // 关闭下拉菜单
+      languageSwitcher.classList.remove('open');
+    }
+
+    // 切换下拉菜单
+    langDropdownToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      languageSwitcher.classList.toggle('open');
+    });
+
+    // 语言选项点击事件
+    document.querySelectorAll('.lang-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const lang = option.getAttribute('data-lang');
+        updateLanguage(lang);
+      });
+    });
+
+    // 点击外部关闭下拉菜单
+    document.addEventListener('click', (e) => {
+      if (!languageSwitcher.contains(e.target)) {
+        languageSwitcher.classList.remove('open');
+      }
+    });
+
+    // 初始化语言
+    updateLanguage(currentLang);
+
+    // 检查用户登录状态
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // 用户已登录，跳转到主页
+        console.log('User signed in:', user);
+        // 保存用户信息到 localStorage
+        localStorage.setItem('fudoki_user', JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        }));
+        // 跳转到主页
+        window.location.href = 'index.html';
+      }
+    });
+
+    // Google 登录函数
+    async function signInWithGoogle() {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        // Google Access Token
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
+        // 登录的用户信息
+        const user = result.user;
+        
+        console.log('Login successful:', user);
+        return user;
+      } catch (error) {
+        // 处理错误
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        const email = error.customData?.email;
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        
+        console.error('Login error:', errorCode, errorMessage);
+        throw error;
+      }
+    }
+
+    // Google 登录按钮点击事件
+    const googleLoginBtn = document.getElementById('googleLoginBtn');
+    
+    googleLoginBtn.addEventListener('click', async () => {
+      // 添加加载状态
+      googleLoginBtn.classList.add('loading');
+      googleLoginBtn.disabled = true;
+
+      try {
+        await signInWithGoogle();
+        // 登录成功后会在 onAuthStateChanged 中处理跳转
+      } catch (error) {
+        console.error('Login error:', error);
+        googleLoginBtn.classList.remove('loading');
+        googleLoginBtn.disabled = false;
+        
+        // 根据错误类型显示不同的提示
+        let errorMsg = translations[currentLang].loginError;
+        if (error.code === 'auth/popup-closed-by-user') {
+          errorMsg = currentLang === 'zh' ? '登录已取消' : 
+                     currentLang === 'ja' ? 'ログインがキャンセルされました' : 
+                     'Login cancelled';
+        } else if (error.code === 'auth/popup-blocked') {
+          errorMsg = currentLang === 'zh' ? '弹窗被阻止，请允许弹窗后重试' : 
+                     currentLang === 'ja' ? 'ポップアップがブロックされました' : 
+                     'Popup blocked, please allow popups';
+        }
+        alert(errorMsg);
+      }
+    });
+
+
+    // 键盘支持 - Enter 键登录
+    document.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !googleLoginBtn.disabled) {
+        googleLoginBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
+

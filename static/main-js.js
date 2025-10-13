@@ -3137,10 +3137,43 @@ Try Fudoki and enjoy Japanese language analysis!`;
       return firstLine || '无标题文档';
     }
 
+    // 清理 Markdown 标记
+    stripMarkdown(text) {
+      if (!text) return '';
+      
+      return text
+        // 移除标题标记 (# ## ### 等)
+        .replace(/^#+\s+/gm, '')
+        // 移除粗体/斜体标记
+        .replace(/(\*\*|__)(.*?)\1/g, '$2')
+        .replace(/(\*|_)(.*?)\1/g, '$2')
+        // 移除删除线
+        .replace(/~~(.*?)~~/g, '$1')
+        // 移除代码块标记
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/`([^`]+)`/g, '$1')
+        // 移除链接，保留链接文本
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+        // 移除图片
+        .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '')
+        // 移除列表标记
+        .replace(/^[\s]*[-*+]\s+/gm, '')
+        .replace(/^[\s]*\d+\.\s+/gm, '')
+        // 移除引用标记
+        .replace(/^>\s+/gm, '')
+        // 移除水平线
+        .replace(/^[-*_]{3,}$/gm, '')
+        // 清理多余空格
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
     // 截断标题
     truncateTitle(title, maxLength = 20) {
-      if (title.length <= maxLength) return title;
-      return title.slice(0, maxLength - 1) + '…';
+      // 先清理 Markdown 标记
+      const cleanTitle = this.stripMarkdown(title);
+      if (cleanTitle.length <= maxLength) return cleanTitle;
+      return cleanTitle.slice(0, maxLength - 1) + '…';
     }
 
     // 格式化创建时间
@@ -3466,9 +3499,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
         
         const isFav = !!doc.favorite;
         const createdTime = this.formatCreationTime(doc.createdAt);
+        // 清理标题中的 Markdown 标记用于显示
+        const cleanTitle = this.stripMarkdown(title);
+        
         docItem.innerHTML = `
           <div class="doc-item-content">
-            <div class="doc-item-title" title="${title}">${this.truncateTitle(title)}</div>
+            <div class="doc-item-title" title="${cleanTitle}">${this.truncateTitle(title)}</div>
             <div class="doc-item-time">${createdTime}</div>
           </div>
           <div class="doc-item-actions">
@@ -7291,8 +7327,349 @@ Try Fudoki and enjoy Japanese language analysis!`;
     document.addEventListener('DOMContentLoaded', () => {
       try { applyFontFamilyFromStorage(); } catch (_) {}
       try { initFontFamilyControls(); } catch (_) {}
+      try { initUserProfile(); } catch (_) {}
     });
   } else {
     try { applyFontFamilyFromStorage(); } catch (_) {}
     try { initFontFamilyControls(); } catch (_) {}
+    try { initUserProfile(); } catch (_) {}
+  }
+
+  // ========== 用户头像和下拉菜单功能 ==========
+  function initUserProfile() {
+    const userProfileContainer = document.getElementById('userProfileContainer');
+    const userAvatarBtn = document.getElementById('userAvatarBtn');
+    const userDropdownMenu = document.getElementById('userDropdownMenu');
+    const userAvatarImg = document.getElementById('userAvatarImg');
+    const userAvatarPlaceholder = document.getElementById('userAvatarPlaceholder');
+    const userDisplayName = document.getElementById('userDisplayName');
+    const userEmail = document.getElementById('userEmail');
+    const syncDataBtn = document.getElementById('syncDataBtn');
+    const userSettingsBtn = document.getElementById('userSettingsBtn');
+    const userDownloadBtn = document.getElementById('userDownloadBtn');
+    const switchAccountBtn = document.getElementById('switchAccountBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (!userProfileContainer) return;
+
+    // 检查用户登录状态
+    const userDataStr = localStorage.getItem('fudoki_user');
+    if (userDataStr) {
+      try {
+        const userData = JSON.parse(userDataStr);
+        
+        // 显示用户头像容器
+        userProfileContainer.style.display = 'block';
+        
+        // 设置用户信息
+        if (userData.displayName) {
+          userDisplayName.textContent = userData.displayName;
+        } else {
+          userDisplayName.textContent = '用户';
+        }
+        
+        if (userData.email) {
+          userEmail.textContent = userData.email;
+        }
+        
+        // 设置用户头像
+        if (userData.photoURL) {
+          userAvatarImg.src = userData.photoURL;
+          userAvatarImg.style.display = 'block';
+          userAvatarPlaceholder.style.display = 'none';
+        } else {
+          userAvatarImg.style.display = 'none';
+          userAvatarPlaceholder.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      }
+    } else {
+      // 未登录，跳转到登录页
+      window.location.href = 'login.html';
+    }
+
+    // 切换下拉菜单
+    userAvatarBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userProfileContainer.classList.toggle('open');
+    });
+
+    // 点击外部关闭下拉菜单
+    document.addEventListener('click', (e) => {
+      if (!userProfileContainer.contains(e.target)) {
+        userProfileContainer.classList.remove('open');
+      }
+    });
+
+    // 数据同步功能
+    syncDataBtn.addEventListener('click', async () => {
+      userProfileContainer.classList.remove('open');
+      
+      // 检查 Firebase 是否初始化
+      if (!window.firebaseDB || !window.firebaseAuth || !window.firestoreHelpers) {
+        alert('Firebase が初期化されていません');
+        return;
+      }
+
+      // 获取当前用户
+      const currentUser = window.firebaseAuth.currentUser;
+      if (!currentUser) {
+        alert('ログインが必要です');
+        return;
+      }
+
+      try {
+        // 显示同步提示
+        const confirmSync = confirm('ローカルデータをクラウドに同期しますか？\n既存のクラウドデータは上書きされます。');
+        if (!confirmSync) return;
+
+        // 获取进度提示元素
+        const syncToast = document.getElementById('syncProgressToast');
+        const syncText = document.getElementById('syncProgressText');
+
+        // 显示进度提示
+        if (syncToast) {
+          syncToast.classList.add('show');
+          syncText.textContent = 'データを同期中...';
+        }
+
+        // 禁用同步按钮
+        syncDataBtn.disabled = true;
+
+        // 检查 documentManager 是否存在
+        if (typeof documentManager === 'undefined') {
+          alert('ドキュメントマネージャーが初期化されていません');
+          syncDataBtn.disabled = false;
+          if (syncToast) syncToast.classList.remove('show');
+          return;
+        }
+
+        // 获取本地所有文档
+        const allDocs = documentManager.getAllDocuments();
+        const { collection, doc, setDoc, serverTimestamp } = window.firestoreHelpers;
+        const db = window.firebaseDB;
+        
+        let successCount = 0;
+        let failCount = 0;
+        const totalDocs = allDocs.length;
+
+        // 同步每个文档
+        for (let i = 0; i < allDocs.length; i++) {
+          const document = allDocs[i];
+          
+          // 更新进度
+          if (syncText) {
+            syncText.textContent = `同期中... (${i + 1}/${totalDocs})`;
+          }
+
+          try {
+            const docRef = doc(db, 'users', currentUser.uid, 'documents', document.id);
+            await setDoc(docRef, {
+              id: document.id,
+              title: document.title || '',
+              content: document.content || '',
+              folderId: document.folderId || null,
+              favorite: document.favorite || false,
+              createdAt: document.createdAt,
+              updatedAt: serverTimestamp()
+            });
+            successCount++;
+          } catch (error) {
+            console.error(`文档同步失败: ${document.id}`, error);
+            failCount++;
+          }
+        }
+
+        // 同步文件夹
+        if (syncText) {
+          syncText.textContent = 'フォルダを同期中...';
+        }
+
+        const folders = documentManager.folders || [];
+        for (const folder of folders) {
+          try {
+            const folderRef = doc(db, 'users', currentUser.uid, 'folders', folder.id);
+            await setDoc(folderRef, {
+              id: folder.id,
+              name: folder.name,
+              createdAt: folder.createdAt || Date.now(),
+              updatedAt: serverTimestamp()
+            });
+          } catch (error) {
+            console.error(`フォルダ同期失败: ${folder.id}`, error);
+          }
+        }
+
+        // 隐藏进度提示
+        if (syncToast) {
+          syncText.textContent = '同期完了！';
+          setTimeout(() => {
+            syncToast.classList.remove('show');
+          }, 2000);
+        }
+
+        // 恢复按钮状态
+        syncDataBtn.disabled = false;
+
+        // 显示结果
+        if (failCount === 0) {
+          alert(`同期完了！\n成功: ${successCount}件`);
+        } else {
+          alert(`同期完了\n成功: ${successCount}件\n失敗: ${failCount}件`);
+        }
+
+      } catch (error) {
+        console.error('同步错误:', error);
+        
+        // 隐藏进度提示
+        const syncToast = document.getElementById('syncProgressToast');
+        if (syncToast) {
+          syncToast.classList.remove('show');
+        }
+        
+        syncDataBtn.disabled = false;
+        alert('同期に失敗しました: ' + error.message);
+      }
+    });
+
+    // 设置功能
+    userSettingsBtn.addEventListener('click', () => {
+      userProfileContainer.classList.remove('open');
+      // 打开设置弹窗
+      const settingsButton = document.getElementById('settingsButton');
+      if (settingsButton) {
+        settingsButton.click();
+      } else {
+        // 如果原设置按钮不存在，直接打开设置模态框
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal) {
+          settingsModal.classList.add('show');
+        }
+      }
+    });
+
+    // 下载功能
+    userDownloadBtn.addEventListener('click', () => {
+      userProfileContainer.classList.remove('open');
+      // 触发下载
+      const headerDownloadBtn = document.getElementById('headerDownloadBtn');
+      if (headerDownloadBtn) {
+        headerDownloadBtn.click();
+      } else {
+        // 如果原下载按钮不存在，直接执行下载逻辑
+        console.log('Download clicked');
+        // TODO: 实现下载功能
+      }
+    });
+
+    // 切换账户功能
+    switchAccountBtn.addEventListener('click', () => {
+      userProfileContainer.classList.remove('open');
+      // 清除当前用户数据并跳转到登录页
+      localStorage.removeItem('fudoki_user');
+      window.location.href = 'login.html';
+    });
+
+    // 登出功能
+    logoutBtn.addEventListener('click', () => {
+      userProfileContainer.classList.remove('open');
+      // 确认登出
+      if (confirm('本当にログアウトしますか？')) {
+        // 清除用户数据
+        localStorage.removeItem('fudoki_user');
+        // 跳转到登录页
+        window.location.href = 'login.html';
+      }
+    });
+
+    // ========== 主题切换功能 ==========
+    const themeSubmenu = document.querySelectorAll('#themeSubmenu .submenu-item');
+    const currentThemeName = document.getElementById('currentThemeName');
+    
+    const themeNames = {
+      'paper': 'Paper White',
+      'sakura': 'Sakura',
+      'sticky': 'Sticky Note',
+      'green': 'Green',
+      'blue': 'Blue'
+    };
+
+    // 初始化当前主题显示
+    const savedTheme = localStorage.getItem('theme') || 'paper';
+    if (currentThemeName) {
+      currentThemeName.textContent = themeNames[savedTheme] || 'Paper White';
+    }
+
+    // 更新主题激活状态
+    themeSubmenu.forEach(item => {
+      const theme = item.getAttribute('data-theme');
+      item.classList.toggle('active', theme === savedTheme);
+      
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const selectedTheme = item.getAttribute('data-theme');
+        
+        // 更新激活状态
+        themeSubmenu.forEach(t => t.classList.remove('active'));
+        item.classList.add('active');
+        
+        // 更新显示名称
+        if (currentThemeName) {
+          currentThemeName.textContent = themeNames[selectedTheme];
+        }
+        
+        // 应用主题
+        document.documentElement.setAttribute('data-theme', selectedTheme);
+        localStorage.setItem('theme', selectedTheme);
+        
+        // 关闭菜单
+        userProfileContainer.classList.remove('open');
+      });
+    });
+
+    // ========== 语言切换功能 ==========
+    const langSubmenu = document.querySelectorAll('#langSubmenu .submenu-item');
+    const currentLangName = document.getElementById('currentLangName');
+    
+    const langNames = {
+      'zh': '中文',
+      'ja': '日本語',
+      'en': 'English'
+    };
+
+    // 初始化当前语言显示
+    const savedLang = localStorage.getItem('lang') || 'ja';
+    if (currentLangName) {
+      currentLangName.textContent = langNames[savedLang] || '日本語';
+    }
+
+    // 更新语言激活状态
+    langSubmenu.forEach(item => {
+      const lang = item.getAttribute('data-lang');
+      item.classList.toggle('active', lang === savedLang);
+      
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const selectedLang = item.getAttribute('data-lang');
+        
+        // 更新激活状态
+        langSubmenu.forEach(l => l.classList.remove('active'));
+        item.classList.add('active');
+        
+        // 更新显示名称
+        if (currentLangName) {
+          currentLangName.textContent = langNames[selectedLang];
+        }
+        
+        // 应用语言
+        if (typeof applyTranslations === 'function') {
+          localStorage.setItem('lang', selectedLang);
+          applyTranslations(selectedLang);
+        }
+        
+        // 关闭菜单
+        userProfileContainer.classList.remove('open');
+      });
+    });
   }
