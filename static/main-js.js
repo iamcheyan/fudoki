@@ -2780,6 +2780,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 保存所有文档
     saveAllDocuments(docs) {
       localStorage.setItem(this.storageKey, JSON.stringify(docs || []));
+      // 标记有未同步的更改
+      if (typeof window.markUnsyncedChanges === 'function') {
+        window.markUnsyncedChanges();
+      }
     }
 
     // 获取活动文档ID
@@ -6329,16 +6333,39 @@ Try Fudoki and enjoy Japanese language analysis!`;
         return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
       }
 
-      function doExport() {
+      async function doExport() {
+        // 显示导出进度
+        showInfoToast(t('exporting'), 10000);
+        
+        const startTime = Date.now();
+        
         try {
+          // 异步执行导出
+          await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+          
           const payload = collectBackupPayload();
           const json = JSON.stringify(payload, null, 2);
           const fname = `fudoki-backup-${formatNowForFile()}.json`;
           downloadTextFile(fname, json);
-          try { showNotification(t('exportSuccess'), 'success'); } catch (_) {}
+          
+          // 确保至少显示1秒
+          const elapsed = Date.now() - startTime;
+          const remainingTime = Math.max(0, 1000 - elapsed);
+          await new Promise(resolve => setTimeout(resolve, remainingTime));
+          
+          try { 
+            showSuccessToast(t('exportSuccess'));
+          } catch (_) {}
         } catch (e) {
           console.error('Export failed:', e);
-          try { showNotification(t('exportError'), 'error'); } catch (_) {}
+          // 确保至少显示1秒
+          const elapsed = Date.now() - startTime;
+          const remainingTime = Math.max(0, 1000 - elapsed);
+          await new Promise(resolve => setTimeout(resolve, remainingTime));
+          
+          try { 
+            showErrorToast(t('exportError'));
+          } catch (_) {}
         }
       }
 
@@ -7128,11 +7155,115 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
     });
 
+    // ========== 自动同步功能 ==========
+    let autoSyncInterval = null;
+    let pendingSyncTimeout = null;
+    let lastSyncTime = null;
+    let hasUnsyncedChanges = false;
+    
+    // 自动同步配置
+    const AUTO_SYNC_CONFIG = {
+      INTERVAL: 10 * 60 * 1000,      // 定期自动同步：10分钟
+      CHANGE_DELAY: 5 * 60 * 1000,   // 内容变化后延迟同步：5分钟
+      MIN_INTERVAL: 2 * 60 * 1000,   // 最小同步间隔：2分钟
+    };
+    
+    // 标记有未同步的更改
+    function markUnsyncedChanges() {
+      hasUnsyncedChanges = true;
+      // 取消之前的延迟同步
+      if (pendingSyncTimeout) {
+        clearTimeout(pendingSyncTimeout);
+      }
+      // 设置新的延迟同步
+      pendingSyncTimeout = setTimeout(() => {
+        if (hasUnsyncedChanges) {
+          console.log('Auto-syncing after content change...');
+          performAutoSync();
+        }
+      }, AUTO_SYNC_CONFIG.CHANGE_DELAY);
+    }
+    
+    // 执行自动同步（带条件检查）
+    async function performAutoSync() {
+      // 检查是否距离上次同步超过最小间隔
+      if (lastSyncTime && (Date.now() - lastSyncTime) < AUTO_SYNC_CONFIG.MIN_INTERVAL) {
+        console.log('Skipping auto-sync: too soon since last sync');
+        return;
+      }
+      
+      // 检查是否有未同步的更改或超过定期同步时间
+      const shouldSync = hasUnsyncedChanges || 
+                        !lastSyncTime || 
+                        (Date.now() - lastSyncTime) > AUTO_SYNC_CONFIG.INTERVAL;
+      
+      if (!shouldSync) {
+        return;
+      }
+      
+      try {
+        console.log('Performing auto-sync...');
+        await window.performDataSync(true); // 传入 true 表示是自动同步
+        hasUnsyncedChanges = false;
+        lastSyncTime = Date.now();
+        console.log('Auto-sync completed');
+      } catch (error) {
+        console.error('Auto-sync failed:', error);
+      }
+    }
+    
+    // 启动自动同步定时器
+    function startAutoSync() {
+      // 清除旧的定时器
+      if (autoSyncInterval) {
+        clearInterval(autoSyncInterval);
+      }
+      
+      // 设置定期自动同步
+      autoSyncInterval = setInterval(() => {
+        console.log('Periodic auto-sync triggered');
+        performAutoSync();
+      }, AUTO_SYNC_CONFIG.INTERVAL);
+      
+      console.log('Auto-sync started: every', AUTO_SYNC_CONFIG.INTERVAL / 60000, 'minutes');
+    }
+    
+    // 停止自动同步
+    function stopAutoSync() {
+      if (autoSyncInterval) {
+        clearInterval(autoSyncInterval);
+        autoSyncInterval = null;
+      }
+      if (pendingSyncTimeout) {
+        clearTimeout(pendingSyncTimeout);
+        pendingSyncTimeout = null;
+      }
+      console.log('Auto-sync stopped');
+    }
+    
+    // 页面可见性变化时的处理
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // 页面隐藏时，如果有未同步的更改，立即同步
+        if (hasUnsyncedChanges) {
+          console.log('Page hidden, syncing changes...');
+          performAutoSync();
+        }
+      }
+    });
+    
+    // 暴露自动同步控制函数
+    window.startAutoSync = startAutoSync;
+    window.stopAutoSync = stopAutoSync;
+    window.markUnsyncedChanges = markUnsyncedChanges;
+    
     // 共享的数据同步功能（挂载到 window 对象，以便全局访问）
-    window.performDataSync = async function() {
+    window.performDataSync = async function(isAutoSync = false) {
       // 检查 Firebase 是否初始化
       if (!window.firebaseDB || !window.firebaseAuth || !window.firestoreHelpers) {
-        showErrorToast('Firebase が初期化されていません');
+        if (!isAutoSync) {
+          showErrorToast('Firebase が初期化されていません');
+        }
         return false;
       }
 
@@ -7369,8 +7500,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
           if (updateCount > 0) messages.push(`更新: ${updateCount}件`);
           if (deleteCount > 0) messages.push(`削除: ${deleteCount}件`);
           
-          if (messages.length > 0) {
+          if (messages.length > 0 && !isAutoSync) {
             showSuccessToast(`同期完了！${messages.join('、')}`);
+          } else if (isAutoSync) {
+            console.log(`Auto-sync completed: ${messages.join(', ')}`);
           }
         } else {
           const messages = [];
@@ -7433,17 +7566,85 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
     });
 
-    // 下载功能
-    userDownloadBtn.addEventListener('click', () => {
+    // PWA 安装功能
+    let deferredPrompt = null;
+    
+    // 监听 beforeinstallprompt 事件
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('PWA install prompt captured');
+    });
+    
+    userDownloadBtn.addEventListener('click', async () => {
       userProfileContainer.classList.remove('open');
-      // 触发下载
-      const headerDownloadBtn = document.getElementById('headerDownloadBtn');
-      if (headerDownloadBtn) {
-        headerDownloadBtn.click();
-      } else {
-        // 如果原下载按钮不存在，直接执行下载逻辑
-        console.log('Download clicked');
-        // TODO: 实现下载功能
+      
+      // 检测是否为iOS Safari
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      if (isIOS && isSafari) {
+        // iOS Safari 需要手动添加到主屏幕
+        showInfoToast(t('iosInstallHint'), 5000);
+        return;
+      }
+      
+      try {
+        // 显示安装进度
+        showInfoToast(t('clearingCache'), 3000);
+        
+        // 清除缓存
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+          console.log('All caches cleared');
+        }
+        
+        // 等待一下让用户看到进度
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        showInfoToast(t('installingApp'), 5000);
+        
+        // 尝试触发PWA安装
+        if (deferredPrompt) {
+          // 显示安装提示
+          deferredPrompt.prompt();
+          
+          // 等待用户响应
+          const { outcome } = await deferredPrompt.userChoice;
+          
+          if (outcome === 'accepted') {
+            console.log('User accepted PWA installation');
+            showSuccessToast(t('installSuccess'));
+          } else {
+            console.log('User dismissed PWA installation');
+            showInfoToast(t('installFailed'), 3000);
+          }
+          
+          // 清除 deferredPrompt
+          deferredPrompt = null;
+        } else {
+          // 如果没有安装提示，可能已经安装或不支持
+          if (window.matchMedia('(display-mode: standalone)').matches) {
+            showInfoToast(t('alreadyInstalled'), 3000);
+          } else {
+            // 重新注册 Service Worker 并刷新
+            if ('serviceWorker' in navigator) {
+              await navigator.serviceWorker.register('service-worker.js');
+              console.log('Service Worker re-registered');
+            }
+            showSuccessToast(t('installSuccess'));
+            // 延迟刷新，让用户看到消息
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          }
+        }
+      } catch (error) {
+        console.error('PWA installation error:', error);
+        showErrorToast(t('installFailed'));
       }
     });
 
@@ -7511,17 +7712,42 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const userImportFile = document.getElementById('userImportFile');
 
     if (userExportBtn) {
-      userExportBtn.addEventListener('click', () => {
+      userExportBtn.addEventListener('click', async () => {
         userProfileContainer.classList.remove('open');
+        
+        // 获取当前语言的翻译
+        const currentLang = localStorage.getItem('lang') || 'ja';
+        const translations = I18N[currentLang] || I18N.ja;
+        
+        // 显示导出进度
+        showInfoToast(translations.exporting, 10000); // 显示10秒，但会被后续操作覆盖
+        
+        const startTime = Date.now();
+        
         try {
+          // 异步执行导出
+          await new Promise(resolve => setTimeout(resolve, 50)); // 让UI更新
+          
           const payload = collectBackupPayload();
           const json = JSON.stringify(payload, null, 2);
           const fname = `fudoki-backup-${formatNowForFile()}.json`;
           downloadTextFile(fname, json);
-          showSuccessToast('データをエクスポートしました');
+          
+          // 确保至少显示1秒
+          const elapsed = Date.now() - startTime;
+          const remainingTime = Math.max(0, 1000 - elapsed);
+          
+          await new Promise(resolve => setTimeout(resolve, remainingTime));
+          
+          showSuccessToast(translations.exportSuccess);
         } catch (e) {
           console.error('Export failed:', e);
-          showErrorToast('エクスポートに失敗しました');
+          // 确保至少显示1秒
+          const elapsed = Date.now() - startTime;
+          const remainingTime = Math.max(0, 1000 - elapsed);
+          await new Promise(resolve => setTimeout(resolve, remainingTime));
+          
+          showErrorToast(translations.exportError);
         }
       });
     }

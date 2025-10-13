@@ -917,6 +917,19 @@
         const user = result.user;
         
         console.log('Login successful:', user);
+        
+        // 保存用户信息到 localStorage
+        localStorage.setItem('fudoki_user', JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        }));
+        
+        // 直接跳转到主页
+        console.log('Redirecting to index.html...');
+        window.location.href = 'index.html';
+        
         return user;
       } catch (error) {
         // 处理错误

@@ -2,8 +2,23 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>フドキ ― 言葉の「風土」を記す、日本語解析ツール</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- iOS PWA 配置 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fudoki">
+  <link rel="apple-touch-icon" href="static/logo.png">
+  <link rel="apple-touch-startup-image" href="static/logo.png">
+  
+  <!-- 主题颜色 -->
+  <meta name="theme-color" content="#4a90e2">
+  <meta name="msapplication-TileColor" content="#4a90e2">
+  
   <link rel="stylesheet" href="static/styles.css">
   <!-- 移动端样式：仅在移动设备加载，优先级高于主样式 -->
   <link rel="stylesheet" href="static/mobile.css" media="(max-width: 768px)">
@@ -509,7 +524,7 @@
 
     // 检查用户登录状态
     let authCheckCompleted = false;
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (authCheckCompleted) return; // 只执行一次
       authCheckCompleted = true;
       
@@ -526,6 +541,28 @@
           displayName: user.displayName,
           photoURL: user.photoURL
         }));
+        
+        // 登录成功后自动同步一次（延迟执行，等待页面完全加载）
+        setTimeout(async () => {
+          if (typeof window.performDataSync === 'function') {
+            console.log('Performing initial sync after login...');
+            try {
+              await window.performDataSync();
+              console.log('Initial sync completed');
+              
+              // 启动自动同步定时器
+              if (typeof window.startAutoSync === 'function') {
+                window.startAutoSync();
+              }
+            } catch (error) {
+              console.error('Initial sync failed:', error);
+              // 即使初始同步失败，也启动自动同步
+              if (typeof window.startAutoSync === 'function') {
+                window.startAutoSync();
+              }
+            }
+          }
+        }, 2000); // 2秒后执行，确保页面和 documentManager 已初始化
       }
     });
   </script>

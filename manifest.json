@@ -1,0 +1,29 @@
+{
+  "name": "Fudoki - 日本語解析ツール",
+  "short_name": "Fudoki",
+  "description": "言葉の「風土」を記す、日本語解析ツール",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4a90e2",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "static/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "static/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "scope": "/",
+  "categories": ["education", "productivity", "utilities"],
+  "lang": "ja",
+  "dir": "auto"
+}
+
