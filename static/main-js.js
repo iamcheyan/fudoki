@@ -3334,8 +3334,47 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const docIndex = docs.findIndex(d => d.id === activeId);
       if (docIndex === -1) return;
 
-      // 保存文档内容（包括空内容）
       const doc = docs[docIndex];
+      
+      // 如果是示例文档，创建一个新副本而不是修改原文档
+      if (doc.folder === 'samples') {
+        const newDoc = {
+          id: this.generateId(),
+          content: textInput.value,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          locked: false,
+          folder: null, // 移除示例文件夹标记
+          folderId: null,
+          favorite: false
+        };
+        
+        // 添加新文档
+        docs.push(newDoc);
+        this.saveAllDocuments(docs);
+        
+        // 切换到新文档
+        this.setActiveId(newDoc.id);
+        
+        // 刷新列表和工具栏
+        this.render();
+        try { updateEditorToolbar(); } catch (_) {}
+        
+        // 显示提示（使用同步进度 toast）
+        const syncToast = document.getElementById('syncProgressToast');
+        const syncText = document.getElementById('syncProgressText');
+        if (syncToast && syncText) {
+          syncText.textContent = 'サンプル文書のコピーを作成しました';
+          syncToast.classList.add('show');
+          setTimeout(() => {
+            syncToast.classList.remove('show');
+          }, 2000);
+        }
+        
+        return;
+      }
+      
+      // 保存普通文档内容（包括空内容）
       doc.content = textInput.value;
       doc.updatedAt = Date.now();
       this.saveAllDocuments(docs);
@@ -3750,6 +3789,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (syncBtn) {
         syncBtn.addEventListener('click', async () => {
           syncBtn.classList.add('is-loading', 'rotate-3');
+          syncBtn.disabled = true;
           const svg = syncBtn.querySelector('svg');
           const onEnd = () => {
             syncBtn.classList.remove('rotate-3');
@@ -3757,14 +3797,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
           };
           if (svg) svg.addEventListener('animationend', onEnd);
           try {
-            // 1) 清空示例文章缓存
-            this.clearSampleDocuments();
-            // 2) 强制从 samples.json 重新加载示例
-            await this.seedSampleDocumentsIfNeeded(true);
-            // 3) 刷新列表
-            this.render();
+            // 调用全局的数据同步函数
+            if (typeof window.performDataSync === 'function') {
+              await window.performDataSync();
+            } else {
+              alert('同期機能が利用できません');
+            }
           } finally {
             syncBtn.classList.remove('is-loading');
+            syncBtn.disabled = false;
           }
         });
       }
@@ -6167,8 +6208,44 @@ Try Fudoki and enjoy Japanese language analysis!`;
       editorStarToggle.addEventListener('click', () => {
         const docs = documentManager.getAllDocuments();
         const activeId = documentManager.getActiveId();
-        const doc = docs.find(d => d.id === activeId);
-        if (!doc) return;
+        const docIndex = docs.findIndex(d => d.id === activeId);
+        if (docIndex === -1) return;
+        
+        const doc = docs[docIndex];
+        
+        // 如果是示例文档，创建副本而不是修改原文档
+        if (doc.folder === 'samples') {
+          const newDoc = {
+            id: documentManager.generateId(),
+            content: textInput.value,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            locked: false,
+            folder: null,
+            folderId: null,
+            favorite: true // 新副本直接设为收藏
+          };
+          
+          docs.push(newDoc);
+          documentManager.saveAllDocuments(docs);
+          documentManager.setActiveId(newDoc.id);
+          documentManager.render();
+          updateEditorToolbar();
+          
+          // 显示提示
+          const syncToast = document.getElementById('syncProgressToast');
+          const syncText = document.getElementById('syncProgressText');
+          if (syncToast && syncText) {
+            syncText.textContent = 'サンプル文書のコピーをお気に入りに追加しました';
+            syncToast.classList.add('show');
+            setTimeout(() => {
+              syncToast.classList.remove('show');
+            }, 2000);
+          }
+          return;
+        }
+        
+        // 普通文档直接切换收藏状态
         doc.favorite = !doc.favorite;
         documentManager.saveAllDocuments(docs);
         documentManager.render();
@@ -7402,27 +7479,23 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
     });
 
-    // 数据同步功能
-    syncDataBtn.addEventListener('click', async () => {
-      userProfileContainer.classList.remove('open');
-      
+    // 共享的数据同步功能（挂载到 window 对象，以便全局访问）
+    window.performDataSync = async function() {
       // 检查 Firebase 是否初始化
       if (!window.firebaseDB || !window.firebaseAuth || !window.firestoreHelpers) {
-        alert('Firebase が初期化されていません');
-        return;
+        showErrorToast('Firebase が初期化されていません');
+        return false;
       }
 
       // 获取当前用户
       const currentUser = window.firebaseAuth.currentUser;
       if (!currentUser) {
-        alert('ログインが必要です');
-        return;
+        showErrorToast('ログインが必要です');
+        return false;
       }
 
       try {
-        // 显示同步提示
-        const confirmSync = confirm('ローカルデータをクラウドに同期しますか？\n既存のクラウドデータは上書きされます。');
-        if (!confirmSync) return;
+        // 直接开始同步，不显示确认对话框
 
         // 获取进度提示元素
         const syncToast = document.getElementById('syncProgressToast');
@@ -7434,29 +7507,26 @@ Try Fudoki and enjoy Japanese language analysis!`;
           syncText.textContent = 'データを同期中...';
         }
 
-        // 禁用同步按钮
-        syncDataBtn.disabled = true;
-
         // 检查 documentManager 是否存在
         if (typeof documentManager === 'undefined') {
-          alert('ドキュメントマネージャーが初期化されていません');
-          syncDataBtn.disabled = false;
+          showErrorToast('ドキュメントマネージャーが初期化されていません');
           if (syncToast) syncToast.classList.remove('show');
-          return;
+          return false;
         }
 
-        // 获取本地所有文档
+        // 获取本地所有文档（排除示例文档）
         const allDocs = documentManager.getAllDocuments();
+        const userDocs = allDocs.filter(doc => doc.folder !== 'samples'); // 不同步示例文档
         const { collection, doc, setDoc, serverTimestamp } = window.firestoreHelpers;
         const db = window.firebaseDB;
         
         let successCount = 0;
         let failCount = 0;
-        const totalDocs = allDocs.length;
+        const totalDocs = userDocs.length;
 
-        // 同步每个文档
-        for (let i = 0; i < allDocs.length; i++) {
-          const document = allDocs[i];
+        // 同步每个文档（不包括示例文档）
+        for (let i = 0; i < userDocs.length; i++) {
+          const document = userDocs[i];
           
           // 更新进度
           if (syncText) {
@@ -7509,16 +7579,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
           }, 2000);
         }
 
-        // 恢复按钮状态
-        syncDataBtn.disabled = false;
-
-        // 显示结果
+        // 显示结果（成功时使用同步提示，失败时使用错误提示）
         if (failCount === 0) {
-          alert(`同期完了！\n成功: ${successCount}件`);
+          // 全部成功，不显示额外提示（已经显示"同期完了！"）
         } else {
-          alert(`同期完了\n成功: ${successCount}件\n失敗: ${failCount}件`);
+          showErrorToast(`同期完了: ${successCount}件成功、${failCount}件失敗`);
         }
 
+        return true;
       } catch (error) {
         console.error('同步错误:', error);
         
@@ -7528,8 +7596,35 @@ Try Fudoki and enjoy Japanese language analysis!`;
           syncToast.classList.remove('show');
         }
         
+        showErrorToast('同期に失敗しました: ' + error.message);
+        return false;
+      }
+    }
+    
+    // 显示错误提示的辅助函数
+    function showErrorToast(message) {
+      const errorToast = document.getElementById('errorToast');
+      const errorText = document.getElementById('errorText');
+      
+      if (errorToast && errorText) {
+        errorText.textContent = message;
+        errorToast.classList.add('show');
+        
+        // 3秒后自动隐藏
+        setTimeout(() => {
+          errorToast.classList.remove('show');
+        }, 3000);
+      }
+    }
+
+    // 数据同步功能（用户菜单按钮）
+    syncDataBtn.addEventListener('click', async () => {
+      userProfileContainer.classList.remove('open');
+      syncDataBtn.disabled = true;
+      try {
+        await window.performDataSync();
+      } finally {
         syncDataBtn.disabled = false;
-        alert('同期に失敗しました: ' + error.message);
       }
     });
 
