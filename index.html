@@ -25,6 +25,139 @@
   <link rel="icon" type="image/png" href="static/logo.png">
   <!-- EasyMDE Markdown 编辑器 -->
   <link rel="stylesheet" href="static/libs/easymde/easymde.min.css">
+  
+  <!-- 清除缓存脚本 - 必须在其他脚本之前执行 -->
+  <script>
+    (function() {
+      // 检查 URL 参数
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldClear = urlParams.get('clear');
+      
+      if (shouldClear === '1' || shouldClear === 'true') {
+        console.log('🧹 清除缓存模式已启动...');
+        
+        // 保存文档数据
+        const documentsData = localStorage.getItem('texts');
+        const activeId = localStorage.getItem('activeId');
+        
+        // 清除所有 localStorage（除了文档）
+        const keysToPreserve = ['texts', 'activeId'];
+        const allKeys = Object.keys(localStorage);
+        let clearedCount = 0;
+        
+        allKeys.forEach(key => {
+          if (!keysToPreserve.includes(key)) {
+            localStorage.removeItem(key);
+            clearedCount++;
+          }
+        });
+        
+        console.log(`✅ 已清除 ${clearedCount} 个 localStorage 项`);
+        
+        // 清除所有 sessionStorage
+        const sessionCount = sessionStorage.length;
+        sessionStorage.clear();
+        console.log(`✅ 已清除 ${sessionCount} 个 sessionStorage 项`);
+        
+        // 清除 PWA Service Worker 缓存
+        if ('caches' in window) {
+          caches.keys().then(function(cacheNames) {
+            return Promise.all(
+              cacheNames.map(function(cacheName) {
+                console.log(`🗑️  删除缓存: ${cacheName}`);
+                return caches.delete(cacheName);
+              })
+            );
+          }).then(function() {
+            console.log('✅ 已清除所有 PWA 缓存');
+            
+            // 注销 Service Worker
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                  registration.unregister();
+                  console.log('✅ 已注销 Service Worker');
+                }
+              });
+            }
+            
+            // 显示完成消息并重定向
+            showClearMessage();
+          }).catch(function(error) {
+            console.error('❌ 清除缓存时出错:', error);
+            showClearMessage();
+          });
+        } else {
+          showClearMessage();
+        }
+        
+        function showClearMessage() {
+          // 创建提示框
+          const message = document.createElement('div');
+          message.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.6;
+          `;
+          message.innerHTML = `
+            <div style="font-size: 48px; margin-bottom: 15px;">🧹</div>
+            <div style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">缓存清除完成！</div>
+            <div style="font-size: 14px; opacity: 0.9;">正在退出登录...</div>
+          `;
+          document.body.appendChild(message);
+          
+          // 1.5秒后退出登录并跳转到登录页
+          setTimeout(function() {
+            // 设置登出标志
+            sessionStorage.setItem('fudoki_logging_out', 'true');
+            
+            // 清除用户数据（如果还有残留）
+            localStorage.removeItem('fudoki_user');
+            
+            // 如果 Firebase Auth 可用，尝试登出
+            if (window.firebaseAuth) {
+              try {
+                // 使用 Firebase 的 signOut
+                import('https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js')
+                  .then(function(authModule) {
+                    return authModule.signOut(window.firebaseAuth);
+                  })
+                  .then(function() {
+                    console.log('✅ Firebase 登出成功');
+                  })
+                  .catch(function(error) {
+                    console.warn('⚠️ Firebase 登出失败:', error);
+                  })
+                  .finally(function() {
+                    // 无论成功失败都跳转到登录页
+                    window.location.href = 'login.html';
+                  });
+              } catch (error) {
+                console.warn('⚠️ Firebase 登出异常:', error);
+                window.location.href = 'login.html';
+              }
+            } else {
+              // 如果没有 Firebase Auth，直接跳转
+              console.log('ℹ️ 未检测到 Firebase Auth，直接跳转到登录页');
+              window.location.href = 'login.html';
+            }
+          }, 1500);
+        }
+      }
+    })();
+  </script>
 </head>
 <body>
 
