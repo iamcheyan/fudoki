@@ -1531,6 +1531,14 @@ const headerSpeedValue = $('headerSpeedValue');
     document.documentElement.lang = currentLang;
     document.title = t('title');
 
+    // 通用的 data-i18n 属性处理
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+      const key = element.getAttribute('data-i18n');
+      if (key && I18N[currentLang] && I18N[currentLang][key]) {
+        element.textContent = I18N[currentLang][key];
+      }
+    });
+
     const logoText = $('logoText');
     if (logoText) logoText.textContent = t('title');
     // 导航菜单内容固定，不跟随语言切换
