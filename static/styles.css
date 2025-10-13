@@ -1022,7 +1022,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13.5px;
+  font-size: 12px;
   color: var(--text);
   line-height: 1.4;
   flex: 1;
@@ -3419,7 +3419,7 @@ section.editor-toolbar {
 .user-dropdown-item.submenu-parent {
   position: relative;
   padding-right: 36px;
-  cursor: pointer;
+  cursor: default; /* 改为 default，因为不直接点击 */
 }
 
 .user-dropdown-item.submenu-parent:hover {
@@ -3428,6 +3428,16 @@ section.editor-toolbar {
 }
 
 .user-dropdown-item.submenu-parent:hover::before {
+  transform: scaleY(0);
+}
+
+/* 当子菜单打开时，保持父元素的样式 */
+.user-dropdown-item.submenu-parent:has(.user-submenu:hover) {
+  background: var(--elev);
+  padding-left: 16px;
+}
+
+.user-dropdown-item.submenu-parent:has(.user-submenu:hover)::before {
   transform: scaleY(0);
 }
 
@@ -3447,7 +3457,7 @@ section.editor-toolbar {
 
 .user-submenu {
   position: absolute;
-  left: 100%;
+  left: calc(100% - 4px); /* 稍微重叠，消除间隙 */
   top: 0;
   min-width: 160px;
   background: var(--bg);
@@ -3457,25 +3467,46 @@ section.editor-toolbar {
   opacity: 0;
   visibility: hidden;
   transform: translateX(-10px);
-  transition: all 0.2s ease;
+  transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+  transition-delay: 0s, 0s, 0s;
   z-index: 10002;
   overflow: hidden;
-  margin-left: 8px;
   pointer-events: none;
 }
 
-.submenu-parent:hover .user-submenu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-  pointer-events: auto;
+/* 创建一个不可见的桥梁区域 */
+.user-dropdown-item.submenu-parent::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 0;
+  bottom: 0;
+  width: 12px; /* 桥梁宽度 */
+  background: transparent;
+  z-index: 10001;
 }
 
-/* 防止子菜单在悬停时消失 */
+.submenu-parent:hover .user-submenu,
 .user-submenu:hover {
   opacity: 1;
   visibility: visible;
-  pointer-events: auto;
+  transform: translateX(0);
+  pointer-events: auto !important; /* 强制启用交互 */
+  transition-delay: 0s, 0s, 0s;
+}
+
+/* 添加延迟关闭，防止意外移出时立即消失 */
+.submenu-parent .user-submenu {
+  transition-delay: 0s, 0.2s, 0s; /* visibility延迟关闭，增加时间 */
+}
+
+/* 当鼠标在子菜单项上时，保持子菜单打开 */
+.submenu-parent:focus-within .user-submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  pointer-events: auto !important;
+  transition-delay: 0s, 0s, 0s;
 }
 
 .submenu-item {
@@ -3491,6 +3522,8 @@ section.editor-toolbar {
   cursor: pointer;
   transition: all 0.15s ease;
   position: relative;
+  pointer-events: auto !important; /* 确保按钮可以被点击 */
+  user-select: none; /* 防止文本选择 */
 }
 
 .submenu-item svg {

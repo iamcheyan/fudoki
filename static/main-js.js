@@ -7440,8 +7440,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
         console.error('Failed to load user data:', error);
       }
     } else {
-      // 未登录，跳转到登录页
-      window.location.href = 'login.html';
+      // 未登录，Firebase onAuthStateChanged 会自动处理跳转
+      console.log('User data not found in localStorage');
+      userProfileContainer.style.display = 'none';
+      return;
     }
 
     // 切换下拉菜单
@@ -7492,41 +7494,173 @@ Try Fudoki and enjoy Japanese language analysis!`;
           return false;
         }
 
-        // 获取本地所有文档（排除示例文档）
+        // 获取本地所有文档（排除示例文档和默认文档）
         const allDocs = window.documentManager.getAllDocuments();
-        const userDocs = allDocs.filter(doc => doc.folder !== 'samples'); // 不同步示例文档
-        const { collection, doc, setDoc, serverTimestamp } = window.firestoreHelpers;
+        const localDocs = allDocs.filter(doc => {
+          // 不同步示例文档
+          if (doc.folder === 'samples') return false;
+          // 不同步默认文档 default-01
+          if (doc.id === 'default-01') return false;
+          return true;
+        });
+        
+        const { collection, doc, setDoc, serverTimestamp, getDocs, deleteDoc, getDoc } = window.firestoreHelpers;
         const db = window.firebaseDB;
         
-        let successCount = 0;
+        let uploadCount = 0;
+        let downloadCount = 0;
+        let updateCount = 0;
+        let deleteCount = 0;
         let failCount = 0;
-        const totalDocs = userDocs.length;
 
-        // 同步每个文档（不包括示例文档）
-        for (let i = 0; i < userDocs.length; i++) {
-          const document = userDocs[i];
-          
-          // 更新进度
+        // 第一步：获取云端所有文档
+        if (syncText) {
+          syncText.textContent = 'クラウドデータを取得中...';
+        }
+        
+        const cloudDocs = new Map(); // id -> doc data
+        try {
+          const docsCollectionRef = collection(db, 'users', currentUser.uid, 'documents');
+          const snapshot = await getDocs(docsCollectionRef);
+          snapshot.forEach(d => {
+            cloudDocs.set(d.id, d.data());
+          });
+        } catch (error) {
+          console.error('获取云端文档列表失败:', error);
+          showErrorToast('クラウドデータの取得に失敗しました');
+          if (syncToast) syncToast.classList.remove('show');
+          return false;
+        }
+
+        // 第二步：建立本地文档映射
+        const localDocsMap = new Map();
+        localDocs.forEach(d => {
+          localDocsMap.set(d.id, d);
+        });
+
+        // 第三步：双向同步
+        const allDocIds = new Set([...localDocsMap.keys(), ...cloudDocs.keys()]);
+        let processedCount = 0;
+        const totalCount = allDocIds.size;
+
+        for (const docId of allDocIds) {
+          processedCount++;
           if (syncText) {
-            syncText.textContent = `同期中... (${i + 1}/${totalDocs})`;
+            syncText.textContent = `双方向同期中... (${processedCount}/${totalCount})`;
           }
+
+          const localDoc = localDocsMap.get(docId);
+          const cloudDoc = cloudDocs.get(docId);
 
           try {
-            const docRef = doc(db, 'users', currentUser.uid, 'documents', document.id);
-            await setDoc(docRef, {
-              id: document.id,
-              title: document.title || '',
-              content: document.content || '',
-              folderId: document.folderId || null,
-              favorite: document.favorite || false,
-              createdAt: document.createdAt,
-              updatedAt: serverTimestamp()
-            });
-            successCount++;
+            // 情况1：只在本地，上传到云端
+            if (localDoc && !cloudDoc) {
+              let contentStr = '';
+              if (Array.isArray(localDoc.content)) {
+                contentStr = localDoc.content.join('\n');
+              } else if (typeof localDoc.content === 'string') {
+                contentStr = localDoc.content;
+              }
+              
+              const titleStr = localDoc.title || (contentStr.split('\n')[0]?.trim() || '');
+              const docRef = doc(db, 'users', currentUser.uid, 'documents', docId);
+              
+              await setDoc(docRef, {
+                id: localDoc.id,
+                title: titleStr,
+                content: contentStr,
+                folderId: localDoc.folderId || null,
+                favorite: localDoc.favorite || false,
+                createdAt: localDoc.createdAt,
+                updatedAt: serverTimestamp()
+              });
+              uploadCount++;
+              console.log(`上传到云端: ${docId}`);
+            }
+            // 情况2：只在云端，下载到本地
+            else if (!localDoc && cloudDoc) {
+              // 跳过不应该同步的文档
+              if (docId === 'default-01' || cloudDoc.folder === 'samples') {
+                // 删除这些不应该存在的云端文档
+                const docRef = doc(db, 'users', currentUser.uid, 'documents', docId);
+                await deleteDoc(docRef);
+                deleteCount++;
+                console.log(`删除云端不应同步的文档: ${docId}`);
+                continue;
+              }
+              
+              const newDoc = {
+                id: cloudDoc.id,
+                content: cloudDoc.content || '',
+                title: cloudDoc.title || '',
+                folderId: cloudDoc.folderId || null,
+                favorite: cloudDoc.favorite || false,
+                createdAt: cloudDoc.createdAt || Date.now(),
+                updatedAt: cloudDoc.updatedAt?.toMillis?.() || Date.now(),
+                locked: false
+              };
+              
+              allDocs.push(newDoc);
+              downloadCount++;
+              console.log(`从云端下载: ${docId}`);
+            }
+            // 情况3：两边都有，比较时间戳，保留最新的
+            else if (localDoc && cloudDoc) {
+              const localTime = localDoc.updatedAt || localDoc.createdAt || 0;
+              const cloudTime = cloudDoc.updatedAt?.toMillis?.() || cloudDoc.createdAt || 0;
+              
+              // 云端更新，下载到本地
+              if (cloudTime > localTime) {
+                const docIndex = allDocs.findIndex(d => d.id === docId);
+                if (docIndex !== -1) {
+                  allDocs[docIndex] = {
+                    ...allDocs[docIndex],
+                    content: cloudDoc.content || allDocs[docIndex].content,
+                    title: cloudDoc.title || allDocs[docIndex].title,
+                    folderId: cloudDoc.folderId !== undefined ? cloudDoc.folderId : allDocs[docIndex].folderId,
+                    favorite: cloudDoc.favorite !== undefined ? cloudDoc.favorite : allDocs[docIndex].favorite,
+                    updatedAt: cloudTime
+                  };
+                  updateCount++;
+                  console.log(`更新本地文档（云端更新）: ${docId}`);
+                }
+              }
+              // 本地更新，上传到云端
+              else if (localTime > cloudTime) {
+                let contentStr = '';
+                if (Array.isArray(localDoc.content)) {
+                  contentStr = localDoc.content.join('\n');
+                } else if (typeof localDoc.content === 'string') {
+                  contentStr = localDoc.content;
+                }
+                
+                const titleStr = localDoc.title || (contentStr.split('\n')[0]?.trim() || '');
+                const docRef = doc(db, 'users', currentUser.uid, 'documents', docId);
+                
+                await setDoc(docRef, {
+                  id: localDoc.id,
+                  title: titleStr,
+                  content: contentStr,
+                  folderId: localDoc.folderId || null,
+                  favorite: localDoc.favorite || false,
+                  createdAt: localDoc.createdAt,
+                  updatedAt: serverTimestamp()
+                });
+                updateCount++;
+                console.log(`更新云端文档（本地更新）: ${docId}`);
+              }
+              // 时间戳相同，跳过
+            }
           } catch (error) {
-            console.error(`文档同步失败: ${document.id}`, error);
+            console.error(`同步文档失败: ${docId}`, error);
             failCount++;
           }
+        }
+
+        // 保存更新后的本地文档
+        if (downloadCount > 0 || updateCount > 0) {
+          window.documentManager.saveAllDocuments(allDocs);
+          window.documentManager.render();
         }
 
         // 同步文件夹
@@ -7557,11 +7691,26 @@ Try Fudoki and enjoy Japanese language analysis!`;
           }, 2000);
         }
 
-        // 显示结果（成功时使用同步提示，失败时使用错误提示）
+        // 显示结果
         if (failCount === 0) {
-          // 全部成功，不显示额外提示（已经显示"同期完了！"）
+          // 全部成功，显示详细信息
+          const messages = [];
+          if (uploadCount > 0) messages.push(`アップロード: ${uploadCount}件`);
+          if (downloadCount > 0) messages.push(`ダウンロード: ${downloadCount}件`);
+          if (updateCount > 0) messages.push(`更新: ${updateCount}件`);
+          if (deleteCount > 0) messages.push(`削除: ${deleteCount}件`);
+          
+          if (messages.length > 0) {
+            showSuccessToast(`同期完了！${messages.join('、')}`);
+          }
         } else {
-          showErrorToast(`同期完了: ${successCount}件成功、${failCount}件失敗`);
+          const messages = [];
+          if (uploadCount > 0) messages.push(`${uploadCount}件アップロード`);
+          if (downloadCount > 0) messages.push(`${downloadCount}件ダウンロード`);
+          if (updateCount > 0) messages.push(`${updateCount}件更新`);
+          if (deleteCount > 0) messages.push(`${deleteCount}件削除`);
+          messages.push(`${failCount}件失敗`);
+          showErrorToast(`同期完了: ${messages.join('、')}`);
         }
 
         return true;
@@ -7630,22 +7779,48 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
 
     // 切换账户功能
-    switchAccountBtn.addEventListener('click', () => {
+    switchAccountBtn.addEventListener('click', async () => {
       userProfileContainer.classList.remove('open');
-      // 清除当前用户数据并跳转到登录页
-      localStorage.removeItem('fudoki_user');
-      window.location.href = 'login.html';
-    });
-
-    // 登出功能
-    logoutBtn.addEventListener('click', () => {
-      userProfileContainer.classList.remove('open');
-      // 确认登出
-      if (confirm('本当にログアウトしますか？')) {
-        // 清除用户数据
+      
+      try {
+        // 使用 Firebase signOut
+        if (window.firebaseAuth && typeof window.firebaseAuth.signOut === 'function') {
+          await window.firebaseAuth.signOut();
+          console.log('User signed out successfully');
+        }
+        // 清除本地用户数据
         localStorage.removeItem('fudoki_user');
         // 跳转到登录页
         window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Sign out error:', error);
+        // 即使出错也清除本地数据并跳转
+        localStorage.removeItem('fudoki_user');
+        window.location.href = 'login.html';
+      }
+    });
+
+    // 登出功能
+    logoutBtn.addEventListener('click', async () => {
+      userProfileContainer.classList.remove('open');
+      // 确认登出
+      if (confirm('本当にログアウトしますか？')) {
+        try {
+          // 使用 Firebase signOut
+          if (window.firebaseAuth && typeof window.firebaseAuth.signOut === 'function') {
+            await window.firebaseAuth.signOut();
+            console.log('User logged out successfully');
+          }
+          // 清除本地用户数据
+          localStorage.removeItem('fudoki_user');
+          // 跳转到登录页
+          window.location.href = 'login.html';
+        } catch (error) {
+          console.error('Logout error:', error);
+          // 即使出错也清除本地数据并跳转
+          localStorage.removeItem('fudoki_user');
+          window.location.href = 'login.html';
+        }
       }
     });
 
@@ -7784,92 +7959,159 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
 
     // ========== 主题切换功能 ==========
-    const themeSubmenu = document.querySelectorAll('#themeSubmenu .submenu-item');
-    const currentThemeName = document.getElementById('currentThemeName');
-    
-    const themeNames = {
-      'paper': 'Paper White',
-      'sakura': 'Sakura',
-      'sticky': 'Sticky Note',
-      'green': 'Green',
-      'blue': 'Blue'
-    };
-
-    // 初始化当前主题显示
-    const savedTheme = localStorage.getItem('theme') || 'paper';
-    if (currentThemeName) {
-      currentThemeName.textContent = themeNames[savedTheme] || 'Paper White';
-    }
-
-    // 更新主题激活状态
-    themeSubmenu.forEach(item => {
-      const theme = item.getAttribute('data-theme');
-      item.classList.toggle('active', theme === savedTheme);
+    try {
+      console.log('初始化主题切换功能...');
+      const themeSubmenuContainer = document.getElementById('themeSubmenu');
+      console.log('themeSubmenu容器:', themeSubmenuContainer);
       
-      item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const selectedTheme = item.getAttribute('data-theme');
-        
-        // 更新激活状态
-        themeSubmenu.forEach(t => t.classList.remove('active'));
-        item.classList.add('active');
-        
-        // 更新显示名称
-        if (currentThemeName) {
-          currentThemeName.textContent = themeNames[selectedTheme];
-        }
-        
-        // 应用主题
-        document.documentElement.setAttribute('data-theme', selectedTheme);
-        localStorage.setItem('theme', selectedTheme);
-        
-        // 关闭菜单
-        userProfileContainer.classList.remove('open');
-      });
-    });
+      const themeSubmenu = document.querySelectorAll('#themeSubmenu .submenu-item');
+      console.log('找到的主题子菜单项数量:', themeSubmenu.length);
+      
+      const currentThemeName = document.getElementById('currentThemeName');
+      console.log('currentThemeName元素:', currentThemeName);
+      
+      const themeNames = {
+        'paper': 'Paper White',
+        'sakura': 'Sakura',
+        'sticky': 'Sticky Note',
+        'green': 'Green',
+        'blue': 'Blue'
+      };
+
+      console.log('步骤1: 定义完成');
+
+      // 初始化当前主题显示（直接从 localStorage 读取，使用字符串字面量）
+      const savedTheme = localStorage.getItem('theme') || 'paper';
+      console.log('步骤2: 当前主题 =', savedTheme);
+      
+      if (currentThemeName) {
+        currentThemeName.textContent = themeNames[savedTheme] || 'Paper White';
+      }
+
+      console.log('步骤3: 准备绑定事件');
+      
+      // 更新主题激活状态
+      if (themeSubmenu && themeSubmenu.length > 0) {
+        console.log('✅ 绑定主题子菜单事件监听器...');
+        themeSubmenu.forEach((item, index) => {
+          console.log(`  绑定第 ${index + 1} 个主题项:`, item.getAttribute('data-theme'));
+          const theme = item.getAttribute('data-theme');
+          item.classList.toggle('active', theme === savedTheme);
+          
+          item.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const selectedTheme = item.getAttribute('data-theme');
+            
+            console.log('🎨 主题切换:', selectedTheme);
+            
+            // 更新激活状态
+            themeSubmenu.forEach(t => t.classList.remove('active'));
+            item.classList.add('active');
+            
+            // 更新显示名称
+            if (currentThemeName) {
+              currentThemeName.textContent = themeNames[selectedTheme];
+            }
+            
+            // 应用主题（直接操作，避免作用域问题）
+            try {
+              localStorage.setItem('theme', selectedTheme);
+              document.documentElement.setAttribute('data-theme', selectedTheme);
+              console.log('✅ 主题已应用:', selectedTheme);
+            } catch (error) {
+              console.error('应用主题失败:', error);
+            }
+            
+            // 关闭菜单
+            if (userProfileContainer) {
+              userProfileContainer.classList.remove('open');
+            }
+          });
+        });
+        console.log('✅ 主题切换功能初始化完成');
+      } else {
+        console.warn('主题子菜单未找到');
+      }
+    } catch (error) {
+      console.error('❌ 初始化主题切换功能时出错:', error);
+      console.error('错误堆栈:', error.stack);
+    }
 
     // ========== 语言切换功能 ==========
-    const langSubmenu = document.querySelectorAll('#langSubmenu .submenu-item');
-    const currentLangName = document.getElementById('currentLangName');
-    
-    const langNames = {
-      'zh': '中文',
-      'ja': '日本語',
-      'en': 'English'
-    };
-
-    // 初始化当前语言显示
-    const savedLang = localStorage.getItem('lang') || 'ja';
-    if (currentLangName) {
-      currentLangName.textContent = langNames[savedLang] || '日本語';
-    }
-
-    // 更新语言激活状态
-    langSubmenu.forEach(item => {
-      const lang = item.getAttribute('data-lang');
-      item.classList.toggle('active', lang === savedLang);
+    try {
+      console.log('初始化语言切换功能...');
+      const langSubmenuContainer = document.getElementById('langSubmenu');
+      console.log('langSubmenu容器:', langSubmenuContainer);
       
-      item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const selectedLang = item.getAttribute('data-lang');
-        
-        // 更新激活状态
-        langSubmenu.forEach(l => l.classList.remove('active'));
-        item.classList.add('active');
-        
-        // 更新显示名称
-        if (currentLangName) {
-          currentLangName.textContent = langNames[selectedLang];
-        }
-        
-        // 应用语言
-        if (typeof applyTranslations === 'function') {
-          localStorage.setItem('lang', selectedLang);
-          applyTranslations(selectedLang);
-        }
-        
-        // 关闭菜单
-        userProfileContainer.classList.remove('open');
-      });
-    });
+      const langSubmenu = document.querySelectorAll('#langSubmenu .submenu-item');
+      console.log('找到的语言子菜单项数量:', langSubmenu.length);
+      
+      const currentLangName = document.getElementById('currentLangName');
+      
+      const langNames = {
+        'zh': '中文',
+        'ja': '日本語',
+        'en': 'English'
+      };
+
+      // 初始化当前语言显示（直接从 localStorage 读取，使用字符串字面量）
+      const savedLang = localStorage.getItem('lang') || 'ja';
+      console.log('当前语言:', savedLang);
+      
+      if (currentLangName) {
+        currentLangName.textContent = langNames[savedLang] || '日本語';
+      }
+
+      // 更新语言激活状态
+      if (langSubmenu && langSubmenu.length > 0) {
+        console.log('✅ 绑定语言子菜单事件监听器...');
+        langSubmenu.forEach((item, index) => {
+          console.log(`  绑定第 ${index + 1} 个语言项:`, item.getAttribute('data-lang'));
+          const lang = item.getAttribute('data-lang');
+          item.classList.toggle('active', lang === savedLang);
+          
+          item.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const selectedLang = item.getAttribute('data-lang');
+            
+            console.log('🌐 语言切换:', selectedLang);
+            
+            // 更新激活状态
+            langSubmenu.forEach(l => l.classList.remove('active'));
+            item.classList.add('active');
+            
+            // 更新显示名称
+            if (currentLangName) {
+              currentLangName.textContent = langNames[selectedLang];
+            }
+            
+            // 应用语言（直接操作，避免作用域问题）
+            try {
+              localStorage.setItem('lang', selectedLang);
+              document.documentElement.lang = selectedLang;
+              // 触发语言更新事件，让其他组件响应
+              window.dispatchEvent(new CustomEvent('languageChange', { detail: { lang: selectedLang } }));
+              console.log('✅ 语言已应用:', selectedLang);
+              // 刷新页面以应用所有语言变化
+              location.reload();
+            } catch (error) {
+              console.error('应用语言失败:', error);
+            }
+            
+            // 关闭菜单
+            if (userProfileContainer) {
+              userProfileContainer.classList.remove('open');
+            }
+          });
+        });
+        console.log('✅ 语言切换功能初始化完成');
+      } else {
+        console.warn('语言子菜单未找到');
+      }
+    } catch (error) {
+      console.error('❌ 初始化语言切换功能时出错:', error);
+      console.error('错误堆栈:', error.stack);
+    }
   }

@@ -179,16 +179,18 @@
                       </svg>
                       インポート
                     </button>
-                    <button class="submenu-item" id="userDownloadBtn">
-                      <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 8px;">
-                        <path d="M5 20h14v-2H5v2z"/>
-                        <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z"/>
-                      </svg>
-                      ダウンロード
-                    </button>
+
                   </div>
                 </div>
                 <input type="file" id="userImportFile" accept="application/json" style="display:none">
+
+                <button class="user-dropdown-item" id="userDownloadBtn">
+                  <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 8px;">
+                    <path d="M5 20h14v-2H5v2z"/>
+                    <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z"/>
+                  </svg>
+                  ダウンロード
+                </button>
                 <button class="user-dropdown-item" id="switchAccountBtn">
                   <svg viewBox="0 0 24 24">
                     <path d="M16 17v2H2v-2s0-4 7-4 7 4 7 4m-3.5-9.5A3.5 3.5 0 1 0 9 11a3.5 3.5 0 0 0 3.5-3.5m3.44 5.5A5.32 5.32 0 0 1 18 17v2h4v-2s0-3.63-6.06-4M15 4a3.4 3.4 0 0 0-1.93.59a5 5 0 0 1 0 5.82A3.4 3.4 0 0 0 15 11a3.5 3.5 0 0 0 0-7z"/>
@@ -480,8 +482,8 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, getDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -502,7 +504,30 @@
     // 暴露到全局，供其他脚本使用
     window.firebaseDB = db;
     window.firebaseAuth = auth;
-    window.firestoreHelpers = { collection, doc, setDoc, getDocs, serverTimestamp };
+    window.firebaseAuth.signOut = () => signOut(auth); // 暴露 signOut 方法
+    window.firestoreHelpers = { collection, doc, setDoc, getDocs, getDoc, deleteDoc, serverTimestamp };
+
+    // 检查用户登录状态
+    let authCheckCompleted = false;
+    onAuthStateChanged(auth, (user) => {
+      if (authCheckCompleted) return; // 只执行一次
+      authCheckCompleted = true;
+      
+      if (!user) {
+        // 用户未登录，跳转到登录页
+        console.log('User not authenticated, redirecting to login...');
+        window.location.href = 'login.html';
+      } else {
+        // 用户已登录，更新 localStorage
+        console.log('User authenticated:', user.email);
+        localStorage.setItem('fudoki_user', JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        }));
+      }
+    });
   </script>
   
   <!-- EasyMDE Markdown 编辑器 -->

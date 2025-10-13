@@ -875,10 +875,14 @@
     updateLanguage(currentLang);
 
     // 检查用户登录状态
+    let authCheckCompleted = false;
     onAuthStateChanged(auth, (user) => {
+      if (authCheckCompleted) return; // 只执行一次
+      authCheckCompleted = true;
+      
       if (user) {
         // 用户已登录，跳转到主页
-        console.log('User signed in:', user);
+        console.log('User already signed in, redirecting to index...', user.email);
         // 保存用户信息到 localStorage
         localStorage.setItem('fudoki_user', JSON.stringify({
           uid: user.uid,
@@ -888,6 +892,8 @@
         }));
         // 跳转到主页
         window.location.href = 'index.html';
+      } else {
+        console.log('User not signed in, showing login page');
       }
     });
 
