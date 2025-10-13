@@ -173,6 +173,31 @@ const headerSpeedValue = $('headerSpeedValue');
     // 将 markdown 编辑器实例保存到全局，方便调试
     window._markdownEditor = easymde;
 
+    // 添加失去焦点时自动清理开头空行的功能
+    easymde.codemirror.on('blur', () => {
+      const currentValue = easymde.value();
+      if (!currentValue) return;
+      
+      // 清理开头的所有空行和空白字符
+      const trimmedValue = currentValue.replace(/^[\s\n\r]+/, '');
+      
+      // 如果内容发生了变化，更新编辑器
+      if (trimmedValue !== currentValue) {
+        // 保存当前光标位置
+        const cursor = easymde.codemirror.getCursor();
+        
+        // 更新内容
+        easymde.value(trimmedValue);
+        
+        // 尝试恢复光标位置（调整行号）
+        const removedLines = currentValue.split('\n').length - trimmedValue.split('\n').length;
+        const newLine = Math.max(0, cursor.line - removedLines);
+        easymde.codemirror.setCursor({ line: newLine, ch: cursor.ch });
+        
+        console.log('Cleaned leading whitespace/empty lines');
+      }
+    });
+
     // 拦截 EasyMDE 的 side-by-side 按钮，改为切换 two-pane 模式
     setTimeout(() => {
       const sideBySideBtn = document.querySelector('.editor-toolbar .side-by-side');
@@ -7657,8 +7682,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         sessionStorage.setItem('fudoki_logging_out', 'true');
         
         // 使用 Firebase signOut
-        if (window.firebaseAuth && typeof window.firebaseAuth.signOut === 'function') {
-          await window.firebaseAuth.signOut();
+        if (window.firebaseSignOut && typeof window.firebaseSignOut === 'function') {
+          await window.firebaseSignOut();
           console.log('User signed out successfully');
         }
         // 清除本地用户数据
@@ -7678,32 +7703,34 @@ Try Fudoki and enjoy Japanese language analysis!`;
     logoutBtn.addEventListener('click', async () => {
       userProfileContainer.classList.remove('open');
       
-      // 显示确认提示
-      showInfoToast('ログアウトしています...', 1000);
-      
-      // 延迟执行登出，让用户看到提示
-      setTimeout(async () => {
-        try {
-          // 设置登出标志，防止 login.html 自动重新登录
-          sessionStorage.setItem('fudoki_logging_out', 'true');
-          
-          // 使用 Firebase signOut
-          if (window.firebaseAuth && typeof window.firebaseAuth.signOut === 'function') {
-            await window.firebaseAuth.signOut();
-            console.log('User logged out successfully');
-          }
-          // 清除本地用户数据
-          localStorage.removeItem('fudoki_user');
-          // 跳转到登录页
-          window.location.href = 'login.html';
-        } catch (error) {
-          console.error('Logout error:', error);
-          // 即使出错也清除本地数据并跳转
-          sessionStorage.setItem('fudoki_logging_out', 'true');
-          localStorage.removeItem('fudoki_user');
-          window.location.href = 'login.html';
+      try {
+        // 设置登出标志，防止 login.html 自动重新登录
+        sessionStorage.setItem('fudoki_logging_out', 'true');
+        
+        // 显示确认提示
+        showInfoToast('ログアウトしています...', 1000);
+        
+        // 使用 Firebase signOut
+        if (window.firebaseSignOut && typeof window.firebaseSignOut === 'function') {
+          await window.firebaseSignOut();
+          console.log('User logged out successfully');
         }
-      }, 500);
+        
+        // 清除本地用户数据
+        localStorage.removeItem('fudoki_user');
+        
+        // 延迟一下再跳转，让用户看到提示
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // 跳转到登录页
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        // 即使出错也清除本地数据并跳转
+        sessionStorage.setItem('fudoki_logging_out', 'true');
+        localStorage.removeItem('fudoki_user');
+        window.location.href = 'login.html';
+      }
     });
 
     // 数据导出功能

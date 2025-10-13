@@ -2,7 +2,9 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>登录 - Fudoki</title>
   <link rel="icon" type="image/png" href="static/logo.png">
   <style>
@@ -178,6 +180,106 @@
       left: 92%;
       animation-delay: 4.2s;
       animation-duration: 24s;
+    }
+
+    /* え */
+    .shape:nth-child(13) {
+      font-size: 85px;
+      top: 15%;
+      left: 65%;
+      animation-delay: 1.5s;
+      animation-duration: 26s;
+      opacity: 0.13;
+    }
+
+    /* タ */
+    .shape:nth-child(14) {
+      font-size: 120px;
+      top: 85%;
+      left: 45%;
+      animation-delay: 3.5s;
+      animation-duration: 23s;
+      opacity: 0.09;
+    }
+
+    /* ゆ */
+    .shape:nth-child(15) {
+      font-size: 95px;
+      top: 35%;
+      left: 5%;
+      animation-delay: 5s;
+      animation-duration: 28s;
+      opacity: 0.11;
+    }
+
+    /* コ */
+    .shape:nth-child(16) {
+      font-size: 75px;
+      top: 62%;
+      left: 52%;
+      animation-delay: 2.2s;
+      animation-duration: 21s;
+      opacity: 0.15;
+    }
+
+    /* て */
+    .shape:nth-child(17) {
+      font-size: 105px;
+      top: 20%;
+      left: 85%;
+      animation-delay: 6s;
+      animation-duration: 27s;
+      opacity: 0.10;
+    }
+
+    /* ホ */
+    .shape:nth-child(18) {
+      font-size: 80px;
+      top: 48%;
+      left: 28%;
+      animation-delay: 1.8s;
+      animation-duration: 25s;
+      opacity: 0.12;
+    }
+
+    /* の */
+    .shape:nth-child(19) {
+      font-size: 70px;
+      top: 92%;
+      left: 68%;
+      animation-delay: 4.8s;
+      animation-duration: 22s;
+      opacity: 0.14;
+    }
+
+    /* セ */
+    .shape:nth-child(20) {
+      font-size: 115px;
+      top: 5%;
+      left: 42%;
+      animation-delay: 3.2s;
+      animation-duration: 29s;
+      opacity: 0.08;
+    }
+
+    /* け */
+    .shape:nth-child(21) {
+      font-size: 88px;
+      top: 78%;
+      left: 8%;
+      animation-delay: 5.5s;
+      animation-duration: 24s;
+      opacity: 0.13;
+    }
+
+    /* ミ */
+    .shape:nth-child(22) {
+      font-size: 92px;
+      top: 52%;
+      left: 72%;
+      animation-delay: 2.5s;
+      animation-duration: 26s;
+      opacity: 0.11;
     }
 
     @keyframes float {
@@ -406,10 +508,12 @@
     }
 
     /* 响应式设计 */
+    /* 平板和小屏幕适配 */
     @media (max-width: 768px) {
       .login-card {
-        padding: 40px 30px;
+        padding: 40px 25px;
         border-radius: 20px;
+        max-width: 420px;
       }
 
       .login-title {
@@ -418,6 +522,7 @@
 
       .login-subtitle {
         font-size: 14px;
+        line-height: 1.6;
       }
 
       .logo {
@@ -430,15 +535,201 @@
         font-size: 15px;
       }
 
+      /* 语言切换器 */
+      .language-switcher {
+        top: 15px;
+        right: 15px;
+      }
+
+      .lang-dropdown-toggle {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+
       .shape {
-        opacity: 0.1;
-        font-size: 60px !important;
+        opacity: 0.08;
       }
       
+      /* 减小较大假名的尺寸 */
       .shape:nth-child(2),
-      .shape:nth-child(7),
-      .shape:nth-child(10) {
+      .shape:nth-child(5),
+      .shape:nth-child(10),
+      .shape:nth-child(14),
+      .shape:nth-child(17),
+      .shape:nth-child(20) {
         font-size: 80px !important;
+      }
+      
+      /* 隐藏一些假名，避免太拥挤 */
+      .shape:nth-child(13),
+      .shape:nth-child(15),
+      .shape:nth-child(19),
+      .shape:nth-child(21) {
+        display: none;
+      }
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 480px) {
+      body {
+        padding: 0;
+      }
+
+
+
+      .login-card {
+        padding: 30px 20px;
+        border-radius: 16px;
+        max-width: 90%;
+        width: 90%;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      .logo {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 15px;
+      }
+
+      .login-title {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+
+      .login-subtitle {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 25px;
+      }
+
+      .google-login-btn {
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+
+      .google-icon {
+        width: 18px;
+        height: 18px;
+      }
+
+      .divider {
+        margin: 20px 0;
+        font-size: 12px;
+      }
+
+      .login-footer {
+        font-size: 11px;
+        margin-top: 20px;
+        padding: 0 10px;
+      }
+
+      .login-footer a {
+        margin: 0 8px;
+      }
+
+      /* 语言切换器 */
+      .language-switcher {
+        top: 12px;
+        right: 12px;
+      }
+
+      .lang-dropdown-toggle {
+        padding: 5px 8px;
+        font-size: 12px;
+        min-width: 40px;
+        border-width: 1px;
+      }
+
+      .lang-dropdown-menu {
+        min-width: 130px;
+        right: 0;
+        left: auto;
+      }
+
+      .lang-option {
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+
+      .flag-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* 进一步减小假名尺寸 */
+      .shape {
+        opacity: 0.06 !important;
+      }
+
+      .shape:nth-child(1) { font-size: 60px !important; }
+      .shape:nth-child(2) { font-size: 70px !important; }
+      .shape:nth-child(3) { font-size: 55px !important; }
+      .shape:nth-child(4) { font-size: 45px !important; }
+      .shape:nth-child(5) { font-size: 65px !important; }
+      .shape:nth-child(6) { font-size: 50px !important; }
+      .shape:nth-child(7) { font-size: 58px !important; }
+      .shape:nth-child(8) { font-size: 48px !important; }
+      .shape:nth-child(9) { font-size: 52px !important; }
+      .shape:nth-child(10) { font-size: 62px !important; }
+      .shape:nth-child(11) { font-size: 42px !important; }
+      .shape:nth-child(12) { font-size: 55px !important; }
+      
+      /* 隐藏更多假名，只保留核心装饰 */
+      .shape:nth-child(n+13) {
+        display: none;
+      }
+    }
+
+    /* 超小屏幕适配 (iPhone SE 等) */
+    @media (max-width: 375px) {
+      .login-container {
+        padding: 12px;
+      }
+
+
+      .login-title {
+        font-size: 21px;
+      }
+
+      .login-subtitle {
+        font-size: 11.5px;
+        margin-bottom: 20px;
+      }
+
+      .google-login-btn {
+        padding: 10px 12px;
+        font-size: 12.5px;
+      }
+
+      .google-icon {
+        width: 16px;
+        height: 16px;
+      }
+
+      .logo {
+        width: 50px;
+        height: 50px;
+      }
+
+      .login-footer {
+        font-size: 10px;
+      }
+
+      /* 语言切换器 */
+      .language-switcher {
+        top: 10px;
+        right: 10px;
+      }
+
+      .lang-dropdown-toggle {
+        padding: 4px 7px;
+        font-size: 11px;
+        min-width: 38px;
+      }
+
+      .flag-icon {
+        width: 18px;
+        height: 18px;
       }
     }
 
@@ -609,31 +900,6 @@
       flex-shrink: 0;
     }
 
-    @media (max-width: 768px) {
-      .language-switcher {
-        top: 15px;
-        right: 15px;
-      }
-
-      .lang-dropdown-toggle {
-        padding: 5px 10px;
-        font-size: 11px;
-        min-width: 45px;
-      }
-
-      .lang-option {
-        padding: 8px;
-      }
-
-      .flag-icon {
-        width: 18px;
-        height: 18px;
-      }
-      
-      .login-card {
-        padding: 50px 30px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -654,6 +920,16 @@
     <div class="shape">ツ</div>
     <div class="shape">り</div>
     <div class="shape">ワ</div>
+    <div class="shape">え</div>
+    <div class="shape">タ</div>
+    <div class="shape">ゆ</div>
+    <div class="shape">コ</div>
+    <div class="shape">て</div>
+    <div class="shape">ホ</div>
+    <div class="shape">の</div>
+    <div class="shape">セ</div>
+    <div class="shape">け</div>
+    <div class="shape">ミ</div>
   </div>
 
   <!-- 登录容器 -->
@@ -876,16 +1152,27 @@
 
     // 检查用户登录状态
     let authCheckCompleted = false;
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (authCheckCompleted) return; // 只执行一次
       authCheckCompleted = true;
       
       // 检查是否正在登出（用户主动退出）
       const isLoggingOut = sessionStorage.getItem('fudoki_logging_out');
       if (isLoggingOut) {
-        // 清除登出标志
+        console.log('User is logging out, clearing auth state...');
+        // 如果还有用户登录状态，强制登出
+        if (user) {
+          try {
+            await auth.signOut();
+            console.log('Firebase auth cleared');
+          } catch (error) {
+            console.error('Error signing out:', error);
+          }
+        }
+        // 清除所有用户相关数据
+        localStorage.removeItem('fudoki_user');
         sessionStorage.removeItem('fudoki_logging_out');
-        console.log('User is logging out, staying on login page');
+        console.log('Staying on login page');
         return; // 不执行自动跳转
       }
       
@@ -899,6 +1186,8 @@
           displayName: user.displayName,
           photoURL: user.photoURL
         }));
+        // 清除可能残留的登出标志
+        sessionStorage.removeItem('fudoki_logging_out');
         // 跳转到主页
         window.location.href = 'index.html';
       } else {
@@ -917,6 +1206,9 @@
         const user = result.user;
         
         console.log('Login successful:', user);
+        
+        // 清除可能残留的登出标志
+        sessionStorage.removeItem('fudoki_logging_out');
         
         // 保存用户信息到 localStorage
         localStorage.setItem('fudoki_user', JSON.stringify({

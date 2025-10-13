@@ -519,7 +519,7 @@
     // 暴露到全局，供其他脚本使用
     window.firebaseDB = db;
     window.firebaseAuth = auth;
-    window.firebaseAuth.signOut = () => signOut(auth); // 暴露 signOut 方法
+    window.firebaseSignOut = () => signOut(auth); // 暴露 signOut 方法
     window.firestoreHelpers = { collection, doc, setDoc, getDocs, getDoc, deleteDoc, serverTimestamp };
 
     // 检查用户登录状态
