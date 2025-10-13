@@ -5992,8 +5992,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 初始化文档管理器
   const documentManager = new DocumentManager();
+  
+  // 将 documentManager 暴露到全局作用域，供同步等功能使用
+  window.documentManager = documentManager;
 
-  // 注入示例文章（异步），然后刷新列表以反映“示例文章”文件夹
+  // 注入示例文章（异步），然后刷新列表以反映"示例文章"文件夹
   try {
     documentManager.seedSampleDocumentsIfNeeded().then(() => {
       documentManager.render();
@@ -6522,44 +6525,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
         </div>
       </div>
 
-      <!-- 系统设置 -->
-      <div class="settings-section">
-        <div class="sidebar-title" id="${id('systemTitle')}">${t('systemTitle')}</div>
-        <div class="system-controls">
-          <div class="control-group select-group">
-            <label class="control-label" id="${id('themeLabel')}"><span class="label-text">${t('themeLabel')}</span></label>
-            <select id="${id('themeSelect')}">
-              <option value="paper">${t('themePaper')}</option>
-              <option value="sakura">${t('themeSakura')}</option>
-              <option value="sticky">${t('themeSticky')}</option>
-              <option value="green">${t('themeGreen')}</option>
-              <option value="blue">${t('themeBlue')}</option>
-              <option value="dark">${t('themeDark')}</option>
-              <option value="auto">${t('themeAuto')}</option>
-            </select>
-          </div>
-          <div class="control-group select-group">
-            <label class="control-label" id="${id('langLabel')}"><span class="label-text">${t('langLabel')}</span></label>
-            <select id="${id('langSelect')}">
-              <option value="ja">日本語</option>
-              <option value="en">English</option>
-              <option value="zh">中文</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- 备份与导入 -->
-      <div class="settings-section">
-        <div class="sidebar-title" id="${id('backupTitle')}">${t('backupTitle')}</div>
-        <div class="system-controls">
-          <div class="control-group">
-            <button type="button" class="btn" id="${id('exportJsonBtn')}">${t('exportBtn')}</button>
-            <button type="button" class="btn" id="${id('importJsonBtn')}">${t('importBtn')}</button>
-            <input type="file" id="${id('importJsonFile')}" accept="application/json" style="display:none">
-          </div>
-        </div>
-      </div>
     `;
   }
 
@@ -6578,12 +6543,22 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const btn = document.getElementById('settingsButton');
     const modal = document.getElementById('settingsModal');
     const closeBtn = document.getElementById('settingsModalClose');
-    if (!btn || !modal) return;
+    if (!modal) return;
+    
     const openModal = () => { modal.classList.add('show'); document.body.style.overflow = 'hidden'; };
     const closeModal = () => { modal.classList.remove('show'); document.body.style.overflow = ''; };
-    btn.addEventListener('click', () => modal.classList.contains('show') ? closeModal() : openModal());
+    
+    // 如果设置按钮存在，绑定其点击事件
+    if (btn) {
+      btn.addEventListener('click', () => modal.classList.contains('show') ? closeModal() : openModal());
+    }
+    
+    // 绑定关闭按钮
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    
+    // 点击模态框背景关闭
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    
     // ESC 关闭
     document.addEventListener('keydown', (e) => {
       if ((e.key === 'Escape' || e.key === 'Esc') && modal.classList.contains('show')) {
@@ -6591,6 +6566,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
         closeModal();
       }
     });
+    
+    // 暴露 openModal 到全局，供其他地方调用
+    window.openSettingsModal = openModal;
   }
 
   // 在页面加载时为设置弹窗挂载内容并绑定事件
@@ -7508,14 +7486,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }
 
         // 检查 documentManager 是否存在
-        if (typeof documentManager === 'undefined') {
+        if (!window.documentManager) {
           showErrorToast('ドキュメントマネージャーが初期化されていません');
           if (syncToast) syncToast.classList.remove('show');
           return false;
         }
 
         // 获取本地所有文档（排除示例文档）
-        const allDocs = documentManager.getAllDocuments();
+        const allDocs = window.documentManager.getAllDocuments();
         const userDocs = allDocs.filter(doc => doc.folder !== 'samples'); // 不同步示例文档
         const { collection, doc, setDoc, serverTimestamp } = window.firestoreHelpers;
         const db = window.firebaseDB;
@@ -7556,7 +7534,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           syncText.textContent = 'フォルダを同期中...';
         }
 
-        const folders = documentManager.folders || [];
+        const folders = window.documentManager.folders || [];
         for (const folder of folders) {
           try {
             const folderRef = doc(db, 'users', currentUser.uid, 'folders', folder.id);
@@ -7631,16 +7609,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 设置功能
     userSettingsBtn.addEventListener('click', () => {
       userProfileContainer.classList.remove('open');
-      // 打开设置弹窗
-      const settingsButton = document.getElementById('settingsButton');
-      if (settingsButton) {
-        settingsButton.click();
-      } else {
-        // 如果原设置按钮不存在，直接打开设置模态框
-        const settingsModal = document.getElementById('settingsModal');
-        if (settingsModal) {
-          settingsModal.classList.add('show');
-        }
+      // 使用全局函数打开设置模态框
+      if (window.openSettingsModal) {
+        window.openSettingsModal();
       }
     });
 
@@ -7677,6 +7648,140 @@ Try Fudoki and enjoy Japanese language analysis!`;
         window.location.href = 'login.html';
       }
     });
+
+    // 数据导出功能
+    const userExportBtn = document.getElementById('userExportBtn');
+    const userImportBtn = document.getElementById('userImportBtn');
+    const userImportFile = document.getElementById('userImportFile');
+
+    if (userExportBtn) {
+      userExportBtn.addEventListener('click', () => {
+        userProfileContainer.classList.remove('open');
+        try {
+          const payload = collectBackupPayload();
+          const json = JSON.stringify(payload, null, 2);
+          const fname = `fudoki-backup-${formatNowForFile()}.json`;
+          downloadTextFile(fname, json);
+          showSuccessToast('データをエクスポートしました');
+        } catch (e) {
+          console.error('Export failed:', e);
+          showErrorToast('エクスポートに失敗しました');
+        }
+      });
+    }
+
+    if (userImportBtn && userImportFile) {
+      userImportBtn.addEventListener('click', () => {
+        userProfileContainer.classList.remove('open');
+        userImportFile.click();
+      });
+
+      userImportFile.addEventListener('change', () => {
+        const file = userImportFile.files && userImportFile.files[0];
+        if (!file) return;
+
+        if (confirm('インポートすると現在のデータが上書きされます。続行しますか？')) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const text = String(reader.result || '');
+              const obj = JSON.parse(text);
+              applyBackup(obj);
+              showSuccessToast('データをインポートしました');
+            } catch (e) {
+              console.error('Invalid backup file:', e);
+              showErrorToast('無効なバックアップファイルです');
+            } finally {
+              userImportFile.value = '';
+            }
+          };
+          reader.onerror = () => {
+            showErrorToast('ファイルの読み込みに失敗しました');
+            userImportFile.value = '';
+          };
+          reader.readAsText(file);
+        } else {
+          userImportFile.value = '';
+        }
+      });
+    }
+
+    // 辅助函数
+    function collectBackupPayload() {
+      const documents = (() => {
+        try {
+          const all = window.documentManager ? window.documentManager.getAllDocuments() : JSON.parse(localStorage.getItem('fudoki_texts') || '[]');
+          return (Array.isArray(all) ? all : []).filter(d => d && d.folder !== 'samples' && !d.locked);
+        } catch (_) { return []; }
+      })();
+      const activeId = localStorage.getItem('fudoki_activeId') || '';
+      const settings = {};
+      try {
+        ['fudoki_theme', 'fudoki_lang', 'fudoki_fontSize'].forEach((k) => {
+          settings[k] = localStorage.getItem(k);
+        });
+      } catch (_) {}
+      return {
+        app: 'Fudoki',
+        version: 1,
+        createdAt: new Date().toISOString(),
+        data: { documents, activeId, settings }
+      };
+    }
+
+    function downloadTextFile(filename, text) {
+      const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { try { document.body.removeChild(a); } catch (_) {} URL.revokeObjectURL(url); }, 0);
+    }
+
+    function formatNowForFile() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    }
+
+    function applyBackup(data) {
+      try {
+        if (!data || !data.data) throw new Error('invalid');
+        const docs = Array.isArray(data.data.documents) ? data.data.documents : [];
+        const activeId = typeof data.data.activeId === 'string' ? data.data.activeId : '';
+        const settings = data.data.settings && typeof data.data.settings === 'object' ? data.data.settings : {};
+        
+        localStorage.setItem('fudoki_texts', JSON.stringify(docs));
+        localStorage.setItem('fudoki_activeId', activeId);
+        Object.keys(settings).forEach((k) => {
+          try { if (k && typeof settings[k] !== 'undefined') localStorage.setItem(k, settings[k]); } catch (_) {}
+        });
+        
+        if (window.documentManager) {
+          window.documentManager.render();
+          window.documentManager.setActiveId(activeId);
+        }
+        if (settings['fudoki_theme']) setThemePreference(settings['fudoki_theme']);
+        if (settings['fudoki_lang']) setLanguage(settings['fudoki_lang']);
+        try { applyI18n(); } catch (_) {}
+      } catch (e) {
+        throw e;
+      }
+    }
+
+    function showSuccessToast(message) {
+      const syncToast = document.getElementById('syncProgressToast');
+      const syncText = document.getElementById('syncProgressText');
+      if (syncToast && syncText) {
+        syncText.textContent = message;
+        syncToast.classList.add('show');
+        setTimeout(() => {
+          syncToast.classList.remove('show');
+        }, 2000);
+      }
+    }
 
     // ========== 主题切换功能 ==========
     const themeSubmenu = document.querySelectorAll('#themeSubmenu .submenu-item');

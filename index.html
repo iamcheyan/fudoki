@@ -157,13 +157,38 @@
                   </svg>
                   <span>設定</span>
                 </button>
-                <button class="user-dropdown-item" id="userDownloadBtn">
+                <!-- 数据管理 -->
+                <div class="user-dropdown-item submenu-parent" id="userDataManagementBtn">
                   <svg viewBox="0 0 24 24">
-                    <path d="M5 20h14v-2H5v2z"/>
-                    <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z"/>
+                    <path d="M6,2H18A2,2 0 0,1 20,4V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2M12,4A6,6 0 0,0 6,10C6,13.31 8.69,16 12.1,16L11.22,13.77C10.95,13.29 11.11,12.68 11.59,12.4L12.45,11.9C12.93,11.63 13.54,11.79 13.82,12.27L15.74,14.69C17.12,13.59 18,11.9 18,10A6,6 0 0,0 12,4M12,9A1,1 0 0,1 13,10A1,1 0 0,1 12,11A1,1 0 0,1 11,10A1,1 0 0,1 12,9M7,18A1,1 0 0,0 6,19A1,1 0 0,0 7,20A1,1 0 0,0 8,19A1,1 0 0,0 7,18M12.09,13.27L14.58,19.58L19.17,18.08L16.68,11.77L12.09,13.27Z"/>
                   </svg>
-                  <span>ダウンロード</span>
-                </button>
+                  <span>データ管理</span>
+                  <svg class="submenu-arrow" viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+                  </svg>
+                  <div class="user-submenu" id="dataManagementSubmenu">
+                    <button class="submenu-item" id="userExportBtn">
+                      <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 8px;">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z"/>
+                      </svg>
+                      エクスポート
+                    </button>
+                    <button class="submenu-item" id="userImportBtn">
+                      <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 8px;">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+                      </svg>
+                      インポート
+                    </button>
+                    <button class="submenu-item" id="userDownloadBtn">
+                      <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 8px;">
+                        <path d="M5 20h14v-2H5v2z"/>
+                        <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z"/>
+                      </svg>
+                      ダウンロード
+                    </button>
+                  </div>
+                </div>
+                <input type="file" id="userImportFile" accept="application/json" style="display:none">
                 <button class="user-dropdown-item" id="switchAccountBtn">
                   <svg viewBox="0 0 24 24">
                     <path d="M16 17v2H2v-2s0-4 7-4 7 4 7 4m-3.5-9.5A3.5 3.5 0 1 0 9 11a3.5 3.5 0 0 0 3.5-3.5m3.44 5.5A5.32 5.32 0 0 1 18 17v2h4v-2s0-3.63-6.06-4M15 4a3.4 3.4 0 0 0-1.93.59a5 5 0 0 1 0 5.82A3.4 3.4 0 0 0 15 11a3.5 3.5 0 0 0 0-7z"/>

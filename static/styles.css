@@ -815,7 +815,7 @@ body {
 
 /* 移动端优化（已移除） */
 
-/* 通用：设置弹窗（桌面与移动共用WAP尺寸） */
+/* 通用：设置弹窗（现代化设计） */
 .settings-modal {
   display: none;
   position: fixed;
@@ -823,10 +823,11 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
   z-index: 9999;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
 .settings-modal.show {
@@ -838,32 +839,68 @@ body {
 
 .settings-modal-content {
   background: var(--bg);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  width: 92%;
-  max-width: 560px;
-  max-height: 80vh;
+  border-radius: 20px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
   overflow: hidden;
   transform: scale(0.95);
-  transition: transform 0.3s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.settings-modal.show .settings-modal-content { transform: scale(1); }
+.settings-modal.show .settings-modal-content {
+  transform: scale(1);
+}
 
 .settings-modal-header {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark, var(--primary)));
   color: white;
-  padding: 5px 10px 2px 10px;
+  padding: 5px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.settings-modal-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
-.settings-modal-title .settings-icon { width: 20px; height: 20px; }
-.settings-modal-close { background: none; border: none; color: white; cursor: pointer; padding: 4px; border-radius: 4px; }
-.settings-modal-close:hover { background: rgba(255, 255, 255, 0.1); }
-.settings-modal .toolbar-content { padding: 24px; max-height: calc(80vh - 80px); overflow-y: auto; }
+.settings-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.settings-modal-title .settings-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.settings-modal-close {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-modal-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.settings-modal .toolbar-content {
+  padding: 28px 24px;
+  max-height: calc(85vh - 100px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 .sidebar-title {
   font-size: 12px;
@@ -3442,7 +3479,8 @@ section.editor-toolbar {
 }
 
 .submenu-item {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
   padding: 10px 16px;
   border: none;
@@ -3455,14 +3493,29 @@ section.editor-toolbar {
   position: relative;
 }
 
+.submenu-item svg {
+  flex-shrink: 0;
+  fill: var(--text);
+  opacity: 0.7;
+}
+
 .submenu-item:hover {
   background: var(--elev);
+}
+
+.submenu-item:hover svg {
+  opacity: 1;
 }
 
 .submenu-item.active {
   background: rgba(var(--primary-rgb, 139, 105, 20), 0.1);
   color: var(--primary);
   font-weight: 600;
+}
+
+.submenu-item.active svg {
+  fill: var(--primary);
+  opacity: 1;
 }
 
 .submenu-item:not(:last-child) {
