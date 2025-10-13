@@ -247,8 +247,7 @@
 /* 移动端：抽屉子元素联动动画（随抽屉展开/收起一起滑动与淡入） */
 .sidebar-stack .folder-management,
 .sidebar-stack .sidebar-scroll,
-.sidebar-stack .list-panel,
-.sidebar-stack .folder-bottom-buttons {
+.sidebar-stack .list-panel {
   transition: transform 0.3s ease, opacity 0.25s ease;
   will-change: transform, opacity;
 }
@@ -265,8 +264,7 @@
 /* 抽屉收起：子元素轻微左移并透明（与容器侧滑叠加更自然） */
 .main-container.collapsed #sidebarStack .folder-management,
 .main-container.collapsed #sidebarStack .list-panel,
-.main-container.collapsed #sidebarStack .sidebar-scroll,
-.main-container.collapsed #sidebarStack .folder-bottom-buttons {
+.main-container.collapsed #sidebarStack .sidebar-scroll {
   transform: translateX(-16px);
   opacity: 0;
 }
@@ -274,8 +272,7 @@
 /* 抽屉展开：子元素归位并淡入 */
 .main-container:not(.collapsed) #sidebarStack .folder-management,
 .main-container:not(.collapsed) #sidebarStack .list-panel,
-.main-container:not(.collapsed) #sidebarStack .sidebar-scroll,
-.main-container:not(.collapsed) #sidebarStack .folder-bottom-buttons {
+.main-container:not(.collapsed) #sidebarStack .sidebar-scroll {
   transform: translateX(0);
   opacity: 1;
 }
@@ -302,6 +299,19 @@
   backdrop-filter: blur(5px) saturate(160%);
   -webkit-backdrop-filter: blur(5px) saturate(160%);
   cursor: pointer;
+}
+
+.main-header,
+.main-header-left, .main-header-right {
+  gap: 0;
+}
+.main-header-right .editor-fontfamily-controls {
+  gap: 2px;
+}
+
+.main-header-right .editor-fontfamily-controls select {
+  padding: 2px;
+  width: 54px;
 }
 
 .main-container:not(.collapsed) .sidebar-overlay {

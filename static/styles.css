@@ -456,34 +456,6 @@ body {
   overflow: visible; /* 允许子菜单溢出显示 */
 }
 
-/* folder-management 底部按钮组 - Notion风格 */
-.folder-bottom-buttons {
-  display: flex;
-  gap: 2px;
-  padding: 5px 10px 5px 17px;
-  /* border-top: 1px solid var(--border); */
-  background: var(--bg);
-  justify-content: flex-start;
-  align-items: center;
-  flex-shrink: 0; /* 防止被压缩 */
-  position: relative;
-  z-index: 10;
-  overflow: visible; /* 允许子菜单溢出显示 */
-}
-
-.folder-bottom-buttons .theme-icon-btn {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border-radius: 4px;
-  transition: background 20ms ease-in;
-}
-
-.folder-bottom-buttons .theme-icon-btn:hover {
-  background: var(--elev);
-}
-
-
 /* 单列滚动体 - Notion风格紧凑间距 */
 .sidebar-scroll {
   flex: 1;
@@ -2197,10 +2169,6 @@ select, input[type="range"] {
 .theme-icon-btn svg { fill: var(--text); }
 
 /* 顶部同步按钮采用同样的描边风格 */
-#syncBtn {
-  position: relative;
-  top: 2px;
-}
 #syncBtn svg path {
   stroke: currentColor;
   stroke-width: 1.8;
