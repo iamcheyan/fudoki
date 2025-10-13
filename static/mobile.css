@@ -355,9 +355,6 @@
   flex-shrink: 0;
 }
 
-
-
-
 /* 移动端隐藏分隔符 */
 .input-section .EasyMDEContainer .editor-toolbar i.separator {
   display: none;
@@ -368,7 +365,7 @@
   font-size: calc(13px * var(--font-scale));
 }
 .editor-panels {
-  padding-top: 0px;
+  padding-top: 40px;
 }
 /* 小屏移动端：超紧凑工具栏（≤480px） */
 @media (max-width: 480px) {
