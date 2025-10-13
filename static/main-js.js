@@ -2199,6 +2199,15 @@ const headerSpeedValue = $('headerSpeedValue');
     refreshOpenCardTexts();
   }
 
+  // 暴露语言相关函数和变量到全局，供子菜单使用
+  window.applyI18n = applyI18n;
+  window.getCurrentLang = () => currentLang;
+  window.setCurrentLang = (lang) => {
+    if (lang === 'ja' || lang === 'en' || lang === 'zh') {
+      currentLang = lang;
+    }
+  };
+
   // 将所有设置项的标签文本同步为当前语言
   function updateSettingsLabels() {
     const setText = (id, key) => {
@@ -7960,15 +7969,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
     // ========== 主题切换功能 ==========
     try {
-      console.log('初始化主题切换功能...');
-      const themeSubmenuContainer = document.getElementById('themeSubmenu');
-      console.log('themeSubmenu容器:', themeSubmenuContainer);
-      
       const themeSubmenu = document.querySelectorAll('#themeSubmenu .submenu-item');
-      console.log('找到的主题子菜单项数量:', themeSubmenu.length);
-      
       const currentThemeName = document.getElementById('currentThemeName');
-      console.log('currentThemeName元素:', currentThemeName);
       
       const themeNames = {
         'paper': 'Paper White',
@@ -7978,23 +7980,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
         'blue': 'Blue'
       };
 
-      console.log('步骤1: 定义完成');
-
-      // 初始化当前主题显示（直接从 localStorage 读取，使用字符串字面量）
+      // 初始化当前主题显示
       const savedTheme = localStorage.getItem('theme') || 'paper';
-      console.log('步骤2: 当前主题 =', savedTheme);
-      
       if (currentThemeName) {
         currentThemeName.textContent = themeNames[savedTheme] || 'Paper White';
       }
-
-      console.log('步骤3: 准备绑定事件');
       
-      // 更新主题激活状态
+      // 绑定主题切换事件
       if (themeSubmenu && themeSubmenu.length > 0) {
-        console.log('✅ 绑定主题子菜单事件监听器...');
-        themeSubmenu.forEach((item, index) => {
-          console.log(`  绑定第 ${index + 1} 个主题项:`, item.getAttribute('data-theme'));
+        themeSubmenu.forEach((item) => {
           const theme = item.getAttribute('data-theme');
           item.classList.toggle('active', theme === savedTheme);
           
@@ -8002,8 +7996,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
             e.preventDefault();
             e.stopPropagation();
             const selectedTheme = item.getAttribute('data-theme');
-            
-            console.log('🎨 主题切换:', selectedTheme);
             
             // 更新激活状态
             themeSubmenu.forEach(t => t.classList.remove('active'));
@@ -8014,39 +8006,25 @@ Try Fudoki and enjoy Japanese language analysis!`;
               currentThemeName.textContent = themeNames[selectedTheme];
             }
             
-            // 应用主题（直接操作，避免作用域问题）
+            // 应用主题
             try {
               localStorage.setItem('theme', selectedTheme);
               document.documentElement.setAttribute('data-theme', selectedTheme);
-              console.log('✅ 主题已应用:', selectedTheme);
             } catch (error) {
               console.error('应用主题失败:', error);
             }
             
-            // 关闭菜单
-            if (userProfileContainer) {
-              userProfileContainer.classList.remove('open');
-            }
+            // 不关闭菜单，方便用户连续切换查看效果
           });
         });
-        console.log('✅ 主题切换功能初始化完成');
-      } else {
-        console.warn('主题子菜单未找到');
       }
     } catch (error) {
-      console.error('❌ 初始化主题切换功能时出错:', error);
-      console.error('错误堆栈:', error.stack);
+      console.error('初始化主题切换功能时出错:', error);
     }
 
     // ========== 语言切换功能 ==========
     try {
-      console.log('初始化语言切换功能...');
-      const langSubmenuContainer = document.getElementById('langSubmenu');
-      console.log('langSubmenu容器:', langSubmenuContainer);
-      
       const langSubmenu = document.querySelectorAll('#langSubmenu .submenu-item');
-      console.log('找到的语言子菜单项数量:', langSubmenu.length);
-      
       const currentLangName = document.getElementById('currentLangName');
       
       const langNames = {
@@ -8055,19 +8033,15 @@ Try Fudoki and enjoy Japanese language analysis!`;
         'en': 'English'
       };
 
-      // 初始化当前语言显示（直接从 localStorage 读取，使用字符串字面量）
+      // 初始化当前语言显示
       const savedLang = localStorage.getItem('lang') || 'ja';
-      console.log('当前语言:', savedLang);
-      
       if (currentLangName) {
         currentLangName.textContent = langNames[savedLang] || '日本語';
       }
 
-      // 更新语言激活状态
+      // 绑定语言切换事件
       if (langSubmenu && langSubmenu.length > 0) {
-        console.log('✅ 绑定语言子菜单事件监听器...');
-        langSubmenu.forEach((item, index) => {
-          console.log(`  绑定第 ${index + 1} 个语言项:`, item.getAttribute('data-lang'));
+        langSubmenu.forEach((item) => {
           const lang = item.getAttribute('data-lang');
           item.classList.toggle('active', lang === savedLang);
           
@@ -8075,8 +8049,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
             e.preventDefault();
             e.stopPropagation();
             const selectedLang = item.getAttribute('data-lang');
-            
-            console.log('🌐 语言切换:', selectedLang);
             
             // 更新激活状态
             langSubmenu.forEach(l => l.classList.remove('active'));
@@ -8087,31 +8059,80 @@ Try Fudoki and enjoy Japanese language analysis!`;
               currentLangName.textContent = langNames[selectedLang];
             }
             
-            // 应用语言（直接操作，避免作用域问题）
+            // 应用语言（不刷新页面，保持菜单打开）
             try {
+              // 保存语言到 localStorage
               localStorage.setItem('lang', selectedLang);
+              
+              // 更新全局 currentLang 变量
+              if (typeof window.setCurrentLang === 'function') {
+                window.setCurrentLang(selectedLang);
+              }
+              
+              // 更新 HTML lang 属性
               document.documentElement.lang = selectedLang;
-              // 触发语言更新事件，让其他组件响应
+              
+              // 应用界面多语言更新
+              if (typeof window.applyI18n === 'function') {
+                window.applyI18n();
+              }
+              
+              // 触发自定义语言变化事件，供其他组件响应
               window.dispatchEvent(new CustomEvent('languageChange', { detail: { lang: selectedLang } }));
-              console.log('✅ 语言已应用:', selectedLang);
-              // 刷新页面以应用所有语言变化
-              location.reload();
+              
+              // 不刷新页面，保持子菜单打开，方便用户连续切换查看效果
             } catch (error) {
               console.error('应用语言失败:', error);
             }
-            
-            // 关闭菜单
-            if (userProfileContainer) {
-              userProfileContainer.classList.remove('open');
-            }
           });
         });
-        console.log('✅ 语言切换功能初始化完成');
-      } else {
-        console.warn('语言子菜单未找到');
       }
     } catch (error) {
-      console.error('❌ 初始化语言切换功能时出错:', error);
-      console.error('错误堆栈:', error.stack);
+      console.error('初始化语言切换功能时出错:', error);
+    }
+
+    // ========== 子菜单互斥逻辑 ==========
+    // 确保同一时间只能有一个子菜单打开
+    const allSubmenuParents = document.querySelectorAll('.user-dropdown-menu .submenu-parent');
+    
+    allSubmenuParents.forEach(parent => {
+      parent.addEventListener('mouseenter', () => {
+        // 关闭其他所有子菜单
+        allSubmenuParents.forEach(other => {
+          if (other !== parent) {
+            other.classList.remove('submenu-open');
+          }
+        });
+        // 打开当前子菜单
+        parent.classList.add('submenu-open');
+      });
+      
+      // 当鼠标离开父菜单项和子菜单时，移除 open 类
+      parent.addEventListener('mouseleave', (e) => {
+        // 延迟一点时间，以便鼠标可以移动到子菜单
+        setTimeout(() => {
+          const submenu = parent.querySelector('.user-submenu');
+          if (submenu && !submenu.matches(':hover') && !parent.matches(':hover')) {
+            parent.classList.remove('submenu-open');
+          }
+        }, 100);
+      });
+    });
+
+    // 当整个下拉菜单关闭时，清除所有 submenu-open 类
+    if (userProfileContainer) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            if (!userProfileContainer.classList.contains('open')) {
+              allSubmenuParents.forEach(parent => {
+                parent.classList.remove('submenu-open');
+              });
+            }
+          }
+        });
+      });
+      
+      observer.observe(userProfileContainer, { attributes: true });
     }
   }

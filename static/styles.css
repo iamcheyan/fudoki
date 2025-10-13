@@ -448,6 +448,14 @@ body {
   height: 0;
 }
 
+/* folder-management 容器 - 使用 flexbox 确保底部按钮固定 */
+.folder-management {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: visible; /* 允许子菜单溢出显示 */
+}
+
 /* folder-management 底部按钮组 - Notion风格 */
 .folder-bottom-buttons {
   display: flex;
@@ -457,7 +465,10 @@ body {
   background: var(--bg);
   justify-content: flex-start;
   align-items: center;
-  flex-shrink: 0;
+  flex-shrink: 0; /* 防止被压缩 */
+  position: relative;
+  z-index: 10;
+  overflow: visible; /* 允许子菜单溢出显示 */
 }
 
 .folder-bottom-buttons .theme-icon-btn {
@@ -483,7 +494,7 @@ body {
   display: flex;
   flex-direction: column;
   scrollbar-width: thin;
-  height: 91.5vh;
+  /* height: 91.5vh; */
 }
 
 .sidebar-section {
@@ -2186,6 +2197,10 @@ select, input[type="range"] {
 .theme-icon-btn svg { fill: var(--text); }
 
 /* 顶部同步按钮采用同样的描边风格 */
+#syncBtn {
+  position: relative;
+  top: 2px;
+}
 #syncBtn svg path {
   stroke: currentColor;
   stroke-width: 1.8;
@@ -3249,6 +3264,7 @@ section.editor-toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: visible; /* 允许下拉菜单和子菜单溢出显示 */
 }
 
 .user-avatar-btn {
@@ -3487,7 +3503,8 @@ section.editor-toolbar {
 }
 
 .submenu-parent:hover .user-submenu,
-.user-submenu:hover {
+.user-submenu:hover,
+.submenu-parent.submenu-open .user-submenu {
   opacity: 1;
   visibility: visible;
   transform: translateX(0);

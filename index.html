@@ -185,7 +185,7 @@
                 <input type="file" id="userImportFile" accept="application/json" style="display:none">
 
                 <button class="user-dropdown-item" id="userDownloadBtn">
-                  <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 8px;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" >
                     <path d="M5 20h14v-2H5v2z"/>
                     <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z"/>
                   </svg>
@@ -218,12 +218,6 @@
               <circle cx="18" cy="18" r="2"/>
             </svg>
           </button> -->
-          <button class="theme-icon-btn" id="syncBtn" aria-label="同步" title="同步">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-refresh" aria-hidden="true">
-              <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
-              <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
-            </svg>
-          </button>
           <button id="theme-toggle" class="theme-toggle" aria-label="切换到暗色主题" title="切换到暗色主题"><span class="theme-icon">🌙</span></button>
         </div>
       </aside>
@@ -297,6 +291,12 @@
                 <option value="Hiragino Mincho Pro,Noto Serif JP,\"Times New Roman\",Georgia,serif">日文字体(衬线)</option>
                 <option value="Menlo,Monaco,Consolas,\"Courier New\",monospace">等宽字体</option>
               </select>
+              <button class="theme-icon-btn" id="syncBtn" aria-label="同步" title="同步">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-refresh" aria-hidden="true">
+                  <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
+                  <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
+                </svg>
+              </button>
             </div>
             
           </div>
