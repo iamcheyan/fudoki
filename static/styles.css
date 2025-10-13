@@ -3196,8 +3196,8 @@ html {
 .doc-action-btn.favorite-btn:hover { color: var(--text); }
 .doc-item.favorited .doc-action-btn.favorite-btn { color: #f5a623; }
 
-/* 编辑工具栏 - 固定在顶部（使用 section.editor-toolbar 更具体的选择器） */
-section.editor-toolbar {
+/* 主工具栏 - 固定在顶部 */
+.main-header {
   /* 改为两栏布局：左/右分区各占一列 */
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3221,40 +3221,40 @@ section.editor-toolbar {
 }
 
 /* two-pane 模式下：确保顶部工具栏始终固定 */
-.main-container.two-pane section.editor-toolbar {
+.main-container.two-pane .main-header {
   position: fixed;
   top: 0;
   z-index: 1000;
 }
-.editor-toolbar-left,
-.editor-toolbar-right {
+.main-header-left,
+.main-header-right {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 /* 右侧内容右对齐，使两栏更整齐 */
-.editor-toolbar-right { justify-content: flex-end; }
+.main-header-right { justify-content: flex-end; }
 
-/* editor-toolbar 中的 logo 样式调整 */
-.editor-toolbar-left .logo {
+/* main-header 中的 logo 样式调整 */
+.main-header-left .logo {
   font-size: 16px;
   margin-right: 4px;
   position: relative;
   left: -5px;
 }
 
-.editor-toolbar-left .logo-icon {
+.main-header-left .logo-icon {
   width: 28px;
   height: 28px;
 }
 
-.editor-toolbar-left .folder-collapse-btn {
+.main-header-left .folder-collapse-btn {
   margin-right: 4px;
   border: none;
   background: transparent;
 }
 
-.editor-toolbar-left .folder-collapse-btn:hover {
+.main-header-left .folder-collapse-btn:hover {
   background: var(--elev);
 }
 
@@ -3267,10 +3267,6 @@ section.editor-toolbar {
   overflow: visible; /* 允许下拉菜单和子菜单溢出显示 */
 }
 
-/* 在toolbar右侧时的样式优化 */
-.editor-toolbar-right .user-profile-container {
-  margin-left: 12px;
-}
 
 #userAvatarBtn {
   width: 24px;
@@ -3701,11 +3697,11 @@ section.editor-toolbar {
 .editor-star-toggle:hover,.editor-reading-toggle:hover{background:var(--elevated)}
 .editor-star-toggle.is-active{color:#f5a623;border-color:#f5a623;}
 
-/* 阅读模式隐藏顶部编辑工具栏 */
-#reading-mode section.editor-toolbar{display:none!important}
+/* 阅读模式隐藏顶部主工具栏 */
+#reading-mode .main-header{display:none!important}
 
 /* 深色主题适配 */
-:root[data-theme="dark"] section.editor-toolbar{background:rgba(30,34,41,.78);border-color:rgba(255,255,255,.08);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="dark"] .main-header{background:rgba(30,34,41,.78);border-color:rgba(255,255,255,.08);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 :root[data-theme="dark"] .editor-date{color:var(--muted)}
 :root[data-theme="dark"] .editor-star-toggle.is-active{color:#f5d083;border-color:#f5d083;background:rgba(245,208,131,.08)}
 
@@ -4414,7 +4410,7 @@ input[type="checkbox"] {
 [data-theme="dark"] .delete-confirm {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
 }
-.editor-toolbar-right .theme-icon-btn {
+.main-header-right .theme-icon-btn {
   color: var(--muted);
   /* background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.75)); */
   /* border-color: rgba(139,105,20,0.14); */
@@ -4449,7 +4445,7 @@ input[type="checkbox"] {
   flex-shrink: 0;
 }
 
-.editor-toolbar-right .theme-icon-btn svg {
+.main-header-right .theme-icon-btn svg {
   width: 18px;
   height: 18px;
   stroke: currentColor;
@@ -4459,32 +4455,32 @@ input[type="checkbox"] {
   fill: none !important;
 }
 
-.editor-toolbar-right .theme-icon-btn:hover {
+.main-header-right .theme-icon-btn:hover {
   color: var(--primary);
   border-color: rgba(139,105,20,0.35);
   box-shadow: 0 8px 18px rgba(139,105,20,0.16);
   transform: translateY(-1px);
 }
 
-:root[data-theme="dark"] .editor-toolbar-right .theme-icon-btn {
+:root[data-theme="dark"] .main-header-right .theme-icon-btn {
   background: linear-gradient(135deg, rgba(32,36,45,0.96), rgba(19,23,30,0.92));
   border-color: rgba(217,179,90,0.24);
   box-shadow: 0 6px 16px rgba(0,0,0,0.35);
   color: rgba(217,179,90,0.75);
 }
 
-:root[data-theme="dark"] .editor-toolbar-right .theme-icon-btn:hover {
+:root[data-theme="dark"] .main-header-right .theme-icon-btn:hover {
   color: var(--primary);
   border-color: rgba(217,179,90,0.38);
   box-shadow: 0 10px 22px rgba(0,0,0,0.45);
 }
 
-.editor-toolbar-right .theme-icon-btn.is-loading::after {
+.main-header-right .theme-icon-btn.is-loading::after {
   border-color: rgba(139, 105, 20, 0.2);
   border-top-color: var(--primary);
 }
 
-:root[data-theme="dark"] .editor-toolbar-right .theme-icon-btn.is-loading::after {
+:root[data-theme="dark"] .main-header-right .theme-icon-btn.is-loading::after {
   border-color: rgba(217, 179, 90, 0.18);
   border-top-color: var(--primary);
 }
@@ -4594,8 +4590,8 @@ input[type="text"], textarea { font-size: 14px; }
 .token-romaji { font-size: calc(9px * var(--font-scale)); }
 .pos-tag, .token-pos { font-size: calc(8px * var(--font-scale)); }
 
-/* 编辑器工具栏右侧的字号控制 */
-.editor-toolbar-right .editor-fontsize-control {
+/* 主工具栏右侧的字号控制 */
+.main-header-right .editor-fontsize-control {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -4609,14 +4605,14 @@ input[type="text"], textarea { font-size: 14px; }
   color: var(--text-secondary-color, #666);
 }
 
-/* 字体选择控件（编辑器工具栏右侧） */
-.editor-toolbar-right .editor-fontfamily-controls {
+/* 字体选择控件（主工具栏右侧） */
+.main-header-right .editor-fontfamily-controls {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   /* margin-right: 8px; */
 }
-.editor-toolbar-right .editor-fontfamily-controls select {
+.main-header-right .editor-fontfamily-controls select {
   height: 28px;
   font-size: 12px;
   padding: 2px 6px;
