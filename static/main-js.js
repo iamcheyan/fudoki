@@ -7778,37 +7778,73 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // ========== 子菜单互斥逻辑 ==========
     // 确保同一时间只能有一个子菜单打开
     const allSubmenuParents = document.querySelectorAll('.user-dropdown-menu .submenu-parent');
+    let closeTimer = null; // 用于延迟关闭的定时器
     
     allSubmenuParents.forEach(parent => {
+      const submenu = parent.querySelector('.user-submenu');
+      
       parent.addEventListener('mouseenter', () => {
-        // 关闭其他所有子菜单
+        // 清除任何待执行的关闭定时器
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+        
+        // 立即关闭其他所有子菜单
         allSubmenuParents.forEach(other => {
           if (other !== parent) {
             other.classList.remove('submenu-open');
           }
         });
+        
         // 打开当前子菜单
         parent.classList.add('submenu-open');
       });
       
-      // 当鼠标离开父菜单项和子菜单时，移除 open 类
-      parent.addEventListener('mouseleave', (e) => {
-        // 延迟一点时间，以便鼠标可以移动到子菜单
-        setTimeout(() => {
-          const submenu = parent.querySelector('.user-submenu');
+      // 当鼠标离开父菜单项时，设置延迟关闭
+      parent.addEventListener('mouseleave', () => {
+        closeTimer = setTimeout(() => {
           if (submenu && !submenu.matches(':hover') && !parent.matches(':hover')) {
             parent.classList.remove('submenu-open');
           }
-        }, 100);
+          closeTimer = null;
+        }, 150);
       });
+      
+      // 子菜单的鼠标事件
+      if (submenu) {
+        submenu.addEventListener('mouseenter', () => {
+          // 鼠标进入子菜单，清除关闭定时器
+          if (closeTimer) {
+            clearTimeout(closeTimer);
+            closeTimer = null;
+          }
+        });
+        
+        submenu.addEventListener('mouseleave', () => {
+          // 鼠标离开子菜单，延迟关闭
+          closeTimer = setTimeout(() => {
+            if (!submenu.matches(':hover') && !parent.matches(':hover')) {
+              parent.classList.remove('submenu-open');
+            }
+            closeTimer = null;
+          }, 150);
+        });
+      }
     });
 
-    // 当整个下拉菜单关闭时，清除所有 submenu-open 类
+    // 当整个下拉菜单关闭时，清除所有 submenu-open 类和定时器
     if (userProfileContainer) {
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (mutation.attributeName === 'class') {
             if (!userProfileContainer.classList.contains('open')) {
+              // 清除关闭定时器
+              if (closeTimer) {
+                clearTimeout(closeTimer);
+                closeTimer = null;
+              }
+              // 关闭所有子菜单
               allSubmenuParents.forEach(parent => {
                 parent.classList.remove('submenu-open');
               });

@@ -3502,8 +3502,7 @@ section.editor-toolbar {
   z-index: 10001;
 }
 
-.submenu-parent:hover .user-submenu,
-.user-submenu:hover,
+/* 只通过 submenu-open 类控制子菜单显示，避免与 :hover 冲突 */
 .submenu-parent.submenu-open .user-submenu {
   opacity: 1;
   visibility: visible;
@@ -3512,19 +3511,20 @@ section.editor-toolbar {
   transition-delay: 0s, 0s, 0s;
 }
 
+/* 当子菜单自身被悬停时保持显示 */
+.user-submenu:hover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  pointer-events: auto !important;
+}
+
 /* 添加延迟关闭，防止意外移出时立即消失 */
 .submenu-parent .user-submenu {
   transition-delay: 0s, 0.2s, 0s; /* visibility延迟关闭，增加时间 */
 }
 
-/* 当鼠标在子菜单项上时，保持子菜单打开 */
-.submenu-parent:focus-within .user-submenu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-  pointer-events: auto !important;
-  transition-delay: 0s, 0s, 0s;
-}
+/* 子菜单的焦点状态由 JavaScript 统一管理 */
 
 .submenu-item {
   display: flex;
