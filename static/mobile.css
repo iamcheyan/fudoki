@@ -314,6 +314,76 @@
   width: 54px;
 }
 
+/* 移动端用户头像和下拉菜单优化 */
+.main-header-right .user-profile-container {
+  margin-left: 6px;
+}
+
+#userAvatarBtn {
+  width: 28px;
+  height: 28px;
+}
+
+#userAvatarBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.user-dropdown-menu {
+  min-width: 200px;
+  max-width: calc(100vw - 32px);
+  right: -8px;
+}
+
+.user-dropdown-header {
+  padding: 12px 14px;
+}
+
+.user-dropdown-name {
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.user-dropdown-email {
+  font-size: 11px;
+}
+
+.user-dropdown-item {
+  padding: 10px 14px;
+  font-size: 13px;
+  gap: 10px;
+}
+
+.user-dropdown-item svg {
+  width: 16px;
+  height: 16px;
+}
+
+.user-dropdown-item:hover {
+  padding-left: 18px;
+}
+
+/* 子菜单移动端优化 */
+.user-submenu {
+  min-width: 140px;
+}
+
+.submenu-item {
+  padding: 9px 14px;
+  font-size: 12px;
+}
+
+.submenu-item svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* 当前主题/语言名称 */
+#currentThemeName,
+#currentLangName {
+  font-size: 13px;
+}
+
 .main-container:not(.collapsed) .sidebar-overlay {
   display: block;
 }
@@ -331,6 +401,44 @@
   .play-control-bar .header-voice-controls {
     flex: 0 0 auto;
     gap: 6px;
+  }
+  
+  /* 超小屏幕下进一步优化用户菜单 */
+  .user-dropdown-menu {
+    min-width: 180px;
+    border-radius: 10px;
+  }
+  
+  .user-dropdown-header {
+    padding: 10px 12px;
+  }
+  
+  .user-dropdown-name {
+    font-size: 13px;
+  }
+  
+  .user-dropdown-email {
+    font-size: 10px;
+  }
+  
+  .user-dropdown-item {
+    padding: 8px 10px;
+    font-size: 12px;
+    gap: 8px;
+  }
+  
+  .user-dropdown-item:hover {
+    padding-left: 16px;
+  }
+  
+  .submenu-item {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  
+  #currentThemeName,
+  #currentLangName {
+    font-size: 12px;
   }
 }
 

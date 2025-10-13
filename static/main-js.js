@@ -7922,7 +7922,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
         'sakura': 'Sakura',
         'sticky': 'Sticky Note',
         'green': 'Green',
-        'blue': 'Blue'
+        'blue': 'Blue',
+        'dark': 'Dark'
       };
 
       // 初始化当前主题显示
