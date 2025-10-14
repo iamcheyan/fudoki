@@ -181,32 +181,21 @@
       <!-- Notion风格侧边栏 -->
       <aside class="folder-management" id="sidebar-left" aria-label="导航侧边栏">
         <div class="sidebar-scroll" id="sidebarScroll">
-          <!-- 全局搜索（位于顶部） -->
-          <section class="search-section" id="globalSearch" aria-label="全局搜索">
-            <div class="search-row">
-              <div class="search-input-wrapper">
-                <span class="search-icon" aria-hidden="true">🔍</span>
-                <input type="text" id="globalSearchInput" placeholder="快速搜索关键词" autocomplete="off" aria-label="搜索全部文档">
-                <button type="button" id="globalSearchClear" class="search-clear" aria-label="清除搜索">×</button>
-              </div>
-              
-            </div>
-            <div class="search-info" id="globalSearchInfo"></div>
-          </section>
-
           <!-- 文件夹区域 -->
           <section class="sidebar-section folder-section" aria-labelledby="sidebarFolderTitle">
             <div class="folder-title-row">
-              <div class="sidebar-title" id="sidebarFolderTitle">文件夹管理</div>
-              <button type="button" class="btn-sort theme-icon-btn desc" id="docSortToggle" aria-label="切换时间排序" title="切换时间排序">
-                <svg class="sort-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                  <path class="arrow-up" d="M12 7l-4 4h8z"></path>
-                  <path class="arrow-down" d="M12 17l4-4H8z"></path>
-                </svg>
-              </button>
+              <div class="sidebar-title" id="sidebarFolderTitle">内容管理</div>
+              <div class="folder-title-actions">
+                <button type="button" class="btn-sort theme-icon-btn desc" id="docSortToggle" aria-label="切换时间排序" title="切换时间排序">
+                  <svg class="sort-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                    <path class="arrow-up" d="M12 7l-4 4h8z"></path>
+                    <path class="arrow-down" d="M12 17l4-4H8z"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="folder-list" id="folderList">
-              <!-- 文件夹列表由 JS 生成 -->
+              <!-- 搜索按钮和文件夹列表由 JS 生成 -->
             </div>
           </section>
 
@@ -240,33 +229,33 @@
               <img src="static/logo.png" alt="Fudoki" class="logo-icon">
               <span class="logo-text" id="logoText">Fudoki</span>
             </a>
-            <div class="new-doc-group">
-              <button type="button" class="btn-new theme-icon-btn editorNewBtn" id="newDocBtn" aria-label="新建文档" title="新建文档">
-                <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="compose">
-                  <path d="m16.774 4.341-.59.589-1.109-1.11.596-.594a.784.784 0 0 1 1.103 0c.302.302.302.8 0 1.102zM8.65 12.462l6.816-6.813-1.11-1.11-6.822 6.808a1.1 1.1 0 0 0-.236.393l-.289.932c-.052.196.131.38.315.314l.932-.288a.9.9 0 0 0 .394-.236"></path>
-                  <path d="M4.375 6.25c0-1.036.84-1.875 1.875-1.875H11a.625.625 0 1 0 0-1.25H6.25A3.125 3.125 0 0 0 3.125 6.25v7.5c0 1.726 1.4 3.125 3.125 3.125h7.5c1.726 0 3.125-1.4 3.125-3.125V9a.625.625 0 1 0-1.25 0v4.75c0 1.036-.84 1.875-1.875 1.875h-7.5a1.875 1.875 0 0 1-1.875-1.875z"></path>
-                </svg>
-              </button>
-              <button type="button" class="btn-new-dropdown theme-icon-btn" id="newDocDropdownBtn" aria-label="新建选项" title="选择文档类型">
-                <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="arrowChevronSingleDown" style="width: 16px; height: 16px; display: block; fill: currentColor; flex-shrink: 0;">
-                  <path d="M9.558 13.442c.244.244.64.244.884 0l5.4-5.4a.625.625 0 1 0-.884-.884L10 12.116 5.042 7.158a.625.625 0 0 0-.884.884z"></path>
-                </svg>
-              </button>
-              <div class="new-doc-dropdown-menu" id="newDocDropdownMenu">
-                <a href="#" class="dropdown-item" data-doc-type="note">
-                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
-                    <path d="M4.5 3h11a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 15.5v-11A1.5 1.5 0 0 1 4.5 3zm1 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V9a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"></path>
+              <div class="new-doc-group">
+                <button type="button" class="btn-new theme-icon-btn editorNewBtn" id="newDocBtn" aria-label="新建文档" title="新建文档">
+                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="compose">
+                    <path d="m16.774 4.341-.59.589-1.109-1.11.596-.594a.784.784 0 0 1 1.103 0c.302.302.302.8 0 1.102zM8.65 12.462l6.816-6.813-1.11-1.11-6.822 6.808a1.1 1.1 0 0 0-.236.393l-.289.932c-.052.196.131.38.315.314l.932-.288a.9.9 0 0 0 .394-.236"></path>
+                    <path d="M4.375 6.25c0-1.036.84-1.875 1.875-1.875H11a.625.625 0 1 0 0-1.25H6.25A3.125 3.125 0 0 0 3.125 6.25v7.5c0 1.726 1.4 3.125 3.125 3.125h7.5c1.726 0 3.125-1.4 3.125-3.125V9a.625.625 0 1 0-1.25 0v4.75c0 1.036-.84 1.875-1.875 1.875h-7.5a1.875 1.875 0 0 1-1.875-1.875z"></path>
                   </svg>
-                  便签
-                </a>
-                <a href="#" class="dropdown-item" data-doc-type="todo">
-                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
-                    <path d="M5.5 3A2.5 2.5 0 0 0 3 5.5v9A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5v-9A2.5 2.5 0 0 0 14.5 3h-9zm-.25 4.5a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM6 10a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H6zm-.75 3.75A.75.75 0 0 1 6 13h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM9.5 7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75zm.75 2.5a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3zm-.75 3.75a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75z"></path>
+                </button>
+                <button type="button" class="btn-new-dropdown theme-icon-btn" id="newDocDropdownBtn" aria-label="新建选项" title="选择文档类型">
+                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="arrowChevronSingleDown" style="width: 16px; height: 16px; display: block; fill: currentColor; flex-shrink: 0;">
+                    <path d="M9.558 13.442c.244.244.64.244.884 0l5.4-5.4a.625.625 0 1 0-.884-.884L10 12.116 5.042 7.158a.625.625 0 0 0-.884.884z"></path>
                   </svg>
-                  代办事项
-                </a>
+                </button>
+                <div class="new-doc-dropdown-menu" id="newDocDropdownMenu">
+                  <a href="#" class="dropdown-item" data-doc-type="note">
+                    <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
+                      <path d="M4.5 3h11a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 15.5v-11A1.5 1.5 0 0 1 4.5 3zm1 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V9a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"></path>
+                    </svg>
+                    便签
+                  </a>
+                  <a href="#" class="dropdown-item" data-doc-type="todo">
+                    <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
+                      <path d="M5.5 3A2.5 2.5 0 0 0 3 5.5v9A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5v-9A2.5 2.5 0 0 0 14.5 3h-9zm-.25 4.5a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM6 10a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H6zm-.75 3.75A.75.75 0 0 1 6 13h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM9.5 7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75zm.75 2.5a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3zm-.75 3.75a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75z"></path>
+                    </svg>
+                    代办事项
+                  </a>
+                </div>
               </div>
-            </div>
             <span class="editor-date" id="editorDocDate" title="创建日期"></span>
             <span class="editor-count" id="editorCharCount" title="字数">0 字</span>
             <button type="button" class="editor-star-toggle theme-icon-btn" id="editorStarToggle" aria-pressed="false" title="加星">☆</button>
@@ -550,48 +539,48 @@
             </div>
           </div>
         </section>
-        
+
         <!-- 可拖拽的分隔条 -->
         <div class="resizer" id="panelResizer" title="拖拽调整高度"></div>
         
         <!-- 结果显示区域 -->
         <section class="content-area">
           <!-- 顶部播放控制栏：左播放按钮 + 中进度条 + 右音量 -->
-          <div class="play-control-bar" id="headerPlayControl" aria-label="播放控制栏">
-            <div class="play-control-bar-buttons">
-              <button class="theme-icon-btn play-toggle" id="headerPlayToggle" aria-label="播放全文" title="播放全文">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-                  <path d="M8 5v14l11-7z" fill="currentColor"></path>
-                </svg>
-              </button>
-              <!-- 暂停/恢复按钮 -->
-              <button class="theme-icon-btn pause-toggle" id="headerPauseToggle" aria-label="暂停" title="暂停">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-                  <path d="M6 5h4v14H6z" fill="currentColor"></path>
-                  <path d="M14 5h4v14h-4z" fill="currentColor"></path>
-                </svg>
-              </button>
-            </div>
-            
-            <div class="play-progress" id="headerPlayProgress" aria-label="播放进度" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-              <div class="play-progress-fill" id="headerPlayProgressFill"></div>
-            </div>
-            
-            <!-- 头部语音与速度控件 -->
-            <div class="header-voice-controls" id="headerVoiceControls" aria-label="语音与速度设置">
-
-              <input type="range" id="headerSpeedRange" min="0.5" max="2" step="0.1" value="1" aria-label="話速">
-              <div class="speed-display" id="headerSpeedValue">1.0x</div>
-              <select id="headerVoiceSelect">
-                <option value="">音声を選択...</option>
-              </select>
-            </div>
-            <input type="range" id="headerVolume" class="play-volume" min="0" max="1" step="0.05" value="1" aria-label="音量" title="音量">
+        <div class="play-control-bar" id="headerPlayControl" aria-label="播放控制栏">
+          <div class="play-control-bar-buttons">
+            <button class="theme-icon-btn play-toggle" id="headerPlayToggle" aria-label="播放全文" title="播放全文">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
+                <path d="M8 5v14l11-7z" fill="currentColor"></path>
+              </svg>
+            </button>
+            <!-- 暂停/恢复按钮 -->
+            <button class="theme-icon-btn pause-toggle" id="headerPauseToggle" aria-label="暂停" title="暂停">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
+                <path d="M6 5h4v14H6z" fill="currentColor"></path>
+                <path d="M14 5h4v14h-4z" fill="currentColor"></path>
+              </svg>
+            </button>
           </div>
+          
+          <div class="play-progress" id="headerPlayProgress" aria-label="播放进度" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="play-progress-fill" id="headerPlayProgressFill"></div>
+          </div>
+          
+          <!-- 头部语音与速度控件 -->
+          <div class="header-voice-controls" id="headerVoiceControls" aria-label="语音与速度设置">
+
+            <input type="range" id="headerSpeedRange" min="0.5" max="2" step="0.1" value="1" aria-label="話速">
+            <div class="speed-display" id="headerSpeedValue">1.0x</div>
+            <select id="headerVoiceSelect">
+              <option value="">音声を選択...</option>
+            </select>
+          </div>
+          <input type="range" id="headerVolume" class="play-volume" min="0" max="1" step="0.05" value="1" aria-label="音量" title="音量">
+        </div>
 
           <div class="content-scroll-area" id="content">
-            <div class="empty-state">
-              <p id="emptyText">请在上方输入日语文本，点击"分析文本"开始处理</p>
+          <div class="empty-state">
+            <p id="emptyText">请在上方输入日语文本，点击"分析文本"开始处理</p>
             </div>
           </div>
         </section>
@@ -624,6 +613,42 @@
    </div>
 
    <!-- 右侧边栏已移除，统一使用顶部齿轮打开的设置弹窗 -->
+
+  <!-- 文档搜索模态框 -->
+  <div class="search-modal" id="searchModal">
+    <div class="search-modal-content">
+      <!-- 搜索标题栏 -->
+      <div class="search-modal-header">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+        <input type="text" class="search-modal-input" id="searchModalInput" placeholder="搜索文档标题或内容..." autocomplete="off">
+        <button class="search-modal-close" id="searchModalClose" title="关闭">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- 搜索结果 -->
+      <div class="search-modal-results" id="searchModalResults">
+        <div class="search-empty-state">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" opacity="0.3">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+          <p>输入关键词开始搜索</p>
+        </div>
+      </div>
+      
+      <!-- 底部提示 -->
+      <div class="search-modal-footer">
+        <span class="search-tip">
+          <kbd>↵</kbd> 打开 
+          <kbd>Esc</kbd> 关闭
+        </span>
+      </div>
+    </div>
+  </div>
 
   <!-- 应用程序列表侧边栏 -->
   <div class="app-drawer" id="appDrawer" aria-hidden="true">

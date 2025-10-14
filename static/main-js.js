@@ -719,6 +719,19 @@ const headerSpeedValue = $('headerSpeedValue');
     const activeId = getActiveFolderId();
     folderList.innerHTML = '';
 
+    // 搜索按钮（多语言）
+    const searchBtn = document.createElement('button');
+    searchBtn.type = 'button';
+    searchBtn.className = 'search-doc-btn';
+    searchBtn.id = 'searchDocBtn';
+    searchBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+      </svg>
+      <span>${t('searchDocuments')}</span>
+    `;
+    folderList.appendChild(searchBtn);
+
     // 虚拟 "全部"（多语言）
     const allItem = document.createElement('div');
     allItem.className = 'folder-item' + (activeId === 'all' ? ' active' : '');
@@ -1598,19 +1611,6 @@ const headerSpeedValue = $('headerSpeedValue');
       if (easymde && easymde.codemirror && typeof easymde.codemirror.setOption === 'function') {
         easymde.codemirror.setOption('placeholder', placeholderText);
       }
-    }
-    // 全局搜索输入及按钮的多语言适配
-    const globalSearch = $('globalSearch');
-    if (globalSearch) globalSearch.setAttribute('aria-label', t('globalSearchAria'));
-    const globalSearchInput = $('globalSearchInput');
-    if (globalSearchInput) {
-      globalSearchInput.placeholder = t('globalSearchPlaceholder');
-      globalSearchInput.setAttribute('aria-label', t('globalSearchInputAria'));
-    }
-    const globalSearchClear = $('globalSearchClear');
-    if (globalSearchClear) {
-      globalSearchClear.setAttribute('aria-label', t('globalSearchClear'));
-      globalSearchClear.title = t('globalSearchClear');
     }
     if (analyzeBtn) analyzeBtn.textContent = t('analyzeBtn');
 
@@ -3243,6 +3243,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
           </div>
           <div class="doc-item-actions">
             <button class="doc-action-btn fav-btn ${isFav ? 'active' : ''}" title="${isFav ? t('unfavorite') : t('favorite')}">${isFav ? '★' : '☆'}</button>
+            <button class="doc-action-btn delete-btn" title="${t('deleteDoc')}">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+            </button>
           </div>
         `;
         
@@ -3257,6 +3262,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
               this.saveAllDocuments(all);
               this.render();
             }
+          } else if (e.target.closest('.delete-btn')) {
+            e.stopPropagation();
+            this.deleteDocument(doc.id, false, docItem);
           } else {
             this.switchToDocument(doc.id);
           }
@@ -5687,7 +5695,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 初始化文档管理器
   const documentManager = new DocumentManager();
-  
+
   // 将 documentManager 暴露到全局作用域，供同步等功能使用
   window.documentManager = documentManager;
 
@@ -6245,7 +6253,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 如果设置按钮存在，绑定其点击事件
     if (btn) {
-      btn.addEventListener('click', () => modal.classList.contains('show') ? closeModal() : openModal());
+    btn.addEventListener('click', () => modal.classList.contains('show') ? closeModal() : openModal());
     }
     
     // 绑定关闭按钮
@@ -6431,7 +6439,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
               // 直接执行导入，不再需要 confirm
               showInfoToast(t('importConfirmOverwrite'), 1500);
               setTimeout(() => {
-                cb && cb();
+              cb && cb();
               }, 500);
             }
           };
@@ -6604,7 +6612,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 文档列表滚动也联动顶部偏移
     // initListPanelTopOffset(); // Header 已移除，不再需要此效果
     setupPwaInstaller();
-    initGlobalSearch();
     // 两栏模式：读取首选项并绑定按钮
     (function initTwoPane() {
       const mainContainer = document.querySelector('.main-container');
@@ -6747,52 +6754,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   // 防抖已抽离至 static/js/ui-utils.js（window.debounce）
 
-  // 初始化全局搜索（针对全部文档）
-  function initGlobalSearch() {
-    const input = document.getElementById('globalSearchInput');
-    const clearBtn = document.getElementById('globalSearchClear');
-    const info = document.getElementById('globalSearchInfo');
-    if (!input) return;
-
-    const runSearch = (q) => {
-      const query = String(q || '').trim();
-      if (typeof documentManager !== 'undefined') {
-        documentManager.searchQuery = query;
-        documentManager.render();
-      }
-
-      if (!info) return;
-      if (!query) { info.textContent = ''; return; }
-      try {
-        const docs = documentManager.getAllDocuments();
-        const ql = query.toLowerCase();
-        const hits = docs.filter(doc => {
-          const text = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
-          const title = documentManager.getDocumentTitle(doc.content);
-          return (title + '\n' + text).toLowerCase().includes(ql);
-        });
-        info.textContent = hits.length > 0 ? `匹配文档：${hits.length}` : '未找到匹配文档';
-      } catch (_) {
-        info.textContent = '';
-      }
-    };
-
-    const debounced = debounce(runSearch, 200);
-    input.addEventListener('input', (e) => debounced(e.target.value));
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        runSearch(input.value);
-      }
-    });
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        input.value = '';
-        runSearch('');
-        input.focus();
-      });
-    }
-  }
-
   // 初始化快速搜索
   function initQuickSearch() {
     const input = document.getElementById('quickSearchInput');
@@ -6856,6 +6817,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
   
   // 初始化应用程序抽屉
   initAppDrawer();
+
+  // 初始化搜索模态框
+  initSearchModal();
 
   // 全局键盘：在阅读模式下按 ESC 退出
   document.addEventListener('keydown', (e) => {
@@ -6957,7 +6921,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         e.preventDefault();
         // 直接显示提示信息，移除 confirm
         showInfoToast(t('exitInDevelopment'));
-        // 这里可以添加实际的退出逻辑
+          // 这里可以添加实际的退出逻辑
       });
     }
 
@@ -7006,6 +6970,213 @@ Try Fudoki and enjoy Japanese language analysis!`;
       });
     }
   }
+
+  // 初始化搜索模态框
+  function initSearchModal() {
+    const searchModal = document.getElementById('searchModal');
+    const searchModalClose = document.getElementById('searchModalClose');
+    const searchModalInput = document.getElementById('searchModalInput');
+    const searchModalResults = document.getElementById('searchModalResults');
+
+    if (!searchModal) return;
+
+    let selectedIndex = -1;
+    let searchResults = [];
+
+    // 打开模态框
+    function openSearchModal() {
+      searchModal.classList.add('show');
+      setTimeout(() => {
+        if (searchModalInput) searchModalInput.focus();
+      }, 100);
+    }
+
+    // 关闭模态框
+    function closeSearchModal() {
+      searchModal.classList.remove('show');
+      if (searchModalInput) searchModalInput.value = '';
+      selectedIndex = -1;
+      searchResults = [];
+      renderEmptyState();
+    }
+
+    // 渲染空状态
+    function renderEmptyState() {
+      if (!searchModalResults) return;
+      searchModalResults.innerHTML = `
+        <div class="search-empty-state">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" opacity="0.3">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+          <p>输入关键词开始搜索</p>
+        </div>
+      `;
+    }
+
+    // 高亮关键词
+    function highlightText(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+
+    // 执行搜索
+    function performSearch(query) {
+      if (!query.trim()) {
+        renderEmptyState();
+        return;
+      }
+
+      if (typeof documentManager === 'undefined') {
+        renderEmptyState();
+        return;
+      }
+
+      const docs = documentManager.getAllDocuments();
+      const ql = query.toLowerCase();
+      
+      searchResults = docs.filter(doc => {
+        // 跳过示例文档
+        if (doc.folder === 'samples' || doc.locked) return false;
+        
+        const text = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
+        const title = documentManager.getDocumentTitle(doc.content);
+        return (title + '\n' + text).toLowerCase().includes(ql);
+      }).map(doc => {
+        const text = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
+        const title = documentManager.getDocumentTitle(doc.content);
+        
+        // 提取包含关键词的片段
+        const lines = text.split('\n');
+        let snippet = '';
+        for (const line of lines) {
+          if (line.toLowerCase().includes(ql)) {
+            snippet = line.substring(0, 120);
+            break;
+          }
+        }
+        if (!snippet && text) {
+          snippet = text.substring(0, 120);
+        }
+
+        return {
+          id: doc.id,
+          title: title || '无标题',
+          snippet: snippet,
+          createdAt: doc.createdAt
+        };
+      });
+
+      renderResults(query);
+    }
+
+    // 渲染搜索结果
+    function renderResults(query) {
+      if (!searchModalResults) return;
+
+      if (searchResults.length === 0) {
+        searchModalResults.innerHTML = `
+          <div class="search-empty-state">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" opacity="0.3">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <p>未找到匹配的文档</p>
+          </div>
+        `;
+        return;
+      }
+
+      const html = searchResults.map((result, index) => {
+        const date = result.createdAt ? new Date(result.createdAt).toLocaleDateString() : '';
+        return `
+          <div class="search-result-item ${index === selectedIndex ? 'selected' : ''}" data-index="${index}" data-doc-id="${result.id}">
+            <svg class="search-result-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+            </svg>
+            <div class="search-result-content">
+              <div class="search-result-title">${highlightText(result.title, query)}</div>
+              ${result.snippet ? `<div class="search-result-snippet">${highlightText(result.snippet, query)}</div>` : ''}
+              ${date ? `<div class="search-result-meta">${date}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      searchModalResults.innerHTML = html;
+
+      // 绑定点击事件
+      searchModalResults.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const docId = item.dataset.docId;
+          openDocument(docId);
+        });
+      });
+    }
+
+    // 打开文档
+    function openDocument(docId) {
+      if (typeof documentManager !== 'undefined') {
+        documentManager.switchToDocument(docId);
+      }
+      closeSearchModal();
+    }
+
+    // 事件监听 - 使用事件委托，因为搜索按钮是动态生成的
+    document.addEventListener('click', (e) => {
+      const searchBtn = e.target.closest('#searchDocBtn');
+      if (searchBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openSearchModal();
+      }
+    });
+
+    if (searchModalClose) {
+      searchModalClose.addEventListener('click', closeSearchModal);
+    }
+
+    // 点击模态框背景关闭
+    if (searchModal) {
+      searchModal.addEventListener('click', (e) => {
+        if (e.target === searchModal) {
+          closeSearchModal();
+        }
+      });
+    }
+
+    // 搜索输入
+    if (searchModalInput) {
+      const debounced = debounce(performSearch, 200);
+      searchModalInput.addEventListener('input', (e) => {
+        debounced(e.target.value);
+      });
+
+      // 键盘导航
+      searchModalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeSearchModal();
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedIndex = Math.min(selectedIndex + 1, searchResults.length - 1);
+          renderResults(searchModalInput.value);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedIndex = Math.max(selectedIndex - 1, -1);
+          renderResults(searchModalInput.value);
+        } else if (e.key === 'Enter' && selectedIndex >= 0 && searchResults[selectedIndex]) {
+          openDocument(searchResults[selectedIndex].id);
+        }
+      });
+    }
+
+    // ESC 关闭
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && searchModal && searchModal.classList.contains('show')) {
+        closeSearchModal();
+      }
+    });
+  }
+
   // 字号缩放控制
   function initFontSizeControls() {
     const rangeEls = [

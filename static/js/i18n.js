@@ -16,10 +16,7 @@ const I18N = {
     analyzeBtn: '解析する',
     emptyText: '上の入力欄に日本語を入力すると、自動的に解析します',
     // グローバル検索（多言語）
-    globalSearchAria: 'グローバル検索',
-    globalSearchInputAria: 'すべてのドキュメントを検索',
-    globalSearchPlaceholder: 'キーワードを素早く検索',
-    globalSearchClear: '検索をクリア',
+    searchDocuments: 'ドキュメントを検索',
     voiceTitle: '音声設定',
     voiceSelectLabel: '音声を選択',
     selectVoice: '音声を選択...',
@@ -63,11 +60,11 @@ const I18N = {
     ,lbl_field: '分野'
     ,lbl_note: '備考'
     ,lbl_chinese: '中文'
-    ,folderAll: 'すべて',
+    ,    folderAll: 'すべて',
     folderFavorites: 'お気に入り',
     folderSamples: 'サンプル記事',
     reloadSamples: 'サンプル再読み込み',
-    sidebarFolderTitle: 'フォルダー管理',
+    sidebarFolderTitle: 'コンテンツ管理',
     favorite: 'お気に入り',
     unfavorite: 'お気に入り解除',
     cannotDeleteDefault: 'デフォルトのドキュメントは削除できません',
@@ -148,11 +145,7 @@ const I18N = {
     textareaPlaceholder: 'Enter Japanese text here for analysis…',
     analyzeBtn: 'Analyze',
     emptyText: 'Type Japanese above; analysis runs automatically',
-    // Global search (i18n)
-    globalSearchAria: 'Global Search',
-    globalSearchInputAria: 'Search all documents',
-    globalSearchPlaceholder: 'Search keywords',
-    globalSearchClear: 'Clear search',
+    searchDocuments: 'Search Documents',
     voiceTitle: 'Voice Settings',
     voiceSelectLabel: 'Voice',
     selectVoice: 'Select voice...',
@@ -198,11 +191,11 @@ const I18N = {
     ,lbl_field: 'Field'
     ,lbl_note: 'Note'
     ,lbl_chinese: 'Chinese'
-    ,folderAll: 'All',
+    ,    folderAll: 'All',
     folderFavorites: 'Favorites',
     folderSamples: 'Sample Articles',
     reloadSamples: 'Reload samples',
-    sidebarFolderTitle: 'Folders',
+    sidebarFolderTitle: 'Content Management',
     favorite: 'Favorite',
     unfavorite: 'Unfavorite',
     cannotDeleteDefault: 'Cannot delete the default document',
@@ -282,10 +275,7 @@ const I18N = {
     analyzeBtn: '分析文本',
     emptyText: '请在上方输入日语文本，系统会自动分析',
     // 全局搜索（多语言）
-    globalSearchAria: '全局搜索',
-    globalSearchInputAria: '搜索全部文档',
-    globalSearchPlaceholder: '快速搜索关键词',
-    globalSearchClear: '清除搜索',
+    searchDocuments: '搜索文档',
     voiceTitle: '语音设置',
     voiceSelectLabel: '语音选择',
     selectVoice: '选择语音...',
@@ -335,7 +325,7 @@ const I18N = {
     folderFavorites: '收藏',
     folderSamples: '示例文章',
     reloadSamples: '重新加载示例',
-    sidebarFolderTitle: '文件夹管理',
+    sidebarFolderTitle: '内容管理',
     favorite: '收藏',
     unfavorite: '取消收藏',
     cannotDeleteDefault: '默认文档不能删除',
