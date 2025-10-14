@@ -189,33 +189,7 @@
                 <input type="text" id="globalSearchInput" placeholder="快速搜索关键词" autocomplete="off" aria-label="搜索全部文档">
                 <button type="button" id="globalSearchClear" class="search-clear" aria-label="清除搜索">×</button>
               </div>
-              <div class="new-doc-group">
-                <button type="button" class="btn-new theme-icon-btn editorNewBtn" id="newDocBtn" aria-label="新建文档" title="新建文档">
-                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="compose">
-                    <path d="m16.774 4.341-.59.589-1.109-1.11.596-.594a.784.784 0 0 1 1.103 0c.302.302.302.8 0 1.102zM8.65 12.462l6.816-6.813-1.11-1.11-6.822 6.808a1.1 1.1 0 0 0-.236.393l-.289.932c-.052.196.131.38.315.314l.932-.288a.9.9 0 0 0 .394-.236"></path>
-                    <path d="M4.375 6.25c0-1.036.84-1.875 1.875-1.875H11a.625.625 0 1 0 0-1.25H6.25A3.125 3.125 0 0 0 3.125 6.25v7.5c0 1.726 1.4 3.125 3.125 3.125h7.5c1.726 0 3.125-1.4 3.125-3.125V9a.625.625 0 1 0-1.25 0v4.75c0 1.036-.84 1.875-1.875 1.875h-7.5a1.875 1.875 0 0 1-1.875-1.875z"></path>
-                  </svg>
-                </button>
-                <button type="button" class="btn-new-dropdown theme-icon-btn" id="newDocDropdownBtn" aria-label="新建选项" title="选择文档类型">
-                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="arrowChevronSingleDown" style="width: 16px; height: 16px; display: block; fill: currentColor; flex-shrink: 0;">
-                    <path d="M9.558 13.442c.244.244.64.244.884 0l5.4-5.4a.625.625 0 1 0-.884-.884L10 12.116 5.042 7.158a.625.625 0 0 0-.884.884z"></path>
-                  </svg>
-                </button>
-                <div class="new-doc-dropdown-menu" id="newDocDropdownMenu">
-                  <a href="#" class="dropdown-item" data-doc-type="note">
-                    <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
-                      <path d="M4.5 3h11a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 15.5v-11A1.5 1.5 0 0 1 4.5 3zm1 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V9a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"></path>
-                    </svg>
-                    便签
-                  </a>
-                  <a href="#" class="dropdown-item" data-doc-type="todo">
-                    <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
-                      <path d="M5.5 3A2.5 2.5 0 0 0 3 5.5v9A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5v-9A2.5 2.5 0 0 0 14.5 3h-9zm-.25 4.5a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM6 10a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H6zm-.75 3.75A.75.75 0 0 1 6 13h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM9.5 7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75zm.75 2.5a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3zm-.75 3.75a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75z"></path>
-                    </svg>
-                    代办事项
-                  </a>
-                </div>
-              </div>
+              
             </div>
             <div class="search-info" id="globalSearchInfo"></div>
           </section>
@@ -266,6 +240,33 @@
               <img src="static/logo.png" alt="Fudoki" class="logo-icon">
               <span class="logo-text" id="logoText">Fudoki</span>
             </a>
+            <div class="new-doc-group">
+              <button type="button" class="btn-new theme-icon-btn editorNewBtn" id="newDocBtn" aria-label="新建文档" title="新建文档">
+                <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="compose">
+                  <path d="m16.774 4.341-.59.589-1.109-1.11.596-.594a.784.784 0 0 1 1.103 0c.302.302.302.8 0 1.102zM8.65 12.462l6.816-6.813-1.11-1.11-6.822 6.808a1.1 1.1 0 0 0-.236.393l-.289.932c-.052.196.131.38.315.314l.932-.288a.9.9 0 0 0 .394-.236"></path>
+                  <path d="M4.375 6.25c0-1.036.84-1.875 1.875-1.875H11a.625.625 0 1 0 0-1.25H6.25A3.125 3.125 0 0 0 3.125 6.25v7.5c0 1.726 1.4 3.125 3.125 3.125h7.5c1.726 0 3.125-1.4 3.125-3.125V9a.625.625 0 1 0-1.25 0v4.75c0 1.036-.84 1.875-1.875 1.875h-7.5a1.875 1.875 0 0 1-1.875-1.875z"></path>
+                </svg>
+              </button>
+              <button type="button" class="btn-new-dropdown theme-icon-btn" id="newDocDropdownBtn" aria-label="新建选项" title="选择文档类型">
+                <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="arrowChevronSingleDown" style="width: 16px; height: 16px; display: block; fill: currentColor; flex-shrink: 0;">
+                  <path d="M9.558 13.442c.244.244.64.244.884 0l5.4-5.4a.625.625 0 1 0-.884-.884L10 12.116 5.042 7.158a.625.625 0 0 0-.884.884z"></path>
+                </svg>
+              </button>
+              <div class="new-doc-dropdown-menu" id="newDocDropdownMenu">
+                <a href="#" class="dropdown-item" data-doc-type="note">
+                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
+                    <path d="M4.5 3h11a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 15.5v-11A1.5 1.5 0 0 1 4.5 3zm1 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V9a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"></path>
+                  </svg>
+                  便签
+                </a>
+                <a href="#" class="dropdown-item" data-doc-type="todo">
+                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
+                    <path d="M5.5 3A2.5 2.5 0 0 0 3 5.5v9A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5v-9A2.5 2.5 0 0 0 14.5 3h-9zm-.25 4.5a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM6 10a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H6zm-.75 3.75A.75.75 0 0 1 6 13h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM9.5 7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75zm.75 2.5a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3zm-.75 3.75a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75z"></path>
+                  </svg>
+                  代办事项
+                </a>
+              </div>
+            </div>
             <span class="editor-date" id="editorDocDate" title="创建日期"></span>
             <span class="editor-count" id="editorCharCount" title="字数">0 字</span>
             <button type="button" class="editor-star-toggle theme-icon-btn" id="editorStarToggle" aria-pressed="false" title="加星">☆</button>

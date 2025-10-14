@@ -22,14 +22,14 @@
 
 /* 移动端输入区域字体控制栏优化 */
 .input-font-controls {
-  padding: 8px 10px;
-  gap: 8px;
+  padding: 5px 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .input-font-controls .editor-fontsize-control {
   flex-shrink: 0;
-  gap: 6px;
+  gap: 5px;
 }
 
 .input-font-controls .editor-fontsize-control input[type="range"] {
@@ -37,20 +37,20 @@
 }
 
 .input-font-controls #editorFontSizeValue {
-  font-size: 12px;
-  min-width: 42px;
+  font-size: 11px;
+  min-width: 38px;
 }
 
 .input-font-controls .editor-fontfamily-controls {
   flex: 1;
   min-width: 0;
-  gap: 6px;
+  gap: 5px;
 }
 
 .input-font-controls .editor-fontfamily-controls select {
-  height: 30px;
-  font-size: 12px;
-  padding: 4px 8px;
+  height: 26px;
+  font-size: 11px;
+  padding: 3px 6px;
   max-width: none;
 }
 
@@ -456,8 +456,8 @@
   
   /* 超小屏幕下字体控制栏优化 */
   .input-font-controls {
-    padding: 6px 8px;
-    gap: 6px;
+    padding: 4px 6px;
+    gap: 5px;
   }
   
   .input-font-controls .editor-fontsize-control input[type="range"] {
@@ -465,14 +465,14 @@
   }
   
   .input-font-controls #editorFontSizeValue {
-    font-size: 11px;
-    min-width: 38px;
+    font-size: 10px;
+    min-width: 36px;
   }
   
   .input-font-controls .editor-fontfamily-controls select {
-    height: 28px;
-    font-size: 11px;
-    padding: 3px 6px;
+    height: 24px;
+    font-size: 10px;
+    padding: 2px 5px;
   }
   
   /* 超小屏幕下进一步优化用户菜单 */
