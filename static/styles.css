@@ -536,7 +536,7 @@ body {
 
 .content-container { 
   height: 100%; 
-  padding-top: 44px; /* 为固定的 editor-toolbar 留出空间 */
+  padding-top: 40px; /* 为固定的 editor-toolbar 留出空间 */
 }
 
 .collapsed .content-container {
