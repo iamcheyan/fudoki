@@ -20,18 +20,52 @@
   display: none;
 }
 
-/* 在移动端显示字体选择和字号控制 - 极度紧凑 */
-.editor-fontsize-control {
+/* 移动端输入区域字体控制栏优化 */
+.input-font-controls {
+  padding: 8px 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.input-font-controls .editor-fontsize-control {
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.input-font-controls .editor-fontsize-control input[type="range"] {
+  width: 80px;
+}
+
+.input-font-controls #editorFontSizeValue {
+  font-size: 12px;
+  min-width: 42px;
+}
+
+.input-font-controls .editor-fontfamily-controls {
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+}
+
+.input-font-controls .editor-fontfamily-controls select {
+  height: 30px;
+  font-size: 12px;
+  padding: 4px 8px;
+  max-width: none;
+}
+
+/* 在移动端显示字体选择和字号控制 - 极度紧凑（主工具栏） */
+.main-header-right .editor-fontsize-control {
   display: flex;
   align-items: center;
   gap: 2px;
 }
 
-.editor-fontsize-control input[type="range"] {
+.main-header-right .editor-fontsize-control input[type="range"] {
   width: 60px;
 }
 
-.editor-fontfamily-controls {
+.main-header-right .editor-fontfamily-controls {
   display: flex;
   gap: 2px;
 }
@@ -400,7 +434,45 @@
 @media (max-width: 480px) {
   .play-control-bar .header-voice-controls {
     flex: 0 0 auto;
+    gap: 4px;
+  }
+  
+  #headerSpeedRange {
+    width: 80px;
+  }
+  
+  #headerSpeedValue {
+    font-size: 11px;
+    min-width: 36px;
+  }
+  
+  #headerVoiceSelect {
+    min-width: 100px;
+    max-width: 140px;
+    height: 28px;
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+  
+  /* 超小屏幕下字体控制栏优化 */
+  .input-font-controls {
+    padding: 6px 8px;
     gap: 6px;
+  }
+  
+  .input-font-controls .editor-fontsize-control input[type="range"] {
+    width: 70px;
+  }
+  
+  .input-font-controls #editorFontSizeValue {
+    font-size: 11px;
+    min-width: 38px;
+  }
+  
+  .input-font-controls .editor-fontfamily-controls select {
+    height: 28px;
+    font-size: 11px;
+    padding: 3px 6px;
   }
   
   /* 超小屏幕下进一步优化用户菜单 */
@@ -442,11 +514,26 @@
   }
 }
 
-#headerSpeedRange {
-  width: 80px;
+/* 播放控制栏移动端基础样式 */
+.play-control-bar .header-voice-controls {
+  gap: 6px;
 }
+
+#headerSpeedRange {
+  width: 100px;
+}
+
+#headerSpeedValue {
+  font-size: 12px;
+  min-width: 38px;
+}
+
 #headerVoiceSelect {
-  width: 140px;
+  min-width: 120px;
+  max-width: 160px;
+  height: 30px;
+  font-size: 12px;
+  padding: 4px 8px;
 }
 .sidebar-scroll {
   height: 94vh;

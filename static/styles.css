@@ -643,8 +643,9 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 8px 0;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* two-pane 模式下：确保 EasyMDE 工具栏也固定 */
@@ -1146,7 +1147,6 @@ body {
   flex-direction: column;
   gap: 8px;
   align-items: stretch;
-  margin-bottom: 10px;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -3754,6 +3754,45 @@ html {
   box-shadow: 0 8px 22px rgba(0,0,0,0.32);
 }
 
+[data-theme="dark"] .input-font-controls {
+  background: rgba(25, 29, 35, 0.85);
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .input-font-controls .editor-fontsize-control input[type="range"] {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .input-font-controls .editor-fontsize-control input[type="range"]::-webkit-slider-thumb {
+  background: var(--primary);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+[data-theme="dark"] .input-font-controls .editor-fontsize-control input[type="range"]::-moz-range-thumb {
+  background: var(--primary);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+[data-theme="dark"] .input-font-controls #editorFontSizeValue {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] .input-font-controls .editor-fontfamily-controls select {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+[data-theme="dark"] .input-font-controls .editor-fontfamily-controls select:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary);
+}
+
+[data-theme="dark"] .input-font-controls .editor-fontfamily-controls select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
 [data-theme="dark"] .content-area {
   background: rgba(32, 38, 49, 0.72);
   border: 1px solid rgba(255,255,255,0.08);
@@ -4469,7 +4508,7 @@ input[type="text"], textarea { font-size: 14px; }
 .play-control-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex: 0 0 auto;
   margin: 0;
   overflow-x: auto;
@@ -4481,7 +4520,7 @@ input[type="text"], textarea { font-size: 14px; }
 
 /* content-area 中的播放控制栏 */
 .content-area .play-control-bar {
-  padding: 8px 0;
+  padding: 10px 12px;
 }
 
 /* 内容滚动区域 */
@@ -4504,19 +4543,28 @@ input[type="text"], textarea { font-size: 14px; }
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  /* gap: 8px; */
-  border: 1px solid var(--control-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
-  margin: 0 0 0 5px;
+  flex-shrink: 0;
+  background: var(--bg);
+  transition: all 0.2s ease;
 }
+
+.play-control-bar .play-control-bar-buttons:hover {
+  border-color: var(--primary);
+}
+
 .play-control-bar .play-control-bar-buttons .theme-icon-btn {
   margin: 0;
   border: none;
+  border-radius: 0;
+  transition: all 0.2s ease;
 }
 
-.play-control-bar .play-toggle:hover {
-  background: var(--control-elev);
+.play-control-bar .play-toggle:hover,
+.play-control-bar .pause-toggle:hover {
+  background: var(--elev);
 }
 .play-control-bar .play-progress {
   flex: 1;
@@ -4546,6 +4594,55 @@ input[type="text"], textarea { font-size: 14px; }
   box-shadow: 0 8px 20px rgba(0,0,0,0.35);
 }
 
+/* 深色主题：播放控制栏控件样式 */
+[data-theme="dark"] #headerSpeedRange {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] #headerSpeedRange::-webkit-slider-thumb {
+  background: var(--primary);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+[data-theme="dark"] #headerSpeedRange::-moz-range-thumb {
+  background: var(--primary);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+[data-theme="dark"] #headerSpeedValue {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] #headerVoiceSelect {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+[data-theme="dark"] #headerVoiceSelect:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary);
+}
+
+[data-theme="dark"] #headerVoiceSelect:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .play-control-bar .play-control-bar-buttons {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .play-control-bar .play-control-bar-buttons:hover {
+  border-color: var(--primary);
+}
+
+[data-theme="dark"] .play-control-bar .play-toggle:hover,
+[data-theme="dark"] .play-control-bar .pause-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* 头部语音与速度控件样式 */
 .play-control-bar .header-voice-controls {
   display: flex;
@@ -4554,21 +4651,204 @@ input[type="text"], textarea { font-size: 14px; }
   margin: 0 5px;
   margin-left: auto; /* 将整组语音/速度控件推到右侧 */
 }
-#headerVoiceSelect {
-  /* min-width: 220px; */
-  height: 28px;
-}
+
+/* 速度滑块 - 统一样式 */
 #headerSpeedRange {
-  width: 140px;
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
+
+#headerSpeedRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#headerSpeedRange::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+#headerSpeedRange::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#headerSpeedRange::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 速度显示值 - 统一样式 */
 #headerSpeedValue {
-  /* width: 40px; */
+  font-size: 13px;
+  color: var(--text-secondary-color, var(--muted));
+  min-width: 42px;
   text-align: right;
+  font-weight: 500;
+}
+
+/* 语音选择下拉框 - 统一样式 */
+#headerVoiceSelect {
+  height: 32px;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 160px;
+  max-width: 200px;
+}
+
+#headerVoiceSelect:hover {
+  border-color: var(--primary);
+  background: var(--elev);
+}
+
+#headerVoiceSelect:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 .token-kanji { font-size: calc(14px * var(--font-scale)); }
 .token-kana { font-size: calc(10px * var(--font-scale)); }
 .token-romaji { font-size: calc(9px * var(--font-scale)); }
 .pos-tag, .token-pos { font-size: calc(8px * var(--font-scale)); }
+
+/* 输入区域底部字体控制栏 */
+.input-font-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--elev);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  border-radius: 0 0 10px 10px;
+  margin-top: auto;
+}
+
+.input-font-controls .editor-fontsize-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.input-font-controls .editor-fontsize-control input[type="range"] {
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input-font-controls .editor-fontsize-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-font-controls .editor-fontsize-control input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.input-font-controls .editor-fontsize-control input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-font-controls .editor-fontsize-control input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.input-font-controls #editorFontSizeValue {
+  font-size: 13px;
+  color: var(--text-secondary-color, var(--muted));
+  min-width: 48px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.input-font-controls .editor-fontfamily-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.input-font-controls .editor-fontfamily-controls select {
+  /* height: 24px; */
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 0;
+  max-width: 180px;
+}
+
+.input-font-controls .editor-fontfamily-controls select:hover {
+  border-color: var(--primary);
+  background: var(--elev);
+}
+
+.input-font-controls .editor-fontfamily-controls select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Two-pane 模式下固定在底部 */
+.main-container.two-pane .input-section .input-font-controls {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: var(--elev);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
 
 /* 主工具栏右侧的字号控制 */
 .main-header-right .editor-fontsize-control {
@@ -4577,8 +4857,6 @@ input[type="text"], textarea { font-size: 14px; }
   gap: 8px;
   margin-right: 8px;
 }
-
-
 
 #editorFontSizeValue {
   font-size: 12px;
