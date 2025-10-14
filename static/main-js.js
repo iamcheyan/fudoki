@@ -7395,7 +7395,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
                 title: titleStr,
                 content: contentStr,
                 folderId: localDoc.folderId || null,
-                favorite: localDoc.favorite || false,
+                favorite: Boolean(localDoc.favorite),
                 createdAt: localDoc.createdAt,
                 updatedAt: serverTimestamp()
               });
@@ -7419,7 +7419,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
                 content: cloudDoc.content || '',
                 title: cloudDoc.title || '',
                 folderId: cloudDoc.folderId || null,
-                favorite: cloudDoc.favorite || false,
+                favorite: Boolean(cloudDoc.favorite),
                 createdAt: cloudDoc.createdAt || Date.now(),
                 updatedAt: cloudDoc.updatedAt?.toMillis?.() || Date.now(),
                 locked: false
@@ -7467,7 +7467,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
                   title: titleStr,
                   content: contentStr,
                   folderId: localDoc.folderId || null,
-                  favorite: localDoc.favorite || false,
+                  favorite: Boolean(localDoc.favorite),
                   createdAt: localDoc.createdAt,
                   updatedAt: serverTimestamp()
                 });
