@@ -611,7 +611,7 @@ body {
 /* 两栏模式：输入在左，内容在右 */
 .main-container.two-pane #editorPanels{display:flex;gap:12px;align-items:stretch}
 .main-container.two-pane #editorPanels .input-section{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
-.main-container.two-pane #editorPanels .content-area{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column}
+.main-container.two-pane #editorPanels .content-area{flex:1 1 50%;max-width:50%;display:flex;flex-direction:column;overflow-y:auto;}
 .main-container.two-pane #editorPanels{height:calc(100vh - 44px)}
 .main-container.two-pane #editorPanels .input-section{overflow:visible; margin: 0 10px 10px 10px;}
 .main-container.two-pane #editorPanels .content-area{overflow-y:auto;}
@@ -636,14 +636,15 @@ body {
   max-height: calc(100vh - 44px - 60px); /* 减去工具栏和播放控制栏高度 */
 }
 
-/* two-pane 模式下：play-control-bar 固定在底部 */
-.main-container.two-pane .input-section .play-control-bar {
+/* two-pane 模式下：play-control-bar 固定在顶部 */
+.main-container.two-pane .content-area .play-control-bar {
   flex: 0 0 auto;
-  margin-top: auto;
   background: var(--bg);
   position: sticky;
-  bottom: 0;
+  top: 0;
   z-index: 10;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 /* two-pane 模式下：确保 EasyMDE 工具栏也固定 */
@@ -4471,12 +4472,23 @@ input[type="text"], textarea { font-size: 14px; }
   gap: 10px;
   flex: 0 0 auto;
   margin: 0;
-  margin-top: auto;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
   background: var(--bg);
+}
+
+/* content-area 中的播放控制栏 */
+.content-area .play-control-bar {
+  padding: 8px 0;
+}
+
+/* 内容滚动区域 */
+.content-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 10px;
 }
 .play-control-bar::-webkit-scrollbar {
   height: 6px;
