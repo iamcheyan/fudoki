@@ -596,3 +596,31 @@
     font-size: 14px;
   }
 }
+
+/* ===============================================
+   移动端文档列表项 - 默认显示操作按钮
+   =============================================== */
+@media (max-width: 768px) {
+  /* 移动端默认显示星号和垃圾桶 */
+  .doc-item-actions {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+  }
+
+  /* 移动端始终显示删除按钮 */
+  .doc-action-btn.delete-btn {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+  }
+
+  /* 移动端默认为内容区域留出空间（星号+垃圾桶） */
+  .doc-item-content {
+    padding-right: 70px !important;
+  }
+
+  /* 已收藏的文档也是相同空间 */
+  .doc-item:has(.fav-btn.active) .doc-item-content {
+    padding-right: 70px !important;
+  }
+}

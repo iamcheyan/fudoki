@@ -1436,7 +1436,7 @@ body {
 
 /* 输入区域 - 紧凑设计 */
 .input-section {
-  padding: 5px 3px 5px 5px;
+  padding: 0;
   border: 1px solid var(--border);
   background: var(--elevated);
   border-radius: 10px;
@@ -4886,7 +4886,7 @@ input[type="text"], textarea { font-size: 14px; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 5px 10px 0 10px;
+  padding: 5px 10px 5px 10px;
   background: var(--elev);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
@@ -5087,7 +5087,7 @@ input[type="text"], textarea { font-size: 14px; }
   font-size: calc(14px * var(--font-scale));
   height: 100%;
   min-height: 200px;
-  padding: 5px;
+  padding: 0 5px;
   border-radius: 6px;
   display: flex;
   flex-direction: column;
@@ -5096,7 +5096,7 @@ input[type="text"], textarea { font-size: 14px; }
 /* 工具栏样式 */
 .input-section .EasyMDEContainer .editor-toolbar {
   background: var(--elev);
-  border: 1px solid var(--border);
+  border: none;
   border-bottom: 1px solid var(--border);
   border-radius: 8px 8px 0 0;
   padding: 0;
