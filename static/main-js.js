@@ -4973,6 +4973,30 @@ Try Fudoki and enjoy Japanese language analysis!`;
           translationContent.textContent = t('no_translation') || '未找到翻译';
         }
       });
+
+      // F-P1-06 例句区：按需拉取 Tanaka 分片（~几十KB），不阻塞翻译首显；
+      // 同 requestSeq 守卫，重点击/重渲染后过期结果不回写
+      (async () => {
+        try {
+          const examples = await window.dictionaryService.getExamples(query, detailedInfo);
+          writeIfCurrent(() => {
+            const old = details.querySelector('.example-sentences');
+            if (old) old.remove();
+            if (!examples || !examples.length) return;
+            const box = document.createElement('div');
+            box.className = 'example-sentences';
+            const items = examples.map((pair) => `
+              <div class="example-item">
+                <div class="example-jp">${escapeHtml(pair[0])}</div>
+                <div class="example-en">${escapeHtml(pair[1])}</div>
+              </div>`).join('');
+            box.innerHTML = `<div class="example-title">${t('lbl_examples') || '例句'}</div>${items}`;
+            const anchor = details.querySelector('.translation-item');
+            if (anchor && anchor.parentNode === details) details.insertBefore(box, anchor.nextSibling);
+            else details.appendChild(box);
+          });
+        } catch (_) { /* 例句失败不影响词卡 */ }
+      })();
     } catch (error) {
       console.error('加载翻译失败:', error);
       writeIfCurrent(() => { translationContent.textContent = t('translation_failed') || '翻译加载失败'; });

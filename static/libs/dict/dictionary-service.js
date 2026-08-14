@@ -17,6 +17,8 @@ class DictionaryService {
     // PERF-03 LRU 查询缓存（Map 保持插入序，队首最旧）
     this.lookupCache = new Map();
     this.LOOKUP_CACHE_MAX = 100;
+    // F-P1-06 例句分片缓存：桶字符 → Promise<分片对象>（总量 ~5.5MB，全缓存无压力）
+    this.exampleShards = new Map();
     // PERF-04 进度状态与订阅
     this.progress = { phase: 'idle', fraction: 0, entries: 0, totalEntries: 0 };
     this._progressListeners = [];
@@ -360,6 +362,41 @@ class DictionaryService {
    */
   isReady() {
     return this.isLoaded;
+  }
+
+  /**
+   * F-P1-06 查询例句（Tanaka Corpus 离线分片，按需加载，不阻塞词典首查）
+   * 分片规则与 tools/build-examples.js 一致：词条主读音首字（片假名归一平假名）。
+   * @param {string} word 查询词
+   * @param {Object|null} detailedInfo 词典查询结果（提供读音分桶与词形候选）
+   * @returns {Array<[string, string]>} 例句 [日文, 英文] 数组（可为空）
+   */
+  async getExamples(word, detailedInfo) {
+    const primaryReading = (detailedInfo && detailedInfo.kana && detailedInfo.kana[0] && detailedInfo.kana[0].text) || word;
+    const first = [...String(primaryReading || '').trim()][0];
+    if (!first) return [];
+    // 片假名 → 平假名（-0x60），与构建脚本同规则；非假名归 other 桶
+    const c = first.codePointAt(0);
+    const bucket = (c >= 0x30a1 && c <= 0x30f6) ? String.fromCharCode(c - 0x60)
+      : (c >= 0x3041 && c <= 0x3096) ? first : 'other';
+
+    let shardPromise = this.exampleShards.get(bucket);
+    if (!shardPromise) {
+      shardPromise = fetch(`/static/libs/dict/examples/ex_${encodeURIComponent(bucket)}.json`)
+        .then(r => (r.ok ? r.json() : {}))
+        .catch(() => ({}));
+      this.exampleShards.set(bucket, shardPromise);
+    }
+    const shard = await shardPromise;
+    const candidates = [
+      word,
+      detailedInfo && detailedInfo.kanji && detailedInfo.kanji[0] && detailedInfo.kanji[0].text,
+      detailedInfo && detailedInfo.kana && detailedInfo.kana[0] && detailedInfo.kana[0].text
+    ].filter(Boolean);
+    for (const key of candidates) {
+      if (Array.isArray(shard[key]) && shard[key].length) return shard[key];
+    }
+    return [];
   }
 
   /**

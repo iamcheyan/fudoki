@@ -2170,6 +2170,35 @@ select, input[type="range"] {
   font-style: italic;
 }
 
+/* F-P1-06 例句区（Tanaka Corpus 按需分片） */
+.example-sentences {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--control-border, rgba(0,0,0,0.15));
+}
+
+.example-title {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+
+.example-item {
+  margin: 5px 0;
+}
+
+.example-jp {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.example-en {
+  font-size: 11px;
+  line-height: 1.45;
+  opacity: 0.68;
+}
+
 /* 翻译模态框样式 */
 .translation-modal {
   position: fixed;
