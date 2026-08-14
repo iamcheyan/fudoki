@@ -674,10 +674,18 @@
       authCheckCompleted = true;
       
       if (!user) {
+        // F-P0-03 访客模式：选择"跳过登录"的用户留在主应用本地使用
+        // （云同步由 performDataSync 的登录校验自然拦截，不改动 Firebase 链路）
+        if (localStorage.getItem('fudoki:guest') === '1') {
+          console.log('Guest mode active, staying in local app');
+          return;
+        }
         // 用户未登录，跳转到登录页
         console.log('User not authenticated, redirecting to login...');
         window.location.href = 'login.html';
       } else {
+        // 已登录用户：清除访客标记
+        try { localStorage.removeItem('fudoki:guest'); } catch (_) {}
         // 用户已登录，更新 localStorage
         console.log('User authenticated:', user.email);
         localStorage.setItem('fudoki:user', JSON.stringify({

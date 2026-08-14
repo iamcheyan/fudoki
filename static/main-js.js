@@ -153,7 +153,8 @@ const headerSpeedValue = $('headerSpeedValue');
     deletedDocs: 'fudoki:deletedDocs',
     fontScale: 'fudoki:fontScale',
     inputFont: 'fudoki:inputFont',
-    contentFont: 'fudoki:contentFont'
+    contentFont: 'fudoki:contentFont',
+    guest: 'fudoki:guest'
   };
 
   // ===== 共享工具：HTML 转义（XSS 防护，所有用户数据进 innerHTML 前必须经过此处）=====
@@ -1028,6 +1029,19 @@ const headerSpeedValue = $('headerSpeedValue');
   renderFolders();
   // 当前显示的详情弹层及其锚点
   let activeTokenDetails = null; // { element, details }
+
+  // 解析 token 对应的详情弹层：活动引用 → 元素内 → body 中归属本元素的弹层
+  function resolveTokenDetails(element) {
+    if (!element) return null;
+    if (activeTokenDetails && activeTokenDetails.element === element && activeTokenDetails.details) {
+      return activeTokenDetails.details;
+    }
+    let details = element.querySelector('.token-details');
+    if (!details) {
+      details = Array.from(document.body.querySelectorAll('.token-details')).find(d => d.__ownerTokenElement === element) || null;
+    }
+    return details;
+  }
 
   // 计算并设置详情弹层的位置
   function positionTokenDetails(element, details) {
@@ -2046,20 +2060,27 @@ const headerSpeedValue = $('headerSpeedValue');
     const openDetails = document.querySelectorAll('.token-details[style*="display: block"], .token-details[style*="display:block"]');
     
     openDetails.forEach(details => {
-      const tokenPill = details.closest('.token-pill');
+      // 弹层可能已被移动到 body（定位所需），通过归属引用找回 token
+      const tokenPill = details.closest('.token-pill') || details.__ownerTokenElement || null;
       if (tokenPill) {
         try {
           // 获取词汇数据
           const tokenData = JSON.parse(tokenPill.getAttribute('data-token'));
-          const posData = tokenPill.getAttribute('data-pos');
-          
-          // 重新解析词性信息
-          const posInfo = parsePos(tokenData.pos_detail_1, tokenData.pos_detail_2, tokenData.pos_detail_3);
-          
-          // 重新格式化详情内容
-          const newContent = formatDetailInfo(tokenData, posInfo);
+
+          // 重新解析词性信息（F-P0-01 修复：旧代码调用不存在的 parsePos/formatDetailInfo，语言切换时必然抛错）
+          const posArr = Array.isArray(tokenData.pos) ? tokenData.pos : [tokenData.pos || ''];
+          const posInfo = (window.FudokiDict && window.FudokiDict.parsePartOfSpeech)
+            ? window.FudokiDict.parsePartOfSpeech(posArr)
+            : { main: '未知', details: [], original: posArr };
+
+          // 重新格式化详情内容（保留播放按钮）
+          const newContent = (window.FudokiDict && window.FudokiDict.formatDetailInfo)
+            ? window.FudokiDict.formatDetailInfo(tokenData, posInfo, I18N[currentLang] || {})
+            : '';
+          const playBtn = details.querySelector('.play-token-btn');
           details.innerHTML = newContent;
-          
+          if (playBtn) details.appendChild(playBtn);
+
           // 重新加载翻译信息
           loadTranslation(tokenPill);
         } catch (e) {
@@ -2398,6 +2419,8 @@ const headerSpeedValue = $('headerSpeedValue');
     document.querySelectorAll('.token-pill').forEach(p => {
       p.classList.remove('active');
     });
+    // F-P0-01：同步清除活动弹层引用，否则下次点击同一 token 会被误判为"关闭"而无响应
+    activeTokenDetails = null;
   });
 
   // 默认文档配置
@@ -4779,20 +4802,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (!showDetailsSetting) {
       return;
     }
-
-    // 详细信息显示逻辑
-    // 优先从活动状态获取details，如果不存在则从元素中查找
-    let details = null;
-    if (activeTokenDetails && activeTokenDetails.element === element && activeTokenDetails.details) {
-      details = activeTokenDetails.details;
-    } else {
-      details = element.querySelector('.token-details');
-    }
-    // 如果详情已被移动到 body（之前打开过），尝试通过归属引用找回
-    if (!details) {
-      const moved = Array.from(document.body.querySelectorAll('.token-details')).find(d => d.__ownerTokenElement === element);
-      if (moved) details = moved;
-    }
+    // 详细信息显示逻辑：统一解析弹层（活动引用 / 元素内 / body 归属）
+    const details = resolveTokenDetails(element);
     
     if (details) {
       // 检查当前元素是否已经是活动状态
@@ -4858,18 +4869,28 @@ Try Fudoki and enjoy Japanese language analysis!`;
     document.querySelectorAll('.token-pill').forEach(p => {
       p.classList.remove('active');
     });
+    activeTokenDetails = null;
   });
 
-  // 加载翻译信息
+  // ===== F-P0-01 翻译加载：请求序号防过期回写（面板内容必须跟随最新点击）=====
+  let translationRequestSeq = 0;
+
+  // 加载翻译信息（词典加载期间面板显示真实进度，完成后自动补填）
   async function loadTranslation(element) {
     const tokenData = JSON.parse(element.getAttribute('data-token'));
-    // 详情面板可能被移动到 body 中，优先在元素内查找，找不到则从活动弹层中获取
-    let translationContent = element.querySelector('.translation-content');
-    if (!translationContent && activeTokenDetails && activeTokenDetails.element === element && activeTokenDetails.details) {
-      translationContent = activeTokenDetails.details.querySelector('.translation-content');
-    }
+    // 弹层可能为定位被移动到 body：统一按归属解析，杜绝元素内/游离态取不到内容节点
+    const details = resolveTokenDetails(element);
+    const translationContent = details ? details.querySelector('.translation-content') : null;
     if (!translationContent) return;
-    
+
+    const requestSeq = ++translationRequestSeq;
+    // 写结果前复核：弹层仍归属该 token，且期间没有更新的点击/重渲
+    const writeIfCurrent = (write) => {
+      if (translationRequestSeq !== requestSeq) return; // 已被更新的点击取代
+      if (resolveTokenDetails(element) !== details) return; // 弹层已重建/归属他词
+      write();
+    };
+
     try {
       // 先应用术语翻译覆盖（多语言）
       const override = (window.FudokiDict && window.FudokiDict.getTechOverride) ? window.FudokiDict.getTechOverride(tokenData) : null;
@@ -4877,17 +4898,27 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const lang = (typeof currentLang === 'string') ? currentLang : 'ja';
         const text = override.translations[lang] || override.translations.ja || '';
         if (text) {
-          translationContent.textContent = text;
+          writeIfCurrent(() => { translationContent.textContent = text; });
           return; // 已覆盖翻译，无需查询词典
         }
       }
 
-      // 确保词典服务已初始化
+      // 确保词典服务已初始化；期间将真实进度实时写入面板（F-P0-01/PERF-04）
       if (!window.dictionaryService.isReady()) {
-        translationContent.textContent = t('dict_init') || '正在初始化词典...';
-        await window.dictionaryService.init();
+        writeIfCurrent(() => { translationContent.textContent = t('dict_init') || '正在初始化词典...'; });
+        const fmtProgress = (p) => (t('dict_loading') || '词典加载中 {p}%（{n} 词条）')
+          .replace('{p}', Math.round((p.fraction || 0) * 100))
+          .replace('{n}', String(p.entries || 0));
+        const unsubscribe = window.dictionaryService.onProgress((p) => {
+          if (p.phase === 'loading') writeIfCurrent(() => { translationContent.textContent = fmtProgress(p); });
+        });
+        try {
+          await window.dictionaryService.init();
+        } finally {
+          unsubscribe();
+        }
       }
-      
+
       // 查询翻译：优先使用可查询的日文形式
       // 1) 如果 lemma 为 '*' 或为拉丁字母，则优先使用 reading
       // 2) 若仍无结果，使用别名映射（如 アプリ -> アプリケーション，Web -> ウェブ）
@@ -4911,38 +4942,40 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (!detailedInfo && aliases[query]) {
         detailedInfo = await window.dictionaryService.getDetailedInfo(aliases[query]);
       }
-      
-      if (detailedInfo && detailedInfo.senses && detailedInfo.senses.length > 0) {
-        // 显示主要翻译
-        const mainTranslation = detailedInfo.senses[0].gloss;
-        translationContent.innerHTML = `<span class="main-translation">${escapeHtml(mainTranslation)}</span>`;
-        
-        // 如果有多个词义，添加展开按钮
-        if (detailedInfo.senses.length > 1) {
-          const expandBtn = document.createElement('button');
-          expandBtn.className = 'expand-translation-btn';
-          expandBtn.textContent = `(+${detailedInfo.senses.length - 1}个词义)`;
-          expandBtn.onclick = (e) => {
-            e.stopPropagation();
-            showDetailedTranslation(detailedInfo, translationContent);
-          };
-          translationContent.appendChild(expandBtn);
+
+      writeIfCurrent(() => {
+        if (detailedInfo && detailedInfo.senses && detailedInfo.senses.length > 0) {
+          // 显示主要翻译
+          const mainTranslation = detailedInfo.senses[0].gloss;
+          translationContent.innerHTML = `<span class="main-translation">${escapeHtml(mainTranslation)}</span>`;
+
+          // 如果有多个词义，添加展开按钮
+          if (detailedInfo.senses.length > 1) {
+            const expandBtn = document.createElement('button');
+            expandBtn.className = 'expand-translation-btn';
+            expandBtn.textContent = `(+${detailedInfo.senses.length - 1}个词义)`;
+            expandBtn.onclick = (e) => {
+              e.stopPropagation();
+              showDetailedTranslation(detailedInfo, translationContent);
+            };
+            translationContent.appendChild(expandBtn);
+          }
+
+          // 显示假名读音（如果有）
+          if (detailedInfo.kana && detailedInfo.kana.length > 0) {
+            const kanaInfo = detailedInfo.kana.map(k => k.text).join('、');
+            const kanaElement = document.createElement('div');
+            kanaElement.className = 'translation-kana';
+            kanaElement.textContent = `${t('lbl_reading') || '读音'}: ${kanaInfo}`;
+            translationContent.appendChild(kanaElement);
+          }
+        } else {
+          translationContent.textContent = t('no_translation') || '未找到翻译';
         }
-        
-        // 显示假名读音（如果有）
-        if (detailedInfo.kana && detailedInfo.kana.length > 0) {
-          const kanaInfo = detailedInfo.kana.map(k => k.text).join('、');
-          const kanaElement = document.createElement('div');
-          kanaElement.className = 'translation-kana';
-          kanaElement.textContent = `${t('lbl_reading') || '读音'}: ${kanaInfo}`;
-          translationContent.appendChild(kanaElement);
-        }
-      } else {
-        translationContent.textContent = t('no_translation') || '未找到翻译';
-      }
+      });
     } catch (error) {
       console.error('加载翻译失败:', error);
-      translationContent.textContent = t('translation_failed') || '翻译加载失败';
+      writeIfCurrent(() => { translationContent.textContent = t('translation_failed') || '翻译加载失败'; });
     }
   }
 
@@ -8077,14 +8110,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
           console.log('User signed out successfully');
         }
         // 清除本地用户数据
-        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user'); localStorage.removeItem(LS.guest);
         // 跳转到登录页
         window.location.href = 'login.html';
       } catch (error) {
         console.error('Sign out error:', error);
         // 即使出错也清除本地数据并跳转
         sessionStorage.setItem('fudoki_logging_out', 'true');
-        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user'); localStorage.removeItem(LS.guest);
         window.location.href = 'login.html';
       }
     });
@@ -8107,7 +8140,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }
         
         // 清除本地用户数据
-        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user'); localStorage.removeItem(LS.guest);
         
         // 延迟一下再跳转，让用户看到提示
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -8118,7 +8151,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         console.error('Logout error:', error);
         // 即使出错也清除本地数据并跳转
         sessionStorage.setItem('fudoki_logging_out', 'true');
-        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user'); localStorage.removeItem(LS.guest);
         window.location.href = 'login.html';
       }
     });

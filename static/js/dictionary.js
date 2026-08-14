@@ -457,7 +457,7 @@
       const displayReading = token.reading;
       details.push(`<div class="detail-item"><strong>${t('lbl_reading','读音')}:</strong> ${escapeHtml(displayReading)}</div>`);
     }
-    details.push(`<div class="detail-item translation-item"><strong>${t('lbl_translation','翻译')}:</strong> <span class="translation-content">${t('loading','加载中...')}</span></div>`);
+    details.push(`<div class="detail-item translation-item"><strong>${t('lbl_translation','翻译')}:</strong> <span class="translation-content">${t('translation_loading','翻译加载中...')}</span></div>`);
     details.push(`<div class="detail-item"><strong>${t('lbl_pos','词性')}:</strong> ${escapeHtml(posInfo.main)}</div>`);
     if (posInfo.details && posInfo.details.length > 0) {
       posInfo.details.forEach(detail => {

@@ -577,6 +577,67 @@
       transform: translateY(0);
     }
 
+    /* F-P0-03 访客/离线模式入口 */
+    .guest-login-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px 24px;
+      min-height: 44px;
+      background: transparent;
+      border: 1.5px solid rgba(0, 0, 0, 0.18);
+      min-height: 48px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .guest-login-btn .guest-icon {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+      opacity: 0.75;
+      flex-shrink: 0;
+    }
+
+    .guest-login-btn:hover {
+      border-color: #764ba2;
+      color: #764ba2;
+      background: rgba(118, 75, 162, 0.06);
+      transform: translateY(-1px);
+    }
+
+    .guest-login-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Firebase SDK 连接状态（默认隐藏；离线/被墙时降级提示） */
+    .sdk-status {
+      display: none;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #8a5300;
+      background: rgba(255, 196, 87, 0.18);
+      border: 1px solid rgba(255, 196, 87, 0.55);
+      border-radius: 10px;
+      padding: 10px 14px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sdk-status.show {
+      display: block;
+    }
+
     .google-icon {
       width: 24px;
       height: 24px;
@@ -1163,6 +1224,15 @@
         <div class="loading"></div>
       </button>
 
+      <!-- F-P0-03 访客/离线模式入口 -->
+      <p class="sdk-status" id="sdkStatus"></p>
+      <button class="guest-login-btn" id="guestModeBtn" type="button">
+        <svg class="guest-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        <span class="btn-text" data-i18n="guestButton">跳过登录，直接使用</span>
+      </button>
+
       <!-- 装饰线 -->
       <div class="divider">
         <span class="divider-text" data-i18n="divider">安全且快速</span>
@@ -1184,6 +1254,72 @@
     </div>
   </div>
 
+  <!-- F-P0-03 访客模式：经典脚本先行绑定，不依赖 Firebase SDK 是否加载成功 -->
+  <script>
+    (function () {
+      var GUEST_TEXT = {
+        zh: '网络不可用或无法访问 Google 服务，Google 登录暂不可用；可先离线使用（数据仅保存在本设备）',
+        ja: 'ネットワークまたは Google サービスに接続できず、Google ログインは利用できません。オフラインで利用できます（データは端末内にのみ保存されます）',
+        en: 'Network or Google services unavailable — Google sign-in is disabled. You can still use it offline (data stays on this device)'
+      };
+      function guestLang() {
+        try {
+          return localStorage.getItem('fudoki:lang') || localStorage.getItem('lang') || 'zh';
+        } catch (_) { return 'zh'; }
+      }
+      function markSdkFailed() {
+        if (window.__fudokiSdkFailed) return;
+        window.__fudokiSdkFailed = true;
+        var statusEl = document.getElementById('sdkStatus');
+        if (statusEl) {
+          statusEl.textContent = GUEST_TEXT[guestLang()] || GUEST_TEXT.zh;
+          statusEl.classList.add('show');
+        }
+        var googleBtn = document.getElementById('googleLoginBtn');
+        if (googleBtn) {
+          googleBtn.disabled = true;
+          googleBtn.style.opacity = '0.6';
+          googleBtn.style.cursor = 'not-allowed';
+        }
+      }
+
+      // 暴露给 module 脚本复用（module 正常初始化后调用以取消/恢复降级）
+      window.__fudokiMarkSdkFailed = markSdkFailed;
+      window.__fudokiSdkOk = function () {
+        window.__fudokiSdkFailed = 'cleared';
+        var statusEl = document.getElementById('sdkStatus');
+        if (statusEl) statusEl.classList.remove('show');
+        var googleBtn = document.getElementById('googleLoginBtn');
+        if (googleBtn) {
+          googleBtn.disabled = false;
+          googleBtn.style.opacity = '';
+          googleBtn.style.cursor = '';
+        }
+      };
+
+      function bind() {
+        var btn = document.getElementById('guestModeBtn');
+        if (btn && !btn.__guestBound) {
+          btn.__guestBound = true;
+          btn.addEventListener('click', function () {
+            try { localStorage.setItem('fudoki:guest', '1'); } catch (_) {}
+            window.location.href = 'index.html';
+          });
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bind);
+      } else {
+        bind();
+      }
+
+      // Firebase module 未就绪看门狗：8 秒内 module 未报到即降级提示（B3 修复）
+      setTimeout(function () {
+        if (!window.__fudokiSdkReady) markSdkFailed();
+      }, 8000);
+    })();
+  </script>
+
   <script type="module">
     // Import Firebase SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
@@ -1201,11 +1337,25 @@
       measurementId: "G-747S3VQ0YJ"
     };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+    // ===== F-P0-03 访客模式入口 + SDK 离线降级（不改动 Firebase 登录链路）=====
+    // 访客按钮与降级 UI 已由前面的经典脚本绑定（模块 import 失败也可用）；
+    // 此处只负责：SDK 正常时取消降级，异常时触发降级。
+    // （SDK 就绪状态记录在 window.__fudokiSdkReady，供经典脚本看门狗判断）
+    const markSdkFailed = window.__fudokiMarkSdkFailed || function () {};
+
+    // Initialize Firebase（离线/被墙时降级提示，页面其余功能不受影响）
+    let app = null, analytics = null, auth = null, provider = null;
+    try {
+      app = initializeApp(firebaseConfig);
+      analytics = getAnalytics(app);
+      auth = getAuth(app);
+      provider = new GoogleAuthProvider();
+      window.__fudokiSdkReady = true;
+      if (typeof window.__fudokiSdkOk === 'function') window.__fudokiSdkOk();
+    } catch (error) {
+      console.error('Firebase initialization failed:', error);
+      markSdkFailed();
+    }
 
     // 多语言翻译
     const translations = {
@@ -1223,6 +1373,8 @@
         loginClick: 'Google 登录被点击',
         oauthNotice: 'Google 登录功能需要配置 OAuth。点击确定查看控制台。',
         loginError: '登录失败，请重试',
+        guestButton: '跳过登录，直接使用',
+        sdkOffline: '网络不可用或无法访问 Google 服务，Google 登录暂不可用；可先离线使用（数据仅保存在本设备）',
         pageTitle: '登录 - Fudoki'
       },
       ja: {
@@ -1239,6 +1391,8 @@
         loginClick: 'Google ログインがクリックされました',
         oauthNotice: 'Google ログイン機能には OAuth の設定が必要です。OK をクリックしてコンソールを確認してください。',
         loginError: 'ログインに失敗しました。もう一度お試しください',
+        guestButton: 'ログインせずに使う',
+        sdkOffline: 'ネットワークまたは Google サービスに接続できず、Google ログインは利用できません。オフラインで利用できます（データは端末内にのみ保存されます）',
         pageTitle: 'ログイン - Fudoki'
       },
       en: {
@@ -1255,6 +1409,8 @@
         loginClick: 'Google login clicked',
         oauthNotice: 'Google login requires OAuth configuration. Click OK to check the console.',
         loginError: 'Login failed, please try again',
+        guestButton: 'Skip login and use directly',
+        sdkOffline: 'Network or Google services unavailable — Google sign-in is disabled. You can still use it offline (data stays on this device)',
         pageTitle: 'Login - Fudoki'
       }
     };
@@ -1329,9 +1485,9 @@
     // 初始化语言
     updateLanguage(currentLang);
 
-    // 检查用户登录状态
+    // 检查用户登录状态（SDK 初始化失败时跳过，页面停留在此供访客/离线使用）
     let authCheckCompleted = false;
-    onAuthStateChanged(auth, async (user) => {
+    if (auth) onAuthStateChanged(auth, async (user) => {
       if (authCheckCompleted) return; // 只执行一次
       authCheckCompleted = true;
       
@@ -1374,8 +1530,13 @@
       }
     });
 
-    // Google 登录函数
+    // Google 登录函数（SDK 不可用时给出明确错误，由按钮 handler 统一提示）
     async function signInWithGoogle() {
+      if (!auth || !provider) {
+        const err = new Error('Firebase auth unavailable (offline or blocked)');
+        err.code = 'auth/network-request-failed';
+        throw err;
+      }
       try {
         const result = await signInWithPopup(auth, provider);
         // Google Access Token
