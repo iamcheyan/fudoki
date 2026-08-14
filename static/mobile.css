@@ -624,3 +624,319 @@
     padding-right: 70px !important;
   }
 }
+
+/* ===============================================
+   Mobile UX 深度优化（2026-08 移动端走查修复）
+   依据 docs/mobile-audit/AUDIT.md 清单
+   =============================================== */
+
+/* ---------- 0. 视口基座：dvh 降级 + safe-area ---------- */
+@media (max-width: 768px) {
+  html, body {
+    overscroll-behavior-y: none;
+  }
+
+  .main-container {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* 顶部工具栏避开刘海/状态栏 */
+  .main-header,
+  .editor-panels .main-header {
+    padding-top: 6px;
+    padding-top: calc(6px + env(safe-area-inset-top, 0px));
+  }
+
+  /* 抽屉全高 + safe-area */
+  .sidebar-stack,
+  .folder-management {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .sidebar-scroll {
+    height: auto;
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ---------- 1. TTS 底部常驻迷你控制条 ---------- */
+@media (max-width: 768px) {
+  #headerPlayControl {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 900;
+    padding: 6px 10px;
+    padding-bottom: 6px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.18);
+    border-top: 1px solid rgba(127, 127, 127, 0.25);
+  }
+
+  /* 底部为常驻条留出空间：内容区与整页 */
+  .content-area {
+    padding-bottom: 64px;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body {
+    padding-bottom: 58px;
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* 播放/暂停 ≥44px 触控目标 */
+  #headerPlayControl .theme-icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  #headerSpeedRange {
+    min-height: 32px;
+  }
+}
+
+/* ---------- 2. 词典词卡移动端布局 ---------- */
+@media (max-width: 768px) {
+  .token-details {
+    max-width: calc(100vw - 24px) !important;
+    max-height: 55vh;
+    max-height: calc(55dvh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 长文折行：词卡内容不撑宽 */
+  .token-details,
+  .token-details * {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .translation-content {
+    max-height: 40vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* ---------- 3. 触控目标 ≥44px ---------- */
+@media (max-width: 768px) {
+  /* 顶部工具栏图标按钮 */
+  .main-header .theme-icon-btn,
+  .main-header .folder-collapse-btn,
+  .main-header .btn-new {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* 侧栏：排序 / 搜索 / 文件夹 / 文档项 */
+  #docSortToggle {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .search-doc-btn {
+    min-height: 44px;
+  }
+
+  .folder-item {
+    min-height: 44px;
+  }
+
+  .doc-item {
+    min-height: 48px;
+  }
+
+  .doc-item .doc-action-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* 弹窗关闭按钮 */
+  .settings-modal-close,
+  .search-modal-close,
+  .app-drawer-close {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* 用户菜单项 */
+  .user-dropdown-item,
+  .submenu-item {
+    min-height: 44px;
+  }
+
+  /* 新建下拉项 */
+  .new-doc-dropdown-menu .dropdown-item {
+    min-height: 44px;
+  }
+}
+
+/* ---------- 4. EasyMDE 移动端工具栏精简 + 大预览按钮 ---------- */
+@media (max-width: 768px) {
+  /* 精简：隐藏低频按钮（link/image/guide/side-by-side） */
+  .input-section .EasyMDEContainer .editor-toolbar button.image,
+  .input-section .EasyMDEContainer .editor-toolbar button.link,
+  .input-section .EasyMDEContainer .editor-toolbar button.guide,
+  .input-section .EasyMDEContainer .editor-toolbar button.side-by-side {
+    display: none !important;
+  }
+
+  /* 剩余按钮放大到 ≥40px */
+  .input-section .EasyMDEContainer .editor-toolbar button {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 17px;
+  }
+
+  /* 预览切换大按钮：主操作 */
+  .input-section .EasyMDEContainer .editor-toolbar button.preview {
+    min-width: 84px;
+    border: 1.5px solid currentColor;
+    border-radius: 8px;
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .input-section .EasyMDEContainer .editor-toolbar button.preview i {
+    font-size: 16px;
+  }
+
+  .input-section .EasyMDEContainer .editor-toolbar button.preview .mde-preview-label {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .input-section .EasyMDEContainer .editor-toolbar button.preview.active {
+    background: rgba(74, 144, 226, 0.15);
+  }
+}
+
+/* ---------- 5. 软键盘弹出视口处理 ---------- */
+@media (max-width: 768px) {
+  /* 键盘打开（mobile-ux.js 加 body.kb-open）：控制条改贴布局视口底部 */
+  body.kb-open #headerPlayControl {
+    position: sticky;
+    bottom: 0;
+  }
+
+  body.kb-open .input-section .EasyMDEContainer .CodeMirror {
+    min-height: 120px;
+  }
+}
+
+/* ---------- 6. 弹窗移动端约束 + safe-area ---------- */
+@media (max-width: 768px) {
+  .settings-modal-content,
+  .search-modal-content {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin-top: 0;
+    margin-top: env(safe-area-inset-top, 0px);
+  }
+
+  .search-modal-input {
+    min-height: 44px;
+    font-size: 16px; /* 防 iOS 聚焦缩放 */
+  }
+
+  /* 设置弹窗内表单控件 */
+  .settings-modal-content select,
+  .settings-modal-content input[type="text"],
+  .toolbar-content select,
+  .toolbar-content input[type="range"] {
+    min-height: 40px;
+    font-size: 16px;
+  }
+}
+
+/* ---------- 7. 下拉刷新指示器 + 安装按钮（mobile-ux.js 注入） ---------- */
+.fudoki-ptr {
+  position: fixed;
+  top: 8px;
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translate(-50%, -64px);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-color, #fff);
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 12000;
+  transition: transform 0.2s ease;
+  font-size: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+
+.fudoki-ptr.visible {
+  transform: translate(-50%, 0);
+}
+
+.fudoki-ptr.armed {
+  opacity: 0.85;
+}
+
+.fudoki-ptr .spin {
+  display: inline-block;
+  animation: fudoki-ptr-rotate 0.8s linear infinite;
+}
+
+@keyframes fudoki-ptr-rotate {
+  to { transform: rotate(360deg); }
+}
+
+.fudoki-install-fab {
+  position: fixed;
+  right: 14px;
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  bottom: 76px;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  z-index: 950;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 22px;
+  background: #4a90e2;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.fudoki-install-fab:active {
+  transform: scale(0.96);
+}
+
+/* 滑动切换文档时的轻提示 */
+.fudoki-swipe-hint {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 12000;
+  pointer-events: none;
+  max-width: 70vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

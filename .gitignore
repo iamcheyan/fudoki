@@ -14,3 +14,6 @@ __pycache__/
 # 临时文件
 *.tmp
 *.log
+
+# 未使用的 JMdict 原始 zip（运行时只读 chunks 分片）
+static/libs/dict/*.zip

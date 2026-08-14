@@ -38,8 +38,9 @@ https://fudoki.iamcheyan.com/login.html?clear=1
 - 当前登录状态
 
 ### 🔒 不会被清除
-- **文档数据** (`texts`)
-- **活动文档ID** (`activeId`)
+- **文档数据** (`texts` / 新命名空间 `fudoki:texts`)
+- **活动文档ID** (`activeId` / 新命名空间 `fudoki:activeId`)
+- **删除墓碑**（删除同步所需） (`fudoki:deletedDocs`)
 
 ## 执行流程
 
@@ -131,7 +132,7 @@ https://fudoki.iamcheyan.com/login.html?clear=1
 
 ### 保留的数据键
 ```javascript
-const keysToPreserve = ['texts', 'activeId'];
+const keysToPreserve = ['texts', 'activeId', 'fudoki:texts', 'fudoki:activeId', 'fudoki:deletedDocs'];
 ```
 
 ### 清除优先级

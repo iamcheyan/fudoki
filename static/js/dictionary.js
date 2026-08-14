@@ -437,28 +437,37 @@
     return { main: mainChinese, details, original: pos };
   }
 
+  function escapeHtml(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function formatDetailInfo(token, posInfo, i18n = {}) {
     const t = (key, fallback) => i18n[key] || fallback || key;
     const details = [];
-    details.push(`<div class="detail-item"><strong>${t('lbl_surface','表层形')}:</strong> ${token.surface}</div>`);
+    details.push(`<div class="detail-item"><strong>${t('lbl_surface','表层形')}:</strong> ${escapeHtml(token.surface)}</div>`);
     if (token.lemma && token.lemma !== token.surface) {
-      details.push(`<div class="detail-item"><strong>${t('lbl_base','基本形')}:</strong> ${token.lemma}</div>`);
+      details.push(`<div class="detail-item"><strong>${t('lbl_base','基本形')}:</strong> ${escapeHtml(token.lemma)}</div>`);
     }
     if (token.reading && token.reading !== token.surface) {
-      let displayReading = token.reading;
-      details.push(`<div class="detail-item"><strong>${t('lbl_reading','读音')}:</strong> ${displayReading}</div>`);
+      const displayReading = token.reading;
+      details.push(`<div class="detail-item"><strong>${t('lbl_reading','读音')}:</strong> ${escapeHtml(displayReading)}</div>`);
     }
     details.push(`<div class="detail-item translation-item"><strong>${t('lbl_translation','翻译')}:</strong> <span class="translation-content">${t('loading','加载中...')}</span></div>`);
-    details.push(`<div class="detail-item"><strong>${t('lbl_pos','词性')}:</strong> ${posInfo.main}</div>`);
+    details.push(`<div class="detail-item"><strong>${t('lbl_pos','词性')}:</strong> ${escapeHtml(posInfo.main)}</div>`);
     if (posInfo.details && posInfo.details.length > 0) {
       posInfo.details.forEach(detail => {
-        details.push(`<div class="detail-item">${detail}</div>`);
+        details.push(`<div class="detail-item">${escapeHtml(detail)}</div>`);
       });
     }
     if (posInfo.original && posInfo.original.length > 0) {
       const originalPos = posInfo.original.filter(p => p !== '*').join(' / ');
       if (originalPos) {
-        details.push(`<div class="detail-item"><strong>${t('lbl_pos_raw','原始标签')}:</strong> ${originalPos}</div>`);
+        details.push(`<div class="detail-item"><strong>${t('lbl_pos_raw','原始标签')}:</strong> ${escapeHtml(originalPos)}</div>`);
       }
     }
     return details.join('');

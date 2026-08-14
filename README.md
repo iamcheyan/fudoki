@@ -55,8 +55,6 @@ The app now features a built-in **EasyMDE** markdown editor that replaces the st
 - **Syntax highlighting**: Visual markdown syntax support
 - **Seamless integration**: Japanese analysis works automatically on your markdown content
 
-For detailed documentation about the markdown integration, see [MARKDOWN_README.md](./MARKDOWN_README.md).
-
 ### Development
 ```
 fudoki/
@@ -131,8 +129,6 @@ python -m http.server 8000
 - **シンタックスハイライト**：視覚的な Markdown 構文サポート
 - **シームレスな統合**：Markdown コンテンツで日本語解析が自動的に機能
 
-Markdown 統合の詳細なドキュメントは [MARKDOWN_README.md](./MARKDOWN_README.md) をご覧ください。
-
 ### 開発情報
 - テーマカラー：`static/styles.css` の CSS 変数を編集。
 - JMdict データ：`static/libs/dict/` に配置。
@@ -191,8 +187,6 @@ python -m http.server 8000
 - **全屏模式**：专注写作体验
 - **语法高亮**：可视化 markdown 语法支持
 - **无缝集成**：日语分析功能自动作用于 markdown 内容
-
-有关 markdown 集成的详细文档，请参阅 [MARKDOWN_README.md](./MARKDOWN_README.md)。
 
 ### 开发信息
 - 主题颜色：编辑 `static/styles.css` 中的 CSS 变量。

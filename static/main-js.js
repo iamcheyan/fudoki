@@ -77,30 +77,250 @@ const headerSpeedValue = $('headerSpeedValue');
   let sidebarRepeatPlayCheckbox = $('sidebarRepeatPlay');
 
   // 本地存储键
-  const LS = { 
-    text: 'text', 
-    voiceURI: 'voiceURI', 
-    rate: 'rate', 
-    volume: 'volume',
-    texts: 'texts', 
-    activeId: 'activeId',
-    activeFolder: 'activeFolder',
-    sortAsc: 'sortAsc',
-    twoPane: 'twoPane',
-    showKana: 'showKana',
-    showRomaji: 'showRomaji', 
-    showPos: 'showPos',
-    showDetails: 'showDetails',
-    autoRead: 'autoRead',
-    repeatPlay: 'repeatPlay',
-    lang: 'lang',
-    theme: 'theme',
-    lightTheme: 'lightTheme',
-    showUnderline: 'showUnderline',
-    readingScript: 'readingScript',
-    haAsWa: 'haAsWa',
-    tokenAlignLeft: 'tokenAlignLeft'
+  // ===== localStorage 键迁移：旧命名 → fudoki: 命名空间 =====
+  // 一次性启动迁移；旧键保留不删（一版本双读），运行时只读写新键。
+  const LS_KEY_MIGRATIONS = {
+    'text': 'fudoki:text',
+    'voiceURI': 'fudoki:voiceURI',
+    'rate': 'fudoki:rate',
+    'volume': 'fudoki:volume',
+    'texts': 'fudoki:texts',
+    'activeId': 'fudoki:activeId',
+    'activeFolder': 'fudoki:activeFolder',
+    'sortAsc': 'fudoki:sortAsc',
+    'twoPane': 'fudoki:twoPane',
+    'showKana': 'fudoki:showKana',
+    'showRomaji': 'fudoki:showRomaji',
+    'showPos': 'fudoki:showPos',
+    'showDetails': 'fudoki:showDetails',
+    'autoRead': 'fudoki:autoRead',
+    'repeatPlay': 'fudoki:repeatPlay',
+    'lang': 'fudoki:lang',
+    'theme': 'fudoki:theme',
+    'lightTheme': 'fudoki:lightTheme',
+    'showUnderline': 'fudoki:showUnderline',
+    'readingScript': 'fudoki:readingScript',
+    'haAsWa': 'fudoki:haAsWa',
+    'tokenAlignLeft': 'fudoki:tokenAlignLeft',
+    'sidebarCollapsed': 'fudoki:sidebarCollapsed',
+    'toolbarPosition': 'fudoki:toolbarPosition',
+    'toolbarHeight': 'fudoki:toolbarHeight',
+    'toolbarCollapsed': 'fudoki:toolbarCollapsed',
+    'app:fontScale': 'fudoki:fontScale',
+    'app:inputFont': 'fudoki:inputFont',
+    'app:contentFont': 'fudoki:contentFont',
+    'fudoki_user': 'fudoki:user'
   };
+
+  function migrateLocalStorage() {
+    try {
+      Object.keys(LS_KEY_MIGRATIONS).forEach((oldKey) => {
+        const newKey = LS_KEY_MIGRATIONS[oldKey];
+        if (localStorage.getItem(newKey) !== null) return;
+        const legacy = localStorage.getItem(oldKey);
+        if (legacy !== null) {
+          try { localStorage.setItem(newKey, legacy); } catch (_) {}
+        }
+      });
+    } catch (_) {}
+  }
+  migrateLocalStorage();
+
+  // 本地存储键（统一 fudoki: 命名空间；修改键名必须同步更新 LS_KEY_MIGRATIONS）
+  const LS = {
+    text: 'fudoki:text',
+    voiceURI: 'fudoki:voiceURI',
+    rate: 'fudoki:rate',
+    volume: 'fudoki:volume',
+    texts: 'fudoki:texts',
+    activeId: 'fudoki:activeId',
+    activeFolder: 'fudoki:activeFolder',
+    sortAsc: 'fudoki:sortAsc',
+    twoPane: 'fudoki:twoPane',
+    showKana: 'fudoki:showKana',
+    showRomaji: 'fudoki:showRomaji',
+    showPos: 'fudoki:showPos',
+    showDetails: 'fudoki:showDetails',
+    autoRead: 'fudoki:autoRead',
+    repeatPlay: 'fudoki:repeatPlay',
+    lang: 'fudoki:lang',
+    theme: 'fudoki:theme',
+    lightTheme: 'fudoki:lightTheme',
+    showUnderline: 'fudoki:showUnderline',
+    readingScript: 'fudoki:readingScript',
+    haAsWa: 'fudoki:haAsWa',
+    tokenAlignLeft: 'fudoki:tokenAlignLeft',
+    deletedDocs: 'fudoki:deletedDocs',
+    fontScale: 'fudoki:fontScale',
+    inputFont: 'fudoki:inputFont',
+    contentFont: 'fudoki:contentFont'
+  };
+
+  // ===== 共享工具：HTML 转义（XSS 防护，所有用户数据进 innerHTML 前必须经过此处）=====
+  function escapeHtml(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // ===== 共享 Toast（IIFE 唯一实现，同时暴露到 window 供旧调用点使用）=====
+  function showErrorToast(message) {
+    const errorToast = document.getElementById('errorToast');
+    const errorText = document.getElementById('errorText');
+    if (errorToast && errorText) {
+      errorText.textContent = message;
+      errorToast.classList.add('show');
+      setTimeout(() => { errorToast.classList.remove('show'); }, 3000);
+    }
+  }
+
+  function showSuccessToast(message) {
+    const syncToast = document.getElementById('syncProgressToast');
+    const syncText = document.getElementById('syncProgressText');
+    if (syncToast && syncText) {
+      syncText.textContent = message;
+      syncToast.classList.add('show');
+      setTimeout(() => { syncToast.classList.remove('show'); }, 2000);
+    }
+  }
+
+  function showInfoToast(message, duration = 3000) {
+    const toast = document.getElementById('syncProgressToast');
+    const text = document.getElementById('syncProgressText');
+    if (toast && text) {
+      text.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, duration);
+    }
+  }
+  window.showErrorToast = showErrorToast;
+  window.showSuccessToast = showSuccessToast;
+  window.showInfoToast = showInfoToast;
+
+  // ===== 同步删除语义：墓碑（tombstone）=====
+  // 本地删除文档时记录 docId -> deletedAt(ms)；同步时传播到云端 users/{uid}/deleted/{docId}，
+  // 使其它设备的副本同样被删除，防止已删文档在同步后复活。
+  const TOMBSTONE_TTL_MS = 180 * 24 * 60 * 60 * 1000; // 180 天后自动清理
+
+  function getDeletedTombstones() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(LS.deletedDocs) || '{}');
+      return (parsed && typeof parsed === 'object') ? parsed : {};
+    } catch (_) { return {}; }
+  }
+
+  function saveDeletedTombstones(tombstones) {
+    try { localStorage.setItem(LS.deletedDocs, JSON.stringify(tombstones || {})); } catch (_) {}
+  }
+
+  function recordDeletedTombstone(docOrId) {
+    try {
+      const isObj = docOrId && typeof docOrId === 'object';
+      const id = isObj ? docOrId.id : docOrId;
+      if (!id || id === DEFAULT_DOC_ID) return;
+      if (isObj && docOrId.folder === 'samples') return; // 示例文档不参与同步
+      const tombstones = getDeletedTombstones();
+      tombstones[id] = Date.now();
+      saveDeletedTombstones(tombstones);
+    } catch (_) {}
+  }
+
+  function clearDeletedTombstone(id) {
+    try {
+      const tombstones = getDeletedTombstones();
+      if (Object.prototype.hasOwnProperty.call(tombstones, id)) {
+        delete tombstones[id];
+        saveDeletedTombstones(tombstones);
+      }
+    } catch (_) {}
+  }
+
+  function pruneDeletedTombstones(tombstones) {
+    const cutoff = Date.now() - TOMBSTONE_TTL_MS;
+    const out = {};
+    Object.keys(tombstones || {}).forEach((id) => {
+      const ts = Number(tombstones[id]) || 0;
+      if (ts >= cutoff) out[id] = ts;
+    });
+    return out;
+  }
+
+  // ===== 备份/导入（单一实现：设置弹窗与用户菜单共用；键与运行时一致）=====
+  function collectBackupPayload() {
+    const documents = (() => {
+      try {
+        const all = documentManager ? documentManager.getAllDocuments() : JSON.parse(localStorage.getItem(LS.texts) || '[]');
+        // 排除示例文章与锁定文档
+        return (Array.isArray(all) ? all : []).filter(d => d && d.folder !== 'samples' && !d.locked);
+      } catch (_) { return []; }
+    })();
+    const activeId = localStorage.getItem(LS.activeId) || '';
+    const settings = {};
+    try {
+      Object.values(LS).forEach((k) => {
+        if (k === LS.texts || k === LS.activeId || k === LS.deletedDocs) return;
+        settings[k] = localStorage.getItem(k);
+      });
+    } catch (_) {}
+    let deletedDocs = {};
+    try { deletedDocs = JSON.parse(localStorage.getItem(LS.deletedDocs) || '{}') || {}; } catch (_) {}
+    return {
+      app: 'Fudoki',
+      version: 2,
+      createdAt: new Date().toISOString(),
+      data: { documents, activeId, settings, deletedDocs }
+    };
+  }
+
+  function downloadTextFile(filename, text) {
+    const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { try { document.body.removeChild(a); } catch (_) {} URL.revokeObjectURL(url); }, 0);
+  }
+
+  function formatNowForFile() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  }
+
+  function applyBackup(data) {
+    if (!data || !data.data) throw new Error('invalid backup file');
+    const docs = Array.isArray(data.data.documents) ? data.data.documents : [];
+    const activeId = typeof data.data.activeId === 'string' ? data.data.activeId : '';
+    const settings = data.data.settings && typeof data.data.settings === 'object' ? data.data.settings : {};
+    const deletedDocs = (data.data.deletedDocs && typeof data.data.deletedDocs === 'object') ? data.data.deletedDocs : null;
+
+    localStorage.setItem(LS.texts, JSON.stringify(docs));
+    localStorage.setItem(LS.activeId, activeId);
+    Object.keys(settings).forEach((k) => {
+      // 旧备份里的旧键名迁移到 fudoki: 命名空间
+      const targetKey = LS_KEY_MIGRATIONS[k] || k;
+      try { if (targetKey && typeof settings[k] !== 'undefined') localStorage.setItem(targetKey, settings[k]); } catch (_) {}
+    });
+    if (deletedDocs) {
+      try { localStorage.setItem(LS.deletedDocs, JSON.stringify(deletedDocs)); } catch (_) {}
+    }
+    try {
+      if (documentManager) {
+        documentManager.render();
+        documentManager.setActiveId(activeId);
+        documentManager.loadActiveDocument();
+      }
+    } catch (_) {}
+    try { if (settings[LS.theme]) setThemePreference(settings[LS.theme]); } catch (_) {}
+    try { if (settings[LS.lang]) setLanguage(settings[LS.lang]); } catch (_) {}
+    try { applyI18n(); } catch (_) {}
+  }
+
 
   // 初始化 EasyMDE Markdown 编辑器
   let easymde = null;
@@ -243,7 +463,7 @@ const headerSpeedValue = $('headerSpeedValue');
             
             // 保存状态
             try {
-              localStorage.setItem('twoPane', isActive ? 'true' : 'false');
+              localStorage.setItem(LS.twoPane, isActive ? 'true' : 'false');
             } catch (e) {
               console.warn('无法保存 two-pane 状态:', e);
             }
@@ -2939,7 +3159,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
         showDeleteConfirm((t('confirmDelete') || '').replace('{title}', this.getDocumentTitle(doc.content)), 
           () => {
-            // 确认删除
+            // 记录删除墓碑，防止云同步时复活
+            recordDeletedTombstone(doc);
             docs.splice(index, 1);
             this.saveAllDocuments(docs);
 
@@ -2971,6 +3192,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           if (docs.length > 1) return docs[1].id;
           return '';
         })();
+        recordDeletedTombstone(doc);
         docs.splice(index, 1);
         this.saveAllDocuments(docs);
 
@@ -3091,6 +3313,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (isEmpty) {
         // 内容为空：从存储中移除该文档，避免产生空文档
         const removed = docs.splice(docIndex, 1);
+        removed.forEach(d => recordDeletedTombstone(d));
         this.saveAllDocuments(docs);
         // 清除活动文档，刷新列表
         if (removed.length) {
@@ -3124,6 +3347,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (emptyDocIds.length === 0) return false;
       
       // 一次性过滤掉所有空文档
+      // 记录删除墓碑（空文档也可能曾被同步到云端）
+      docs.filter(doc => emptyDocIds.includes(doc.id)).forEach(doc => recordDeletedTombstone(doc));
       const filteredDocs = docs.filter(doc => !emptyDocIds.includes(doc.id));
       
       // 只保存一次到 localStorage
@@ -3238,7 +3463,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         
         docItem.innerHTML = `
           <div class="doc-item-content">
-            <div class="doc-item-title" title="${cleanTitle}">${this.truncateTitle(title)}</div>
+            <div class="doc-item-title" title="${escapeHtml(cleanTitle)}">${escapeHtml(this.truncateTitle(title))}</div>
             <div class="doc-item-time">${createdTime}</div>
           </div>
           <div class="doc-item-actions">
@@ -3381,7 +3606,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
           });
         }
         if (newDocs.length > 0) {
-          this.saveAllDocuments(docs.concat(newDocs));
+          // fetch 期间本地文档可能已变化（如导入备份），保存前重读，避免用旧快照覆盖
+          const current = this.getAllDocuments();
+          this.saveAllDocuments(current.concat(newDocs));
         }
       } catch (_) {
         // 静默失败
@@ -4397,12 +4624,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
         const sanitizedPlayText = String(playText || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n');
         
         return `
-          <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${JSON.stringify(tokenForUi).replace(/'/g, "&apos;")}' data-pos="${posDisplay}">
+          <span class="token-pill" onclick="toggleTokenDetails(this)" data-token='${escapeHtml(JSON.stringify(tokenForUi))}' data-pos="${escapeHtml(posDisplay)}">
             <div class="token-content">
-              <div class="token-kana display-kana">${readingText}</div>
-              ${romaji ? `<div class="token-romaji display-romaji">${romaji}</div>` : ''}
-              <div class="token-kanji display-kanji">${surface}</div>
-              <div class="token-pos display-pos">${posDisplay}</div>
+              <div class="token-kana display-kana">${escapeHtml(readingText)}</div>
+              ${romaji ? `<div class="token-romaji display-romaji">${escapeHtml(romaji)}</div>` : ''}
+              <div class="token-kanji display-kanji">${escapeHtml(surface)}</div>
+              <div class="token-pos display-pos">${escapeHtml(posDisplay)}</div>
             </div>
             <div class="token-details" style="display: none;">
               ${detailInfo}
@@ -4688,7 +4915,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (detailedInfo && detailedInfo.senses && detailedInfo.senses.length > 0) {
         // 显示主要翻译
         const mainTranslation = detailedInfo.senses[0].gloss;
-        translationContent.innerHTML = `<span class="main-translation">${mainTranslation}</span>`;
+        translationContent.innerHTML = `<span class="main-translation">${escapeHtml(mainTranslation)}</span>`;
         
         // 如果有多个词义，添加展开按钮
         if (detailedInfo.senses.length > 1) {
@@ -4745,7 +4972,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     modal.innerHTML = `
       <div class="translation-modal-content">
         <div class="translation-modal-header">
-          <h3>${detailedInfo.word} ${t('dlg_detail_translation') || '的详细翻译'}</h3>
+          <h3>${escapeHtml(detailedInfo.word)} ${t('dlg_detail_translation') || '的详细翻译'}</h3>
           <button class="close-modal-btn" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
         </div>
         <div class="translation-modal-body">
@@ -4753,11 +4980,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
             <div class="sense-item">
               <div class="sense-number">${index + 1}.</div>
               <div class="sense-content">
-                <div class="sense-gloss">${sense.gloss}</div>
-                ${sense.partOfSpeech.length > 0 ? `<div class="sense-pos">${t('lbl_pos') || '词性'}: ${sense.partOfSpeech.join(', ')}</div>` : ''}
-                ${sense.field.length > 0 ? `<div class="sense-field">${t('lbl_field') || '领域'}: ${sense.field.join(', ')}</div>` : ''}
-                ${sense.misc.length > 0 ? `<div class="sense-misc">${t('lbl_note') || '备注'}: ${sense.misc.join(', ')}</div>` : ''}
-                ${sense.chineseSource ? `<div class="sense-chinese">${t('lbl_chinese') || '中文'}: ${sense.chineseSource}</div>` : ''}
+                <div class="sense-gloss">${escapeHtml(sense.gloss)}</div>
+                ${sense.partOfSpeech.length > 0 ? `<div class="sense-pos">${t('lbl_pos') || '词性'}: ${escapeHtml(sense.partOfSpeech.join(', '))}</div>` : ''}
+                ${sense.field.length > 0 ? `<div class="sense-field">${t('lbl_field') || '领域'}: ${escapeHtml(sense.field.join(', '))}</div>` : ''}
+                ${sense.misc.length > 0 ? `<div class="sense-misc">${t('lbl_note') || '备注'}: ${escapeHtml(sense.misc.join(', '))}</div>` : ''}
+                ${sense.chineseSource ? `<div class="sense-chinese">${t('lbl_chinese') || '中文'}: ${escapeHtml(sense.chineseSource)}</div>` : ''}
               </div>
             </div>
           `).join('')}
@@ -5528,7 +5755,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       if (hasMoved) {
         justDragged = true; // 标记刚刚完成拖拽
         const rect = toolbar.getBoundingClientRect();
-        localStorage.setItem('toolbarPosition', JSON.stringify({
+        localStorage.setItem(LS.toolbarPosition, JSON.stringify({
           left: rect.left,
           top: rect.top
         }));
@@ -5545,7 +5772,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 恢复保存的位置和状态
     function restoreToolbarState() {
-      const savedPosition = localStorage.getItem('toolbarPosition');
+      const savedPosition = localStorage.getItem(LS.toolbarPosition);
       
       // 恢复位置
       if (savedPosition) {
@@ -5609,7 +5836,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         minimizeBtn.title = t('expand');
       } else {
         // 展开：恢复完整高度
-        const savedHeight = localStorage.getItem('toolbarHeight');
+        const savedHeight = localStorage.getItem(LS.toolbarHeight);
         if (savedHeight) {
           const height = parseInt(savedHeight, 10);
           if (height >= 200 && height <= window.innerHeight - 100) {
@@ -5626,7 +5853,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         minimizeBtn.title = t('collapse');
       }
       
-      localStorage.setItem('toolbarCollapsed', isCollapsed);
+      localStorage.setItem(LS.toolbarCollapsed, isCollapsed);
     }
     
     // 恢复收缩状态
@@ -5636,7 +5863,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         return;
       }
       
-      const savedCollapsed = localStorage.getItem('toolbarCollapsed');
+      const savedCollapsed = localStorage.getItem(LS.toolbarCollapsed);
       if (savedCollapsed === 'true') {
         isCollapsed = true;
         toolbar.style.height = 'auto';
@@ -5768,7 +5995,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       
       // 保存高度到本地存储
       const height = toolbar.offsetHeight;
-      localStorage.setItem('toolbarHeight', height.toString());
+      localStorage.setItem(LS.toolbarHeight, height.toString());
     }
     
     // 绑定事件
@@ -5777,7 +6004,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     document.addEventListener('mouseup', endResize);
     
     // 恢复保存的高度
-    const savedHeight = localStorage.getItem('toolbarHeight');
+    const savedHeight = localStorage.getItem(LS.toolbarHeight);
     if (savedHeight) {
       const height = parseInt(savedHeight, 10);
       if (height >= 200 && height <= window.innerHeight - 100) {
@@ -5808,12 +6035,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
       // 统一折叠控制：仅在 .main-container 上切换 collapsed
       isCollapsed = !isCollapsed;
       mainContainer.classList.toggle('collapsed', isCollapsed);
-      localStorage.setItem('sidebarCollapsed', String(isCollapsed));
+      localStorage.setItem(LS.sidebarCollapsed, String(isCollapsed));
     }
     
     // 恢复桌面端折叠状态
     function restoreSidebarState() {
-      const savedCollapsed = localStorage.getItem('sidebarCollapsed');
+      const savedCollapsed = localStorage.getItem(LS.sidebarCollapsed);
       if (savedCollapsed === null) {
         isCollapsed = isMobile(); // 移动端默认收起
       } else {
@@ -5824,7 +6051,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     
     // 响应窗口大小变化
     function handleResize() {
-      const savedCollapsed = localStorage.getItem('sidebarCollapsed');
+      const savedCollapsed = localStorage.getItem(LS.sidebarCollapsed);
       if (savedCollapsed === null) {
         isCollapsed = isMobile();
       }
@@ -5850,7 +6077,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         if (!isCollapsed && !sidebarStack.contains(e.target)) {
           isCollapsed = true;
           mainContainer.classList.add('collapsed');
-          localStorage.setItem('sidebarCollapsed', 'true');
+          localStorage.setItem(LS.sidebarCollapsed, 'true');
         }
       } catch (_) {}
     }
@@ -6325,47 +6552,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const importBtn = document.getElementById('importJsonBtn');
       const importFile = document.getElementById('importJsonFile');
 
-      function collectBackupPayload() {
-        const documents = (() => {
-          try {
-            const all = documentManager ? documentManager.getAllDocuments() : JSON.parse(localStorage.getItem(LS.texts) || '[]');
-            // 排除示例文章与锁定文档
-            return (Array.isArray(all) ? all : []).filter(d => d && d.folder !== 'samples' && !d.locked);
-          } catch (_) { return []; }
-        })();
-        const activeId = localStorage.getItem(LS.activeId) || '';
-        const settings = {};
-        try {
-          Object.values(LS).forEach((k) => {
-            if (k === LS.texts || k === LS.activeId) return;
-            settings[k] = localStorage.getItem(k);
-          });
-        } catch (_) {}
-        return {
-          app: 'Fudoki',
-          version: 1,
-          createdAt: new Date().toISOString(),
-          data: { documents, activeId, settings }
-        };
-      }
-
-      function downloadTextFile(filename, text) {
-        const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => { try { document.body.removeChild(a); } catch (_) {} URL.revokeObjectURL(url); }, 0);
-      }
-
-      function formatNowForFile() {
-        const d = new Date();
-        const pad = (n) => String(n).padStart(2, '0');
-        return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-      }
-
       async function doExport() {
         // 显示导出进度
         showInfoToast(t('exporting'), 10000);
@@ -6399,30 +6585,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
           try { 
             showErrorToast(t('exportError'));
           } catch (_) {}
-        }
-      }
-
-      function applyBackup(data) {
-        try {
-          if (!data || !data.data) throw new Error('invalid');
-          const docs = Array.isArray(data.data.documents) ? data.data.documents : [];
-          const activeId = typeof data.data.activeId === 'string' ? data.data.activeId : '';
-          const settings = data.data.settings && typeof data.data.settings === 'object' ? data.data.settings : {};
-          // 覆盖存储
-          localStorage.setItem(LS.texts, JSON.stringify(docs));
-          localStorage.setItem(LS.activeId, activeId);
-          Object.keys(settings).forEach((k) => {
-            try { if (k && typeof settings[k] !== 'undefined') localStorage.setItem(k, settings[k]); } catch (_) {}
-          });
-          // 刷新界面
-          try { if (documentManager) { documentManager.render(); documentManager.setActiveId(activeId); } } catch (_) {}
-          try { if (settings[LS.theme]) setThemePreference(settings[LS.theme]); } catch (_) {}
-          try { if (settings[LS.lang]) setLanguage(settings[LS.lang]); } catch (_) {}
-          try { applyI18n(); } catch (_) {}
-          try { showNotification(t('importSuccess'), 'success'); } catch (_) {}
-        } catch (e) {
-          console.error('Import failed:', e);
-          try { showNotification(t('importError'), 'error'); } catch (_) {}
         }
       }
 
@@ -6937,7 +7099,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
     });
   }
 
-})();
   // 文件夹工具栏折叠（支持多个触发按钮）
   function initFolderToolbarCollapse() {
     const buttons = Array.from(document.querySelectorAll('.folder-collapse-btn'));
@@ -6948,7 +7109,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     // 恢复上次状态
     let collapsed = false;
     try {
-      collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+      collapsed = localStorage.getItem(LS.sidebarCollapsed) === 'true';
     } catch (_) {}
     // 切换的是 main-container 上的类，由样式层实现具体折叠动作
     mainContainer.classList.toggle('collapsed', collapsed);
@@ -6956,7 +7117,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const handleClick = (e) => {
       e.preventDefault();
       const isCollapsed = mainContainer.classList.toggle('collapsed');
-      try { localStorage.setItem('sidebarCollapsed', String(isCollapsed)); } catch (_) {}
+      try { localStorage.setItem(LS.sidebarCollapsed, String(isCollapsed)); } catch (_) {}
     };
 
     // 绑定所有触发按钮（标题区与文档列表工具栏）
@@ -6966,7 +7127,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (sidebarOverlay) {
       sidebarOverlay.addEventListener('click', () => {
         mainContainer.classList.add('collapsed');
-        try { localStorage.setItem('sidebarCollapsed', 'true'); } catch (_) {}
+        try { localStorage.setItem(LS.sidebarCollapsed, 'true'); } catch (_) {}
       });
     }
   }
@@ -7015,9 +7176,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
     // 高亮关键词
     function highlightText(text, query) {
-      if (!query) return text;
-      const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-      return text.replace(regex, '<span class="search-highlight">$1</span>');
+      const safeText = escapeHtml(text);
+      if (!query) return safeText;
+      const escapedQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escapedQuery})`, 'gi');
+      return safeText.replace(regex, '<span class="search-highlight">$1</span>');
     }
 
     // 执行搜索
@@ -7194,13 +7357,13 @@ Try Fudoki and enjoy Japanese language analysis!`;
       const scale = Math.max(0.8, Math.min(1.5, parseFloat(v) || 1));
       document.documentElement.style.setProperty('--font-scale', String(scale));
       valueEls.forEach(el => { el.textContent = `${Math.round(scale * 100)}%`; });
-      try { localStorage.setItem('app:fontScale', String(scale)); } catch (_) {}
+      try { localStorage.setItem(LS.fontScale, String(scale)); } catch (_) {}
     };
 
     // 初始值来源：localStorage
     let initial = 1;
     try {
-      const saved = localStorage.getItem('app:fontScale');
+      const saved = localStorage.getItem(LS.fontScale);
       if (saved) initial = parseFloat(saved) || 1;
     } catch (_) {}
 
@@ -7224,7 +7387,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
 
   function applyFontScaleFromStorage() {
     try {
-      const saved = localStorage.getItem('app:fontScale');
+      const saved = localStorage.getItem(LS.fontScale);
       if (saved) {
         const scale = Math.max(0.8, Math.min(1.5, parseFloat(saved) || 1));
         document.documentElement.style.setProperty('--font-scale', String(scale));
@@ -7235,8 +7398,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
   // 字体家族存储应用（输入区与显示区分别控制）
   function applyFontFamilyFromStorage() {
     try {
-      const inFont = localStorage.getItem('app:inputFont');
-      const outFont = localStorage.getItem('app:contentFont');
+      const inFont = localStorage.getItem(LS.inputFont);
+      const outFont = localStorage.getItem(LS.contentFont);
       if (inFont) document.documentElement.style.setProperty('--input-font-family', inFont);
       if (outFont) document.documentElement.style.setProperty('--content-font-family', outFont);
       const inSel = document.getElementById('editorInputFontSelect');
@@ -7253,12 +7416,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
     const applyInput = (val) => {
       if (!val) return;
       document.documentElement.style.setProperty('--input-font-family', val);
-      try { localStorage.setItem('app:inputFont', val); } catch (_) {}
+      try { localStorage.setItem(LS.inputFont, val); } catch (_) {}
     };
     const applyContent = (val) => {
       if (!val) return;
       document.documentElement.style.setProperty('--content-font-family', val);
-      try { localStorage.setItem('app:contentFont', val); } catch (_) {}
+      try { localStorage.setItem(LS.contentFont, val); } catch (_) {}
     };
     if (inputSelect) {
       inputSelect.addEventListener('change', () => applyInput(inputSelect.value));
@@ -7300,7 +7463,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
     if (!userProfileContainer) return;
 
     // 检查用户登录状态
-    const userDataStr = localStorage.getItem('fudoki_user');
+    const userDataStr = localStorage.getItem('fudoki:user');
     if (userDataStr) {
       try {
         const userData = JSON.parse(userDataStr);
@@ -7332,10 +7495,25 @@ Try Fudoki and enjoy Japanese language analysis!`;
         console.error('Failed to load user data:', error);
       }
     } else {
-      // 未登录，Firebase onAuthStateChanged 会自动处理跳转
-      console.log('User data not found in localStorage');
+      // 未登录：隐藏头像菜单，但保留全部事件绑定（同步/导入导出等全局函数仍需挂载）。
+      // Firebase onAuthStateChanged 会处理跳转；会话恢复时索引页可能先于其回调执行。
       userProfileContainer.style.display = 'none';
-      return;
+      // 登录信息稍后由 Firebase 回调写入 localStorage，此处延迟再试一次
+      setTimeout(() => {
+        try {
+          const later = JSON.parse(localStorage.getItem('fudoki:user') || 'null');
+          if (later) {
+            userProfileContainer.style.display = 'block';
+            userDisplayName.textContent = later.displayName || '用户';
+            userEmail.textContent = later.email || '';
+            if (later.photoURL) {
+              userAvatarImg.src = later.photoURL;
+              userAvatarImg.style.display = 'block';
+              userAvatarPlaceholder.style.display = 'none';
+            }
+          }
+        } catch (_) {}
+      }, 1000);
     }
 
     // 切换下拉菜单
@@ -7490,16 +7668,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
           return false;
         }
 
-        // 获取本地所有文档（排除示例文档和默认文档）
+        // 获取本地所有文档（示例文档与默认文档在构建同步映射时排除）
         const allDocs = window.documentManager.getAllDocuments();
-        const localDocs = allDocs.filter(doc => {
-          // 不同步示例文档
-          if (doc.folder === 'samples') return false;
-          // 不同步默认文档 default-01
-          if (doc.id === 'default-01') return false;
-          return true;
-        });
-        
+
         const { collection, doc, setDoc, serverTimestamp, getDocs, deleteDoc, getDoc } = window.firestoreHelpers;
         const db = window.firebaseDB;
         
@@ -7528,13 +7699,76 @@ Try Fudoki and enjoy Japanese language analysis!`;
           return false;
         }
 
-        // 第二步：建立本地文档映射
+        // 第二步：获取云端删除墓碑 users/{uid}/deleted/{docId} -> deletedAt(ms)
+        if (syncText) {
+          syncText.textContent = '削除情報を取得中...';
+        }
+        const cloudTombstones = {};
+        try {
+          const deletedSnap = await getDocs(collection(db, 'users', currentUser.uid, 'deleted'));
+          deletedSnap.forEach((d) => {
+            const data = d.data() || {};
+            const ts = (data.deletedAt && typeof data.deletedAt.toMillis === 'function') ? data.deletedAt.toMillis() : Number(data.deletedAt) || 0;
+            if (ts > 0) cloudTombstones[d.id] = ts;
+          });
+        } catch (error) {
+ console.warn('削除情報の取得に失敗（続行します）:', error);
+        }
+
+        // 第三步：合并墓碑（双方取较新者），先在本地执行删除
+        const localTombstones = pruneDeletedTombstones(getDeletedTombstones());
+        const mergedTombstones = { ...cloudTombstones };
+        Object.keys(localTombstones).forEach((id) => {
+          mergedTombstones[id] = Math.max(localTombstones[id] || 0, cloudTombstones[id] || 0);
+        });
+
+        let localDeleteCount = 0;
+        for (const docId of Object.keys(mergedTombstones)) {
+          const deletedAt = mergedTombstones[docId];
+          const idx = allDocs.findIndex(d => d.id === docId);
+          if (idx === -1) continue;
+          const target = allDocs[idx];
+          if (target.folder === 'samples' || target.id === 'default-01') continue;
+          const localTime = target.updatedAt || target.createdAt || 0;
+          // 删除之后在本机又有更新 → 视为重新编辑，保留文档（后续按正常逻辑上传）
+          if (localTime > deletedAt) continue;
+          allDocs.splice(idx, 1);
+          localDeleteCount++;
+        }
+        if (localDeleteCount > 0) {
+          window.documentManager.saveAllDocuments(allDocs);
+          window.documentManager.render();
+        }
+        saveDeletedTombstones(pruneDeletedTombstones(mergedTombstones));
+
+        // 将合并后的墓碑写回云端（仅在云端缺失或更旧时写入；TTL 外的清理掉）
+        for (const docId of Object.keys(mergedTombstones)) {
+          if (cloudTombstones[docId] === mergedTombstones[docId]) continue;
+          try {
+            await setDoc(doc(db, 'users', currentUser.uid, 'deleted', docId), { deletedAt: mergedTombstones[docId] });
+          } catch (error) {
+            console.warn(`削除情報の書き込みに失敗: ${docId}`, error);
+          }
+        }
+        for (const docId of Object.keys(cloudTombstones)) {
+          if (!(docId in mergedTombstones)) {
+            try { await deleteDoc(doc(db, 'users', currentUser.uid, 'deleted', docId)); } catch (_) {}
+          }
+        }
+
+        const clearCloudTombstone = async (docId) => {
+          clearDeletedTombstone(docId);
+          try { await deleteDoc(doc(db, 'users', currentUser.uid, 'deleted', docId)); } catch (_) {}
+        };
+
+        // 第四步：基于删除后的文档集建立本地映射
         const localDocsMap = new Map();
-        localDocs.forEach(d => {
+        allDocs.forEach(d => {
+          if (d.folder === 'samples' || d.id === 'default-01') return;
           localDocsMap.set(d.id, d);
         });
 
-        // 第三步：双向同步
+        // 第五步：双向同步
         const allDocIds = new Set([...localDocsMap.keys(), ...cloudDocs.keys()]);
         let processedCount = 0;
         const totalCount = allDocIds.size;
@@ -7551,6 +7785,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
           try {
             // 情况1：只在本地，上传到云端
             if (localDoc && !cloudDoc) {
+              // 删除后又编辑（本地版本晚于墓碑）→ 复活并解除墓碑
+              if (mergedTombstones[docId]) await clearCloudTombstone(docId);
               let contentStr = '';
               if (Array.isArray(localDoc.content)) {
                 contentStr = localDoc.content.join('\n');
@@ -7584,7 +7820,20 @@ Try Fudoki and enjoy Japanese language analysis!`;
                 console.log(`删除云端不应同步的文档: ${docId}`);
                 continue;
               }
-              
+              // 已被任一设备删除且云端副本不晚于墓碑 → 删除云端副本，不下载复活
+              // （墓碑保留到 TTL，供尚未同步的设备传播删除）
+              const deletedAt = mergedTombstones[docId] || 0;
+              const cloudTimeForTomb = cloudDoc.updatedAt?.toMillis?.() || Number(cloudDoc.createdAt) || 0;
+              if (deletedAt && cloudTimeForTomb <= deletedAt) {
+                await deleteDoc(doc(db, 'users', currentUser.uid, 'documents', docId));
+                deleteCount++;
+                console.log(`削除を反映（クラウド削除）: ${docId}`);
+                continue;
+              }
+              if (deletedAt && cloudTimeForTomb > deletedAt) {
+                // 删除后云端又有更新（他设备重建/编辑）→ 正常下载并解除墓碑
+                await clearCloudTombstone(docId);
+              }
               const newDoc = {
                 id: cloudDoc.id,
                 content: cloudDoc.content || '',
@@ -7602,8 +7851,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
             }
             // 情况3：两边都有，比较时间戳，保留最新的
             else if (localDoc && cloudDoc) {
+              // 删除后重新编辑（本地版本晚于墓碑）→ 复活并解除墓碑
+              if (mergedTombstones[docId]) await clearCloudTombstone(docId);
               const localTime = localDoc.updatedAt || localDoc.createdAt || 0;
-              const cloudTime = cloudDoc.updatedAt?.toMillis?.() || cloudDoc.createdAt || 0;
+              const cloudTime = cloudDoc.updatedAt?.toMillis?.() || Number(cloudDoc.createdAt) || 0;
               
               // 云端更新，下载到本地
               if (cloudTime > localTime) {
@@ -7659,25 +7910,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
           window.documentManager.render();
         }
 
-        // 同步文件夹
-        if (syncText) {
-          syncText.textContent = 'フォルダを同期中...';
-        }
+        // 文件夹：当前 UI 为固定视图（全部/收藏/示例），无自定义文件夹实体；
+        // 文档所属文件夹信息已通过 folderId 字段随文档同步。
 
-        const folders = window.documentManager.folders || [];
-        for (const folder of folders) {
-          try {
-            const folderRef = doc(db, 'users', currentUser.uid, 'folders', folder.id);
-            await setDoc(folderRef, {
-              id: folder.id,
-              name: folder.name,
-              createdAt: folder.createdAt || Date.now(),
-              updatedAt: serverTimestamp()
-            });
-          } catch (error) {
-            console.error(`フォルダ同期失败: ${folder.id}`, error);
-          }
-        }
 
         // 隐藏进度提示
         if (syncToast) {
@@ -7694,7 +7929,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           if (uploadCount > 0) messages.push(`アップロード: ${uploadCount}件`);
           if (downloadCount > 0) messages.push(`ダウンロード: ${downloadCount}件`);
           if (updateCount > 0) messages.push(`更新: ${updateCount}件`);
-          if (deleteCount > 0) messages.push(`削除: ${deleteCount}件`);
+          if (deleteCount + localDeleteCount > 0) messages.push(`削除: ${deleteCount + localDeleteCount}件`);
           
           if (messages.length > 0 && !isAutoSync) {
             showSuccessToast(`同期完了！${messages.join('、')}`);
@@ -7706,7 +7941,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
           if (uploadCount > 0) messages.push(`${uploadCount}件アップロード`);
           if (downloadCount > 0) messages.push(`${downloadCount}件ダウンロード`);
           if (updateCount > 0) messages.push(`${updateCount}件更新`);
-          if (deleteCount > 0) messages.push(`${deleteCount}件削除`);
+          if (deleteCount + localDeleteCount > 0) messages.push(`${deleteCount + localDeleteCount}件削除`);
           messages.push(`${failCount}件失敗`);
           showErrorToast(`同期完了: ${messages.join('、')}`);
         }
@@ -7726,22 +7961,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
       }
     }
     
-    // 显示错误提示的辅助函数
-    function showErrorToast(message) {
-      const errorToast = document.getElementById('errorToast');
-      const errorText = document.getElementById('errorText');
-      
-      if (errorToast && errorText) {
-        errorText.textContent = message;
-        errorToast.classList.add('show');
-        
-        // 3秒后自动隐藏
-        setTimeout(() => {
-          errorToast.classList.remove('show');
-        }, 3000);
-      }
-    }
-
     // 数据同步功能（用户菜单按钮）
     syncDataBtn.addEventListener('click', async () => {
       userProfileContainer.classList.remove('open');
@@ -7858,14 +8077,14 @@ Try Fudoki and enjoy Japanese language analysis!`;
           console.log('User signed out successfully');
         }
         // 清除本地用户数据
-        localStorage.removeItem('fudoki_user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
         // 跳转到登录页
         window.location.href = 'login.html';
       } catch (error) {
         console.error('Sign out error:', error);
         // 即使出错也清除本地数据并跳转
         sessionStorage.setItem('fudoki_logging_out', 'true');
-        localStorage.removeItem('fudoki_user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
         window.location.href = 'login.html';
       }
     });
@@ -7888,7 +8107,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         }
         
         // 清除本地用户数据
-        localStorage.removeItem('fudoki_user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
         
         // 延迟一下再跳转，让用户看到提示
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -7899,7 +8118,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         console.error('Logout error:', error);
         // 即使出错也清除本地数据并跳转
         sessionStorage.setItem('fudoki_logging_out', 'true');
-        localStorage.removeItem('fudoki_user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
         window.location.href = 'login.html';
       }
     });
@@ -7914,7 +8133,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
         userProfileContainer.classList.remove('open');
         
         // 获取当前语言的翻译
-        const currentLang = localStorage.getItem('lang') || 'ja';
+        const currentLang = localStorage.getItem(LS.lang) || 'ja';
         const translations = I18N[currentLang] || I18N.ja;
         
         // 显示导出进度
@@ -7987,102 +8206,6 @@ Try Fudoki and enjoy Japanese language analysis!`;
       });
     }
 
-    // 辅助函数
-    function collectBackupPayload() {
-      const documents = (() => {
-        try {
-          const all = window.documentManager ? window.documentManager.getAllDocuments() : JSON.parse(localStorage.getItem('fudoki_texts') || '[]');
-          return (Array.isArray(all) ? all : []).filter(d => d && d.folder !== 'samples' && !d.locked);
-        } catch (_) { return []; }
-      })();
-      const activeId = localStorage.getItem('fudoki_activeId') || '';
-      const settings = {};
-      try {
-        ['fudoki_theme', 'fudoki_lang', 'fudoki_fontSize'].forEach((k) => {
-          settings[k] = localStorage.getItem(k);
-        });
-      } catch (_) {}
-      return {
-        app: 'Fudoki',
-        version: 1,
-        createdAt: new Date().toISOString(),
-        data: { documents, activeId, settings }
-      };
-    }
-
-    function downloadTextFile(filename, text) {
-      const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => { try { document.body.removeChild(a); } catch (_) {} URL.revokeObjectURL(url); }, 0);
-    }
-
-    function formatNowForFile() {
-      const d = new Date();
-      const pad = (n) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-    }
-
-    function applyBackup(data) {
-      try {
-        if (!data || !data.data) throw new Error('invalid');
-        const docs = Array.isArray(data.data.documents) ? data.data.documents : [];
-        const activeId = typeof data.data.activeId === 'string' ? data.data.activeId : '';
-        const settings = data.data.settings && typeof data.data.settings === 'object' ? data.data.settings : {};
-        
-        localStorage.setItem('fudoki_texts', JSON.stringify(docs));
-        localStorage.setItem('fudoki_activeId', activeId);
-        Object.keys(settings).forEach((k) => {
-          try { if (k && typeof settings[k] !== 'undefined') localStorage.setItem(k, settings[k]); } catch (_) {}
-        });
-        
-        if (window.documentManager) {
-          window.documentManager.render();
-          window.documentManager.setActiveId(activeId);
-        }
-        if (settings['fudoki_theme']) setThemePreference(settings['fudoki_theme']);
-        if (settings['fudoki_lang']) setLanguage(settings['fudoki_lang']);
-        try { applyI18n(); } catch (_) {}
-      } catch (e) {
-        throw e;
-      }
-    }
-
-    function showSuccessToast(message) {
-      const syncToast = document.getElementById('syncProgressToast');
-      const syncText = document.getElementById('syncProgressText');
-      if (syncToast && syncText) {
-        syncText.textContent = message;
-        syncToast.classList.add('show');
-        setTimeout(() => {
-          syncToast.classList.remove('show');
-        }, 2000);
-      }
-    }
-
-    // 通用信息 Toast（用于替代 alert）
-    function showInfoToast(message, duration = 3000) {
-      // 复用 syncProgressToast 作为通用信息提示
-      const toast = document.getElementById('syncProgressToast');
-      const text = document.getElementById('syncProgressText');
-      if (toast && text) {
-        text.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => {
-          toast.classList.remove('show');
-        }, duration);
-      }
-    }
-
-    // 暴露 toast 函数到全局
-    window.showSuccessToast = showSuccessToast;
-    window.showErrorToast = showErrorToast;
-    window.showInfoToast = showInfoToast;
-
     // ========== 主题切换功能 ==========
     try {
       const themeSubmenu = document.querySelectorAll('#themeSubmenu .submenu-item');
@@ -8098,7 +8221,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       };
 
       // 初始化当前主题显示
-      const savedTheme = localStorage.getItem('theme') || 'paper';
+      const savedTheme = localStorage.getItem(LS.theme) || 'paper';
       if (currentThemeName) {
         currentThemeName.textContent = themeNames[savedTheme] || 'Paper White';
       }
@@ -8123,10 +8246,10 @@ Try Fudoki and enjoy Japanese language analysis!`;
               currentThemeName.textContent = themeNames[selectedTheme];
             }
             
-            // 应用主题
+            // 应用主题（走引擎的 setThemePreference，同步闭包状态 savedThemePreference，
+            // 避免后续 applyI18n→applyTheme 用旧值回滚）
             try {
-              localStorage.setItem('theme', selectedTheme);
-              document.documentElement.setAttribute('data-theme', selectedTheme);
+              setThemePreference(selectedTheme);
             } catch (error) {
               console.error('应用主题失败:', error);
             }
@@ -8151,7 +8274,7 @@ Try Fudoki and enjoy Japanese language analysis!`;
       };
 
       // 初始化当前语言显示
-      const savedLang = localStorage.getItem('lang') || 'ja';
+      const savedLang = localStorage.getItem(LS.lang) || 'ja';
       if (currentLangName) {
         currentLangName.textContent = langNames[savedLang] || '日本語';
       }
@@ -8176,28 +8299,11 @@ Try Fudoki and enjoy Japanese language analysis!`;
               currentLangName.textContent = langNames[selectedLang];
             }
             
-            // 应用语言（不刷新页面，保持菜单打开）
+            // 应用语言（走引擎的 setLanguage：更新 currentLang、localStorage 并调用 applyI18n）
             try {
-              // 保存语言到 localStorage
-              localStorage.setItem('lang', selectedLang);
-              
-              // 更新全局 currentLang 变量
-              if (typeof window.setCurrentLang === 'function') {
-                window.setCurrentLang(selectedLang);
-              }
-              
-              // 更新 HTML lang 属性
-              document.documentElement.lang = selectedLang;
-              
-              // 应用界面多语言更新
-              if (typeof window.applyI18n === 'function') {
-                window.applyI18n();
-              }
-              
+              setLanguage(selectedLang);
               // 触发自定义语言变化事件，供其他组件响应
               window.dispatchEvent(new CustomEvent('languageChange', { detail: { lang: selectedLang } }));
-              
-              // 不刷新页面，保持子菜单打开，方便用户连续切换查看效果
             } catch (error) {
               console.error('应用语言失败:', error);
             }
@@ -8289,3 +8395,4 @@ Try Fudoki and enjoy Japanese language analysis!`;
       observer.observe(userProfileContainer, { attributes: true });
     }
   }
+})();

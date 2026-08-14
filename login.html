@@ -2,11 +2,16 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <title>登录 - Fudoki</title>
   <link rel="icon" type="image/png" href="static/logo.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fudoki">
+  <link rel="apple-touch-icon" href="static/logo.png">
   
   <!-- 清除缓存脚本 - 必须在其他脚本之前执行 -->
   <script>
@@ -22,8 +27,8 @@
         const documentsData = localStorage.getItem('texts');
         const activeId = localStorage.getItem('activeId');
         
-        // 清除所有 localStorage（除了文档）
-        const keysToPreserve = ['texts', 'activeId'];
+        // 保留文档数据（新旧两套命名，兼容迁移前后的版本）
+        const keysToPreserve = ['texts', 'activeId', 'fudoki:texts', 'fudoki:activeId', 'fudoki:deletedDocs'];
         const allKeys = Object.keys(localStorage);
         let clearedCount = 0;
         
@@ -114,7 +119,7 @@
             sessionStorage.setItem('fudoki_logging_out', 'true');
             
             // 清除用户数据（确保清除）
-            localStorage.removeItem('fudoki_user');
+            localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
             
             console.log('✅ 已设置登出状态，准备刷新页面');
             
@@ -1023,6 +1028,57 @@
       flex-shrink: 0;
     }
 
+    /* 移动端补丁（2026-08 走查）：横滚修复 / dvh / safe-area / 窄屏语言切换器 */
+    html {
+      overflow-x: clip;
+    }
+
+    html, body {
+      overflow-x: hidden;
+    }
+
+    body {
+      height: 100vh;
+      height: 100dvh;
+      padding-left: env(safe-area-inset-left, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
+    }
+
+    .gradient-bg,
+    .floating-shapes {
+      overflow: hidden;
+    }
+
+    .login-container {
+      height: 100vh;
+      height: 100dvh;
+      padding-left: max(20px, env(safe-area-inset-left, 0px));
+      padding-right: max(20px, env(safe-area-inset-right, 0px));
+    }
+
+    /* 谷歌登录按钮 ≥44px 触控目标 */
+    .google-login-btn {
+      min-height: 48px;
+      font-size: 16px;
+    }
+
+    .language-switcher .lang-option {
+      min-height: 40px;
+    }
+
+    @media (max-width: 360px) {
+      /* 窄屏：语言切换器固定到右上角，避免压住标题 */
+      .language-switcher {
+        position: fixed;
+        top: calc(10px + env(safe-area-inset-top, 0px));
+        right: calc(10px + env(safe-area-inset-right, 0px));
+        z-index: 20;
+      }
+
+      .login-card {
+        padding-top: 56px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1211,7 +1267,7 @@
     };
 
     // 当前语言
-    let currentLang = localStorage.getItem('fudoki_lang') || 'zh';
+    let currentLang = localStorage.getItem('fudoki:lang') || localStorage.getItem('lang') || localStorage.getItem('fudoki_lang') || 'zh';
 
     // 下拉菜单元素
     const languageSwitcher = document.getElementById('languageSwitcher');
@@ -1223,7 +1279,7 @@
     // 更新页面语言
     function updateLanguage(lang) {
       currentLang = lang;
-      localStorage.setItem('fudoki_lang', lang);
+      localStorage.setItem('fudoki:lang', lang);
       document.documentElement.lang = lang;
       document.title = translations[lang].pageTitle;
 
@@ -1293,7 +1349,7 @@
           }
         }
         // 清除所有用户相关数据
-        localStorage.removeItem('fudoki_user');
+        localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
         sessionStorage.removeItem('fudoki_logging_out');
         console.log('Staying on login page');
         return; // 不执行自动跳转
@@ -1303,7 +1359,7 @@
         // 用户已登录，跳转到主页
         console.log('User already signed in, redirecting to index...', user.email);
         // 保存用户信息到 localStorage
-        localStorage.setItem('fudoki_user', JSON.stringify({
+        localStorage.setItem('fudoki:user', JSON.stringify({
           uid: user.uid,
           email: user.email,
           displayName: user.displayName,
@@ -1334,7 +1390,7 @@
         sessionStorage.removeItem('fudoki_logging_out');
         
         // 保存用户信息到 localStorage
-        localStorage.setItem('fudoki_user', JSON.stringify({
+        localStorage.setItem('fudoki:user', JSON.stringify({
           uid: user.uid,
           email: user.email,
           displayName: user.displayName,
