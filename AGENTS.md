@@ -1,65 +1,80 @@
 # AGENTS.md — fudoki 日语学习 PWA（智能体交接）
 
-> 读者假设：你从未见过这个项目。~100 行讲清：架构/启动/近期改造/红线。
->
-> ⚠️ 本文件名暂为 AGENTS.staged.md：写入 AGENTS.md 需用户对"修改智能体指令文件"显式
-> 同意（平台保护）。用户确认后 `git mv AGENTS.staged.md AGENTS.md` 即可，内容已定稿。
+> 读者假设：你从未见过这个项目。~90 行讲清：架构/启动/近期改造/红线。
 
 ## 一、这是什么 / 架构
 
-**fudoki (フドキ)** = 日语"结构可视化"Web 工具：**文本分词分析（词性着色/假名/罗马音）
-+ Web Speech API 语音朗读 + JMdict 词典 + 多文档管理**。纯前端 PWA。
+**fudoki (フドキ)** = 日语"结构可视化"Web 工具：**文本分词分析（词性色点/假名/罗马音）
++ Web Speech API 语音朗读 + JMdict 词典 + 多文档管理**。纯前端 PWA，**纯本地运行**
+（2026-08-15 起 Firebase 登录/云同步已整体移除，文档仅存 localStorage）。
 
 在线版 https://fudoki.iamcheyan.com （GitHub Pages，CNAME）。MIT 协议（fork 自
-dethan3 的项目，upstream PR #2 已合回）。
+dethan3 的项目）。
 
-- **纯静态站**（无构建，package.json 的 start/dev/serve 都是
-  `python3 -m http.server 8000`）：
-  - `index.html`（729 行）+ `login.html`（40K，**Firebase 登录页**）
-  - `static/main-js.js`（**8398 行巨型 IIFE**，应用主体）、`static/segmenter.js`
-    （Kuromoji 分词）、`static/dictionary.js`（JMdict 词典）、`static/styles.css`
-  - `static/libs/`：kuromoji.js + `dict/`（jmdict_*.json 等；**大 zip 已 git rm --cached**，
-    .gitignore 排除 `static/libs/dict/*.zip`）
-  - `service-worker.js` + `manifest.json`（PWA；图标 192/512 any+maskable 已修正）
-- 词性颜色约定：🟢名词 🔵动词 🟠形容词 🟣副词 🔴助词 🟡感叹词。
-- 文本编辑器 = EasyMDE（markdown），日语分析对 markdown 内容照常工作。
+- **纯静态站**（无构建，`python3 -m http.server 8000`）：
+  - `index.html`（~286 行，Linear 式壳层：左文档栏 + 编辑⇄分析分段主区 + 移动底部坞）
+  - `static/main-js.js`（~5300 行单 IIFE，应用主体）、`static/segmenter.js`
+    （Kuromoji 分词）、`static/js/dictionary.js`（JMdict 词典）、`static/styles.css`
+    （设计令牌 + 组件）、`static/mobile.css`（<768px）、`static/js/ui-utils.js`
+    （FDSelect 自绘下拉 / showDeleteConfirm / showNotification / debounce）
+  - `static/js/`：i18n.js（ja/en/zh 词典）、tts.js（语音列表过滤）、mobile-ux.js
+    （软键盘视口/下拉刷新/滑动切文档/安装 FAB）
+  - `static/libs/`：kuromoji.js、easymde（**已打补丁：Font Awesome 走本地
+    `static/libs/font-awesome/`，不再请求 maxcdn**）、dict/（词典分片，大 zip 已出库）
+  - `service-worker.js`（**CACHE_VERSION v6**；注册是按需的——设置弹窗"离线下载"触发）
+    + `static/pwa-assets.json`（离线包清单 v6，无 login.html）+ `manifest.json`
+- 词性 UI 约定：**色点 + 38% 透明度同色下划线**（`<span class="pos-dot pos-noun">`，
+  pill 加 `pos-*` class）。emoji（🟢🔵🟠🟣🔴🟡）**只允许出现在注释/文档语义说明里，
+  一律不进 UI**。
+- 设计令牌：深色优先（#08090a/#0f1011/#191a1b）+ 浅色（data-theme 切换，仅
+  dark/light 两档）；强调靛紫 #5e6ad2 只用于 CTA/激活态；圆角 2/4/6/8/12px；
+  Inter + JetBrains Mono（系统字体栈，**不引外网字体**）。
+- **禁用一切原生控件**：alert/confirm/prompt/原生 select/dialog 全部自绘
+  （FDSelect / showDeleteConfirm / settings-modal），深浅双主题都要适配。
 
 ## 二、启动 / 验证
 
 ```bash
 cd ~/development/fudoki
-python3 -m http.server 8000        # 本地; 82 服务器常驻端口 8831(未验证当前是否在跑,起前先 ss -tlnp | grep 8831)
-# JS 语法验证: node --check static/main-js.js
+python3 -m http.server 8000        # http://localhost:8000
+# JS 语法: node --check static/main-js.js（改任何 js 后必跑）
+# 验收 grep（必须归零）: grep -riF "firebase" index.html static/main-js.js service-worker.js
+# E2E: 浏览器冷启动 console 零错误、无外网请求；重复 ID 扫描；390×844 无横向滚动
 ```
 
-推送：origin = https://github.com/iamcheyan/fudoki.git。commit 信息中文/英文均可
-（历史两种都有）。
+推送：origin = https://github.com/iamcheyan/fudoki.git。commit 信息中文/英文均可。
 
-## 三、2026-08-14 改造清单
+## 三、2026-08-15 改造（本次）
 
-1. **深度 Review Phase 0+1**（FUDOKI_REVIEW_PROGRESS.md，全部 ✅ 并过 E2E）：
-   - F-P0-01 删 index.html 重复 user-menu DOM 块；F-P0-02 localStorage 键名统一
-     `fudoki:` 命名空间+迁移函数；F-P0-03 **修复 IIFE 提前闭合**（原 ~6994 行处 `})();`
-     导致后半段全游离顶层 ReferenceError）；F-P0-06 XSS 全面转义（escapeHtml 接入
-     列表/token-pill/翻译弹窗/搜索高亮）；F-P0-07 仓库瘦身（11MB jmdict zip 出库）+
-     PWA 图标修正 + MIT LICENSE。
-   - F-P0-04 删除同步墓碑（`fudoki:deletedDocs`，180 天 TTL）。
-2. **移动端深度优化**（79c66bb，诊断先行 docs/mobile-audit/AUDIT.md + 8 张 390×844
-   走查截图）：
-   - 登录页：横向滚动修复（浮动装饰越界）、viewport-fit=cover、100dvh、登录按钮 ≥44px。
-   - TTS：底部常驻迷你控制条（fixed+safe-area），滚动不消失。
-   - 词典词卡 max-height 55dvh+内部滚动；EasyMDE 工具栏精简+软键盘 visualViewport 适配。
+1. **DeFirebase**：login.html 删除；index.html/module 脚本清空；main-js.js 的
+   initUserProfile/performDataSync/同步墓碑（fudoki:deletedDocs）全删；备份格式
+   version 3（无 deletedDocs）；清缓存脚本保留名单只剩 texts/activeId（fudoki:
+   前缀），清后 `location.replace('./')` 不再跳登录页。README/CLEAR_CACHE.md 同步改写。
+2. **Linear 式壳层**：desktop ≥1024px 左侧 268px 文档栏（搜索/筛选 chips
+   all-favorites-samples/排序/新建主按钮；激活项靛紫左缘）；主区 topbar（标题+字数
+   +时间+收藏+删除+主题+设置）+ 编辑⇄分析分段控件（`body[data-mode]`，存
+   `fudoki:mode`）+ 分析态 TTS 迷你条。<768px：docbar 变抽屉（`body.docbar-open`
+   + backdrop），底部操作坞（新建/模式/朗读）。
+3. **控件全自绘**：FDSelect（ui-utils.js；**编程式 setValue 不触发 onChange**，
+   防递归）；显示开关 switch 化集中在设置弹窗；主题仅 dark/light（旧多主题值
+   归一迁移）；EasyMDE 工具栏精简（bold/italic/heading/quote/lists/link/preview/
+   fullscreen）。
+4. **E2E 证据**：见 `REPORT.md` + `screenshots/`（桌面深浅双主题、设置、分析色点、
+   阅读模式；390×844 编辑/抽屉/分析/设置 sheet）。冷启动 0 外网请求、0 console
+   错误、0 重复 ID。
 
 ## 四、红线 / 已知遗留
 
-- **Firebase 后端别乱动**：login.html:1188-1205 硬编码 firebaseConfig（apiKey/projectId
-  `fudoki-f370e`）；`static/main-js.js` 7499/7636-7639 依赖 `window.firebaseDB/
-  firebaseAuth/firestoreHelpers` 做云同步与登录态。这是用户配的真实 Firebase 项目——
-  **不改配置、不动数据模型、不删登录链路**；本地离线功能（无登录可用）与云同步共存
-  是有意设计。改动涉及登录/同步时先问用户。
-- main-js.js 8398 行单 IIFE：改动后必须 `node --check` + E2E（重复 ID 扫描
+- **纯本地原则**：不要再引入任何登录/云同步/外网 CDN（含字体、图标）。新资源先进
+  `static/libs/` 并加入 `static/pwa-assets.json`，再 bump `service-worker.js`
+  CACHE_VERSION。
+- main-js.js 单 IIFE：改动后必须 `node --check` + E2E（重复 ID 扫描
   `document.querySelectorAll('[id]')`）。
-- localStorage 键必须带 `fudoki:` 前缀（LS 常量表 + `migrateLocalStorage()` 已就位，
-  别再裸写键名）。
-- 清缓存脚本有保留名单（`texts/activeId/fudoki:texts/…`）——动 `CLEAR_CACHE.md`
-  相关逻辑前先读它。
+- localStorage 键必须带 `fudoki:` 前缀（LS 常量表）；新增键同步进备份
+  collectBackupPayload/applyBackup 与 LS_KEY_MIGRATIONS。
+- 清缓存脚本有保留名单（texts/activeId/fudoki:texts/fudoki:activeId）——动
+  `CLEAR_CACHE.md` 相关逻辑前先读它。
+- 词典/分析引擎链：static/libs/dict/dictionary-service.js + static/js/dictionary.js
+  （TECH_TERM_OVERRIDES 里有一条 firebase 词条是**词典内容**，不是云依赖，别删）。
+- TTS：播放引擎在 main-js.js（speakWithPauses/playSegments），tts.js 只提供
+  listVoicesFiltered/applyVoice。headless Chrome 无语音列表属正常。

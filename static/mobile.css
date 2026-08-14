@@ -1,942 +1,233 @@
-/* ===========================================
-   移动端样式 - Mobile Styles
-   此文件仅在移动端设备加载
-   =========================================== */
+/* ============================================================
+   Fudoki 移动端（<768px，390×844 第一公民）
+   单列结构：顶栏（logo/文档切换/主题）→ 内容全屏 → 底部操作坞
+   文档列表 = 抽屉（自绘，非原生控件）
+   ============================================================ */
 
-/* 响应式：移动端只显示一个国旗按钮 */
-.nav-lang .lang-flag { display: none; }
-.nav-lang .lang-dropdown { display: inline-flex; }
-
-/* 移动端适配：导航间距与LOGO文字隐藏 */
-.nav-menu { gap: 8px; }
-.logo-text { display: none; }
-.header-content { padding: 0 12px; }
-.logo { gap: 6px; }
-
-/* 隐藏编辑工具栏中的日期、字数和字号显示 */
-.editor-date,
-.editor-count,
-.font-size-display {
-  display: none;
-}
-
-/* 移动端输入区域字体控制栏优化 */
-.input-font-controls {
-  padding: 5px 8px;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.input-font-controls .editor-fontsize-control {
-  flex-shrink: 0;
-  gap: 5px;
-}
-
-.input-font-controls .editor-fontsize-control input[type="range"] {
-  width: 80px;
-}
-
-.input-font-controls #editorFontSizeValue {
-  font-size: 11px;
-  min-width: 38px;
-}
-
-.input-font-controls .editor-fontfamily-controls {
-  flex: 1;
-  min-width: 0;
-  gap: 5px;
-}
-
-.input-font-controls .editor-fontfamily-controls select {
-  height: 26px;
-  font-size: 11px;
-  padding: 3px 6px;
-  max-width: none;
-}
-
-/* 在移动端显示字体选择和字号控制 - 极度紧凑（主工具栏） */
-.main-header-right .editor-fontsize-control {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.main-header-right .editor-fontsize-control input[type="range"] {
-  width: 60px;
-}
-
-.main-header-right .editor-fontfamily-controls {
-  display: flex;
-  gap: 2px;
-}
-
-.editor-fontfamily-controls select {
-  /* 使用"字"表示字体选择 */
-  width: 62px;
-  height: 26px;
-  font-size: 0;  /* 隐藏下拉选项文字 */
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background-color: var(--bg);
-  cursor: pointer;
-  text-align: center;
-  color: var(--text);
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.editor-fontfamily-controls select::after {
-  content: "字";
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  position: absolute;
-  pointer-events: none;
-}
-
-.editor-fontfamily-controls select:hover {
-  background-color: var(--elev);
-  border-color: var(--accent);
-}
-
-/* 第二个字体选择器显示"A" */
-.editor-fontfamily-controls select:last-child::after {
-  content: "A";
-  font-family: serif;
-  font-style: italic;
-}
-
-/* 优化编辑工具栏在移动端的显示 - 彻底压缩并强制单行 */
-.editor-toolbar {
-  /* 改为 flex 布局并强制单行 */
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 4px;
-  gap: 3px;
-  height: 38px;
-  min-height: 38px;
-}
-
-.editor-toolbar-left,
-.editor-toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-  flex-shrink: 1;
-}
-
-/* 左侧可以压缩，右侧按钮保持固定 */
-.editor-toolbar-left {
-  flex: 1 1 auto;
-  overflow: hidden;
-  min-width: 60px;
-}
-
-.editor-toolbar-right {
-  flex: 0 0 auto;
-  flex-shrink: 0;
-  gap: 1px;
-}
-
-/* 缩小按钮尺寸 */
-.editor-toolbar .theme-icon-btn {
-  min-width: 26px;
-  width: 26px;
-  height: 26px;
-  padding: 2px;
-  flex-shrink: 0;
-}
-
-.editor-toolbar .theme-icon-btn svg {
-  width: 13px;
-  height: 13px;
-}
-
-/* Logo 更紧凑 - 可以被压缩 */
-.editor-toolbar-left .logo {
-  gap: 3px;
-  flex-shrink: 1;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.editor-toolbar-left .logo-icon {
-  width: auto;
-  height: 28px;
-  flex-shrink: 0;
-}
-
-/* 折叠按钮 */
-.folder-collapse-btn {
-  min-width: 26px;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-}
-
-/* 星标按钮更紧凑 */
-.editor-star-toggle {
-  font-size: 14px;
-  padding: 2px;
-  min-width: 26px;
-  width: 26px;
-}
-
-/* 压缩输入区域上下边距 */
-.input-section {
-  margin: 6px 8px;
-  padding: 4px;
-  border-radius: 8px;
-}
-
-/* 压缩文本输入框 */
-#textInput {
-  min-height: 60px;
-  padding: 8px;
-  font-size: 14px;
-}
-
-/* 压缩播放控制栏 */
-.playback-controls {
-  padding: 4px 6px;
-  gap: 6px;
-}
-
-.playback-controls button {
-  min-width: 32px;
-  height: 32px;
-  padding: 4px;
-}
-
-.playback-controls button svg {
-  width: 18px;
-  height: 18px;
-}
-
-/* 压缩进度条和音量控制 */
-.progress-container,
-.volume-container {
-  gap: 4px;
-}
-
-.progress-bar,
-.volume-slider {
-  height: 32px;
-}
-
-/* 单栏布局，内容占满 */
-.main-container { 
-  grid-template-columns: 1fr; 
-}
-
-.folder-management.show { 
-  display: block;  
-}
-
-/* 折叠按钮在移动端不需要显示 */
-.sidebar-toggle-btn,
-#headerSpeedValue {
-  display: none;
-}
-
-.sidebar-stack {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 9999999; /* 抽屉位于遮罩之上 */
+/* ---------- 壳层：单列 ---------- */
+.app {
   display: flex;
   flex-direction: column;
-  background: var(--bg);
-  border-right: 1px solid var(--border);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.22);
-  width: calc(100vw - 80px); /* 留出右侧约80px空间 */
-  max-width: 420px; /* 大屏幕时限制最大宽度 */
-  padding-top: 0;
 }
 
-/* 展开时（main-container 不含 collapsed 类）侧滑进入 */
-.main-container:not(.collapsed) #sidebarStack { 
-  transform: translateX(0); 
-}
-
-.sidebar-stack .folder-management {
-  border-right: none;
-  height: 100%;
-  width: 100%;
-}
-
-/* 移动端：抽屉子元素联动动画（随抽屉展开/收起一起滑动与淡入） */
-.sidebar-stack .folder-management,
-.sidebar-stack .sidebar-scroll,
-.sidebar-stack .list-panel {
-  transition: transform 0.3s ease, opacity 0.25s ease;
-  will-change: transform, opacity;
-}
-
-#reading-mode .main-container{
-  margin: 10px;
-  padding: 0;
-}
-
-#reading-mode .content-area {
-  padding: 10px;
-}
-
-/* 抽屉收起：子元素轻微左移并透明（与容器侧滑叠加更自然） */
-.main-container.collapsed #sidebarStack .folder-management,
-.main-container.collapsed #sidebarStack .list-panel,
-.main-container.collapsed #sidebarStack .sidebar-scroll {
-  transform: translateX(-16px);
-  opacity: 0;
-}
-
-/* 抽屉展开：子元素归位并淡入 */
-.main-container:not(.collapsed) #sidebarStack .folder-management,
-.main-container:not(.collapsed) #sidebarStack .list-panel,
-.main-container:not(.collapsed) #sidebarStack .sidebar-scroll {
-  transform: translateX(0);
-  opacity: 1;
-}
-
-.main-container.collapsed #sidebarStack {
-  display: none;
-}
-
-/* 移动端：当抽屉展开时为内容区添加灰色透明遮罩以突出左侧菜单 */
-.main-container.collapsed {
-  grid-template-columns: 1fr;
-}
-
-/* 使用真实DOM元素而非伪元素，以便添加点击事件 */
-.sidebar-overlay {
-  display: none;
+/* ---------- 文档栏 → 抽屉 ---------- */
+.docbar {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 9999998; /* 高于内容与右侧工具栏，低于sidebar-stack */
-  backdrop-filter: blur(5px) saturate(160%);
-  -webkit-backdrop-filter: blur(5px) saturate(160%);
-  cursor: pointer;
+  inset: 0 auto 0 0;
+  width: min(84vw, 320px);
+  z-index: 110;
+  transform: translateX(-100%);
+  transition: transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  box-shadow: none;
+  padding-top: env(safe-area-inset-top, 0px);
 }
+body.docbar-open .docbar { transform: translateX(0); box-shadow: var(--shadow-float); }
 
-.main-header,
-.main-header-left, .main-header-right {
-  gap: 0;
-}
-.main-header-right .editor-fontfamily-controls {
-  gap: 2px;
-}
-
-.main-header-right .editor-fontfamily-controls select {
-  padding: 2px;
-  width: 54px;
-}
-
-/* 移动端用户头像和下拉菜单优化 */
-.main-header-right .user-profile-container {
-  margin-left: 6px;
-}
-
-#userAvatarBtn {
-  width: 28px;
-  height: 28px;
-}
-
-#userAvatarBtn svg {
-  width: 18px;
-  height: 18px;
-}
-
-.user-dropdown-menu {
-  min-width: 200px;
-  max-width: calc(100vw - 32px);
-  right: -8px;
-}
-
-.user-dropdown-header {
-  padding: 12px 14px;
-}
-
-.user-dropdown-name {
-  font-size: 14px;
-  margin-bottom: 3px;
-}
-
-.user-dropdown-email {
-  font-size: 11px;
-}
-
-.user-dropdown-item {
-  padding: 10px 14px;
-  font-size: 13px;
-  gap: 10px;
-}
-
-.user-dropdown-item svg {
-  width: 16px;
-  height: 16px;
-}
-
-.user-dropdown-item:hover {
-  padding-left: 18px;
-}
-
-/* 子菜单移动端优化 */
-.user-submenu {
-  min-width: 140px;
-}
-
-.submenu-item {
-  padding: 9px 14px;
-  font-size: 12px;
-}
-
-.submenu-item svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* 当前主题/语言名称 */
-#currentThemeName,
-#currentLangName {
-  font-size: 13px;
-}
-
-.main-container:not(.collapsed) .sidebar-overlay {
+.docbar-backdrop {
   display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 105;
+  background: var(--scrim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+body.docbar-open .docbar-backdrop {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-/* PWA Toast 移动端适配 */
-@media (max-width: 640px) {
-  .pwa-toast {
-    left: 16px;
-    right: 16px;
-  }
+/* ---------- 顶栏 ---------- */
+.topbar {
+  height: calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  gap: 6px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
-/* 播放控制栏移动端适配 */
-@media (max-width: 480px) {
-  .play-control-bar .header-voice-controls {
-    flex: 0 0 auto;
-    gap: 4px;
-  }
-  
-  #headerSpeedRange {
-    width: 80px;
-  }
-  
-  #headerSpeedValue {
-    font-size: 11px;
-    min-width: 36px;
-  }
-  
-  #headerVoiceSelect {
-    min-width: 100px;
-    max-width: 140px;
-    height: 28px;
-    font-size: 11px;
-    padding: 3px 6px;
-  }
-  
-  /* 超小屏幕下字体控制栏优化 */
-  .input-font-controls {
-    padding: 4px 6px;
-    gap: 5px;
-  }
-  
-  .input-font-controls .editor-fontsize-control input[type="range"] {
-    width: 70px;
-  }
-  
-  .input-font-controls #editorFontSizeValue {
-    font-size: 10px;
-    min-width: 36px;
-  }
-  
-  .input-font-controls .editor-fontfamily-controls select {
-    height: 24px;
-    font-size: 10px;
-    padding: 2px 5px;
-  }
-  
-  /* 超小屏幕下进一步优化用户菜单 */
-  .user-dropdown-menu {
-    min-width: 180px;
-    border-radius: 10px;
-  }
-  
-  .user-dropdown-header {
-    padding: 10px 12px;
-  }
-  
-  .user-dropdown-name {
-    font-size: 13px;
-  }
-  
-  .user-dropdown-email {
-    font-size: 10px;
-  }
-  
-  .user-dropdown-item {
-    padding: 8px 10px;
-    font-size: 12px;
-    gap: 8px;
-  }
-  
-  .user-dropdown-item:hover {
-    padding-left: 16px;
-  }
-  
-  .submenu-item {
-    padding: 8px 12px;
-    font-size: 11px;
-  }
-  
-  #currentThemeName,
-  #currentLangName {
-    font-size: 12px;
-  }
+#docbarToggle { display: inline-flex; }
+
+.topbar-doc-title {
+  flex: 0 1 auto;
+  font-size: 14px;
+  color: var(--text-2);
+  font-weight: 600;
 }
 
-/* 播放控制栏移动端基础样式 */
-.play-control-bar .header-voice-controls {
+/* 桌面才有的元信息在移动端收敛：日期/字数隐藏，操作保留 */
+#editorDocDate { display: none; }
+#editorCharCount { display: none; }
+
+.mode-seg { grid-column: 2; }
+.mode-seg-btn { padding: 0 10px; }
+.mode-seg-btn span { display: none; } /* 图标化，节省宽度 */
+.mode-seg-btn.active span { display: inline; }
+.mode-seg-btn { min-width: 34px; justify-content: center; }
+
+.topbar-right { gap: 0; }
+
+/* ---------- 工作区 ---------- */
+.work { flex: 1; min-height: 0; }
+
+.editor-scroll {
+  padding: 14px 16px 24px;
+}
+
+.content-scroll-area {
+  padding: 18px 16px calc(120px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ---------- TTS 条 ---------- */
+.tts-bar {
+  gap: 6px;
+  padding: 0 10px;
+  height: 48px;
+}
+.tts-speed input[type="range"] { width: 60px; }
+.tts-volume { display: none; } /* 音量由系统控制 */
+.fd-select-compact .fd-select-btn { max-width: 108px; }
+.fd-select-compact .fd-select-value { max-width: 84px; }
+
+/* 行播放按钮在触屏上常显（无 hover） */
+.play-line-btn { opacity: 0.55; }
+.line-container:hover .play-line-btn { opacity: 1; }
+
+/* 词条触控目标加大 */
+.token-pill { padding: 1px 3px; }
+
+/* ---------- 底部操作坞 ---------- */
+.dock {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 8px;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  padding: 6px;
+  background: var(--bg-float);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-float);
+}
+
+.dock-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: var(--text-2);
+  transition: background 120ms ease, color 120ms ease;
+}
+.dock-btn:active { background: var(--bg-active); }
+
+.dock-play {
+  background: var(--accent);
+  color: var(--accent-text-on);
+}
+.dock-play:active { background: var(--accent-press); }
+
+/* 编辑模式时 dock 的模式按钮显示"分析"图标，反之显示"编辑" */
+body[data-mode="edit"] .dock-icon-analyze { display: none; }
+body[data-mode="analyze"] .dock-icon-edit { display: none; }
+
+/* ---------- 编辑面板底栏 ---------- */
+.editor-foot {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   gap: 6px;
 }
+.editor-foot .fd-select { flex: 1; }
+.font-scale { margin-left: 0; width: 100%; justify-content: space-between; }
+.font-scale input[type="range"] { flex: 1; }
 
-#headerSpeedRange {
-  width: 100px;
+/* EasyMDE 占满宽度 */
+.editor-pane .EasyMDEContainer { border-radius: var(--r-lg); }
+
+/* ---------- 设置弹窗：底部 sheet 化 ---------- */
+.settings-modal {
+  align-items: flex-end;
+  padding: 0;
+}
+.settings-modal-content {
+  width: 100%;
+  max-height: 86dvh;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  border-bottom: none;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  animation: sheet-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes sheet-in {
+  from { transform: translateY(40px); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
 }
 
-#headerSpeedValue {
-  font-size: 12px;
-  min-width: 38px;
+/* ---------- 详情浮层 / 弹层留边 ---------- */
+.token-details { max-width: 78vw; }
+
+/* ---------- 阅读模式按钮让位给操作坞 ---------- */
+.reading-mode-toggle {
+  right: 14px;
+  bottom: calc(78px + env(safe-area-inset-bottom, 0px));
 }
 
-#headerVoiceSelect {
-  min-width: 120px;
-  max-width: 160px;
-  height: 30px;
-  font-size: 12px;
-  padding: 4px 8px;
-}
-.sidebar-scroll {
-  height: 94vh;
+/* toast 上移避开坞 */
+.error-toast, .toast, .info-toast {
+  bottom: calc(86px + env(safe-area-inset-bottom, 0px));
 }
 
-/* ========================================
-   EasyMDE Markdown 编辑器移动端优化
-   ======================================== */
+/* ---------- 软键盘：坞隐藏 ---------- */
+body.kb-open .dock { display: none; }
+body.kb-open .reading-mode-toggle { display: none; }
 
-/* 移动端默认样式（≤768px） */
-.input-section .EasyMDEContainer .editor-toolbar {
-  padding: 3px 4px;
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  gap: 2px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.input-section .EasyMDEContainer .editor-toolbar button {
-  padding: 4px 5px;
-  font-size: 14px;
-  min-width: 28px;
-  flex-shrink: 0;
-}
-
-/* 移动端隐藏分隔符 */
-.input-section .EasyMDEContainer .editor-toolbar i.separator {
-  display: none;
-}
-
-.input-section .EasyMDEContainer .CodeMirror {
-  min-height: 150px;
-  font-size: calc(13px * var(--font-scale));
-}
-.editor-panels {
-  padding-top: 40px;
-}
-/* 小屏移动端：超紧凑工具栏（≤480px） */
-@media (max-width: 480px) {
-  .input-section .EasyMDEContainer .editor-toolbar {
-    padding: 2px 3px;
-    gap: 1px;
-    scrollbar-width: none; /* Firefox */
-  }
-  
-  /* 隐藏滚动条 */
-  .input-section .EasyMDEContainer .editor-toolbar::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .input-section .EasyMDEContainer .editor-toolbar button {
-    padding: 3px 4px;
-    height: 28px;
-    min-width: 26px;
-  }
-  
-  /* 按钮图标更小 */
-  .input-section .EasyMDEContainer .editor-toolbar button i {
-    font-size: 14px;
-  }
-}
-
-/* ===============================================
-   移动端文档列表项 - 默认显示操作按钮
-   =============================================== */
-@media (max-width: 768px) {
-  /* 移动端默认显示星号和垃圾桶 */
-  .doc-item-actions {
-    opacity: 1 !important;
-    transform: translateX(0) !important;
-    pointer-events: auto !important;
-  }
-
-  /* 移动端始终显示删除按钮 */
-  .doc-action-btn.delete-btn {
-    opacity: 1 !important;
-    transform: scale(1) !important;
-  }
-
-  /* 移动端默认为内容区域留出空间（星号+垃圾桶） */
-  .doc-item-content {
-    padding-right: 70px !important;
-  }
-
-  /* 已收藏的文档也是相同空间 */
-  .doc-item:has(.fav-btn.active) .doc-item-content {
-    padding-right: 70px !important;
-  }
-}
-
-/* ===============================================
-   Mobile UX 深度优化（2026-08 移动端走查修复）
-   依据 docs/mobile-audit/AUDIT.md 清单
-   =============================================== */
-
-/* ---------- 0. 视口基座：dvh 降级 + safe-area ---------- */
-@media (max-width: 768px) {
-  html, body {
-    overscroll-behavior-y: none;
-  }
-
-  .main-container {
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
-  }
-
-  /* 顶部工具栏避开刘海/状态栏 */
-  .main-header,
-  .editor-panels .main-header {
-    padding-top: 6px;
-    padding-top: calc(6px + env(safe-area-inset-top, 0px));
-  }
-
-  /* 抽屉全高 + safe-area */
-  .sidebar-stack,
-  .folder-management {
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  .sidebar-scroll {
-    height: auto;
-    height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  }
-}
-
-/* ---------- 1. TTS 底部常驻迷你控制条 ---------- */
-@media (max-width: 768px) {
-  #headerPlayControl {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 900;
-    padding: 6px 10px;
-    padding-bottom: 6px;
-    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.18);
-    border-top: 1px solid rgba(127, 127, 127, 0.25);
-  }
-
-  /* 底部为常驻条留出空间：内容区与整页 */
-  .content-area {
-    padding-bottom: 64px;
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-  }
-
-  body {
-    padding-bottom: 58px;
-    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
-  }
-
-  /* 播放/暂停 ≥44px 触控目标 */
-  #headerPlayControl .theme-icon-btn {
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  #headerSpeedRange {
-    min-height: 32px;
-  }
-}
-
-/* ---------- 2. 词典词卡移动端布局 ---------- */
-@media (max-width: 768px) {
-  .token-details {
-    max-width: calc(100vw - 24px) !important;
-    max-height: 55vh;
-    max-height: calc(55dvh);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* 长文折行：词卡内容不撑宽 */
-  .token-details,
-  .token-details * {
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-
-  .translation-content {
-    max-height: 40vh;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-}
-
-/* ---------- 3. 触控目标 ≥44px ---------- */
-@media (max-width: 768px) {
-  /* 顶部工具栏图标按钮 */
-  .main-header .theme-icon-btn,
-  .main-header .folder-collapse-btn,
-  .main-header .btn-new {
-    min-width: 40px;
-    min-height: 40px;
-  }
-
-  /* 侧栏：排序 / 搜索 / 文件夹 / 文档项 */
-  #docSortToggle {
-    min-width: 40px;
-    min-height: 40px;
-  }
-
-  .search-doc-btn {
-    min-height: 44px;
-  }
-
-  .folder-item {
-    min-height: 44px;
-  }
-
-  .doc-item {
-    min-height: 48px;
-  }
-
-  .doc-item .doc-action-btn {
-    min-width: 40px;
-    min-height: 40px;
-  }
-
-  /* 弹窗关闭按钮 */
-  .settings-modal-close,
-  .search-modal-close,
-  .app-drawer-close {
-    min-width: 40px;
-    min-height: 40px;
-  }
-
-  /* 用户菜单项 */
-  .user-dropdown-item,
-  .submenu-item {
-    min-height: 44px;
-  }
-
-  /* 新建下拉项 */
-  .new-doc-dropdown-menu .dropdown-item {
-    min-height: 44px;
-  }
-}
-
-/* ---------- 4. EasyMDE 移动端工具栏精简 + 大预览按钮 ---------- */
-@media (max-width: 768px) {
-  /* 精简：隐藏低频按钮（link/image/guide/side-by-side） */
-  .input-section .EasyMDEContainer .editor-toolbar button.image,
-  .input-section .EasyMDEContainer .editor-toolbar button.link,
-  .input-section .EasyMDEContainer .editor-toolbar button.guide,
-  .input-section .EasyMDEContainer .editor-toolbar button.side-by-side {
-    display: none !important;
-  }
-
-  /* 剩余按钮放大到 ≥40px */
-  .input-section .EasyMDEContainer .editor-toolbar button {
-    min-width: 40px;
-    min-height: 40px;
-    font-size: 17px;
-  }
-
-  /* 预览切换大按钮：主操作 */
-  .input-section .EasyMDEContainer .editor-toolbar button.preview {
-    min-width: 84px;
-    border: 1.5px solid currentColor;
-    border-radius: 8px;
-    font-size: 13px;
-    gap: 6px;
-  }
-
-  .input-section .EasyMDEContainer .editor-toolbar button.preview i {
-    font-size: 16px;
-  }
-
-  .input-section .EasyMDEContainer .editor-toolbar button.preview .mde-preview-label {
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .input-section .EasyMDEContainer .editor-toolbar button.preview.active {
-    background: rgba(74, 144, 226, 0.15);
-  }
-}
-
-/* ---------- 5. 软键盘弹出视口处理 ---------- */
-@media (max-width: 768px) {
-  /* 键盘打开（mobile-ux.js 加 body.kb-open）：控制条改贴布局视口底部 */
-  body.kb-open #headerPlayControl {
-    position: sticky;
-    bottom: 0;
-  }
-
-  body.kb-open .input-section .EasyMDEContainer .CodeMirror {
-    min-height: 120px;
-  }
-}
-
-/* ---------- 6. 弹窗移动端约束 + safe-area ---------- */
-@media (max-width: 768px) {
-  .settings-modal-content,
-  .search-modal-content {
-    width: calc(100vw - 24px);
-    max-width: calc(100vw - 24px);
-    max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px));
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    margin-top: 0;
-    margin-top: env(safe-area-inset-top, 0px);
-  }
-
-  .search-modal-input {
-    min-height: 44px;
-    font-size: 16px; /* 防 iOS 聚焦缩放 */
-  }
-
-  /* 设置弹窗内表单控件 */
-  .settings-modal-content select,
-  .settings-modal-content input[type="text"],
-  .toolbar-content select,
-  .toolbar-content input[type="range"] {
-    min-height: 40px;
-    font-size: 16px;
-  }
-}
-
-/* ---------- 7. 下拉刷新指示器 + 安装按钮（mobile-ux.js 注入） ---------- */
+/* ---------- 下拉刷新指示（mobile-ux.js） ---------- */
 .fudoki-ptr {
   position: fixed;
-  top: 8px;
-  top: calc(8px + env(safe-area-inset-top, 0px));
+  top: calc(-56px + env(safe-area-inset-top, 0px));
   left: 50%;
-  transform: translate(-50%, -64px);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--bg-color, #fff);
-  border: 2px solid currentColor;
+  z-index: 95;
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 12000;
-  transition: transform 0.2s ease;
-  font-size: 18px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  border-radius: 50%;
+  background: var(--bg-float);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  box-shadow: var(--shadow-float);
+  opacity: 0;
+  transition: opacity 120ms ease;
   pointer-events: none;
 }
+.fudoki-ptr.visible { opacity: 1; }
+.fudoki-ptr.armed { color: var(--accent); border-color: var(--accent); }
+.fudoki-ptr .spin { display: inline-block; animation: ptr-spin 0.9s linear infinite; }
+@keyframes ptr-spin { to { transform: rotate(360deg); } }
 
-.fudoki-ptr.visible {
-  transform: translate(-50%, 0);
-}
-
-.fudoki-ptr.armed {
-  opacity: 0.85;
-}
-
-.fudoki-ptr .spin {
-  display: inline-block;
-  animation: fudoki-ptr-rotate 0.8s linear infinite;
-}
-
-@keyframes fudoki-ptr-rotate {
-  to { transform: rotate(360deg); }
-}
-
-.fudoki-install-fab {
+/* ---------- PWA 安装 FAB（mobile-ux.js） ---------- */
+.mde-install-fab {
   position: fixed;
   right: 14px;
-  right: calc(14px + env(safe-area-inset-right, 0px));
-  bottom: 76px;
-  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-  z-index: 950;
-  min-height: 44px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 22px;
-  background: #4a90e2;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-}
-
-.fudoki-install-fab:active {
-  transform: scale(0.96);
-}
-
-/* 滑动切换文档时的轻提示 */
-.fudoki-swipe-hint {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  z-index: 12000;
-  pointer-events: none;
-  max-width: 70vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+  z-index: 92;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text-on);
+  font-size: 12.5px;
+  font-weight: 500;
+  box-shadow: var(--shadow-float);
 }

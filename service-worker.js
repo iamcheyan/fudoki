@@ -10,7 +10,7 @@
 const CACHE_PREFIX = 'fudoki-cache';
 // 发版必改：每次发布静态资源变更时递增版本号（v1 → v2 → …），
 // activate 阶段会自动清理所有旧版本缓存。
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v6';
 const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VERSION}`;
 
 // Resolve fallback HTML relative to SW scope

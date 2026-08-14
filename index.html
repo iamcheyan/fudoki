@@ -1,159 +1,65 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-  <title>フドキ ― 言葉の「風土」を記す、日本語解析ツール</title>
-  
+  <title>フドキ ― 日本語テキスト解析ツール</title>
+
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
-  
+
   <!-- iOS PWA 配置 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Fudoki">
   <link rel="apple-touch-icon" href="static/logo.png">
-  <link rel="apple-touch-startup-image" href="static/logo.png">
-  
-  <!-- 主题颜色 -->
-  <meta name="theme-color" content="#4a90e2">
-  <meta name="msapplication-TileColor" content="#4a90e2">
-  
+
+  <!-- 主题颜色（深浅双主题，与设计系统一致） -->
+  <meta name="theme-color" content="#08090a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f7f8f8" media="(prefers-color-scheme: light)">
+  <meta name="msapplication-TileColor" content="#08090a">
+
   <link rel="stylesheet" href="static/styles.css">
   <!-- 移动端样式：仅在移动设备加载，优先级高于主样式 -->
   <link rel="stylesheet" href="static/mobile.css" media="(max-width: 768px)">
   <link rel="icon" type="image/png" href="static/logo.png">
   <!-- EasyMDE Markdown 编辑器 -->
   <link rel="stylesheet" href="static/libs/easymde/easymde.min.css">
-  
-  <!-- 清除缓存脚本 - 必须在其他脚本之前执行 -->
+
+  <!-- 清除缓存脚本 - 必须在其他脚本之前执行（纯本地：清缓存后回到首页，不涉及任何账号） -->
   <script>
     (function() {
-      // 检查 URL 参数
       const urlParams = new URLSearchParams(window.location.search);
       const shouldClear = urlParams.get('clear');
-      
+
       if (shouldClear === '1' || shouldClear === 'true') {
-        console.log('🧹 清除缓存模式已启动...');
-        
         // 保留文档数据（新旧两套命名，兼容迁移前后的版本）
         const keysToPreserve = [
-          'texts', 'activeId',                    // 旧命名（迁移前）
-          'fudoki:texts', 'fudoki:activeId',      // 新命名（fudoki: 命名空间）
-          'fudoki:deletedDocs'                    // 删除墓碑（防止云同步复活已删文档）
+          'texts', 'activeId',
+          'fudoki:texts', 'fudoki:activeId'
         ];
-        const allKeys = Object.keys(localStorage);
-        let clearedCount = 0;
-
-        allKeys.forEach(key => {
-          if (!keysToPreserve.includes(key)) {
-            localStorage.removeItem(key);
-            clearedCount++;
-          }
+        Object.keys(localStorage).forEach(key => {
+          if (!keysToPreserve.includes(key)) localStorage.removeItem(key);
         });
-        
-        console.log(`✅ 已清除 ${clearedCount} 个 localStorage 项`);
-        
-        // 清除所有 sessionStorage
-        const sessionCount = sessionStorage.length;
         sessionStorage.clear();
-        console.log(`✅ 已清除 ${sessionCount} 个 sessionStorage 项`);
-        
-        // 清除 PWA Service Worker 缓存
+
+        const finish = () => { window.location.replace('./'); };
+
         if ('caches' in window) {
-          caches.keys().then(function(cacheNames) {
-            return Promise.all(
-              cacheNames.map(function(cacheName) {
-                console.log(`🗑️  删除缓存: ${cacheName}`);
-                return caches.delete(cacheName);
-              })
-            );
-          }).then(function() {
-            console.log('✅ 已清除所有 PWA 缓存');
-            
-            // 注销 Service Worker
-            if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                  registration.unregister();
-                  console.log('✅ 已注销 Service Worker');
-                }
-              });
-            }
-            
-            // 显示完成消息并重定向
-            showClearMessage();
-          }).catch(function(error) {
-            console.error('❌ 清除缓存时出错:', error);
-            showClearMessage();
-          });
-        } else {
-          showClearMessage();
-        }
-        
-        function showClearMessage() {
-          // 创建提示框
-          const message = document.createElement('div');
-          message.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            z-index: 999999;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 500;
-            line-height: 1.6;
-          `;
-          message.innerHTML = `
-            <div style="font-size: 48px; margin-bottom: 15px;">🧹</div>
-            <div style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">缓存清除完成！</div>
-            <div style="font-size: 14px; opacity: 0.9;">正在退出登录...</div>
-          `;
-          document.body.appendChild(message);
-          
-          // 1.5秒后退出登录并跳转到登录页
-          setTimeout(function() {
-            // 设置登出标志
-            sessionStorage.setItem('fudoki_logging_out', 'true');
-            
-            // 清除用户数据（如果还有残留）
-            localStorage.removeItem('fudoki_user'); localStorage.removeItem('fudoki:user');
-            
-            // 如果 Firebase Auth 可用，尝试登出
-            if (window.firebaseAuth) {
-              try {
-                // 使用 Firebase 的 signOut
-                import('https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js')
-                  .then(function(authModule) {
-                    return authModule.signOut(window.firebaseAuth);
-                  })
-                  .then(function() {
-                    console.log('✅ Firebase 登出成功');
-                  })
-                  .catch(function(error) {
-                    console.warn('⚠️ Firebase 登出失败:', error);
-                  })
-                  .finally(function() {
-                    // 无论成功失败都跳转到登录页
-                    window.location.href = 'login.html';
-                  });
-              } catch (error) {
-                console.warn('⚠️ Firebase 登出异常:', error);
-                window.location.href = 'login.html';
+          caches.keys()
+            .then(names => Promise.all(names.map(n => caches.delete(n))))
+            .catch(() => {})
+            .then(() => {
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                  Promise.all(regs.map(r => r.unregister())).catch(() => {}).then(finish);
+                }).catch(finish);
+              } else {
+                finish();
               }
-            } else {
-              // 如果没有 Firebase Auth，直接跳转
-              console.log('ℹ️ 未检测到 Firebase Auth，直接跳转到登录页');
-              window.location.href = 'login.html';
-            }
-          }, 1500);
+            });
+        } else {
+          finish();
         }
       }
     })();
@@ -161,8 +67,8 @@
 </head>
 <body>
 
+  <!-- PWA 离线资源包进度提示 -->
   <div id="pwaInstallToast" class="pwa-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
-    <div class="pwa-toast__icon" id="pwaInstallIcon" aria-hidden="true"></div>
     <div class="pwa-toast__content">
       <div class="pwa-toast__title" id="pwaInstallTitle">离线资源包</div>
       <div class="pwa-toast__message" id="pwaInstallMessage">正在准备离线资源…</div>
@@ -170,557 +76,200 @@
         <div class="pwa-toast__progress-bar" id="pwaInstallProgressBar"></div>
       </div>
     </div>
-    <button class="pwa-toast__close" id="pwaToastClose" type="button" aria-label="关闭提示">✕</button>
+    <button class="pwa-toast__close" id="pwaToastClose" type="button" aria-label="关闭提示">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+    </button>
   </div>
 
-  <!-- 主要内容区域 -->
-  <div class="main-container">
-    <!-- 移动端抽屉：将左侧文件夹与文档列表上下堆叠展示 -->
-    <div class="sidebar-stack" id="sidebarStack">
+  <!-- 应用壳：左侧文档栏 + 主区 -->
+  <div class="app" id="app">
 
-      <!-- Notion风格侧边栏 -->
-      <aside class="folder-management" id="sidebar-left" aria-label="导航侧边栏">
-        <div class="sidebar-scroll" id="sidebarScroll">
-          <!-- 文件夹区域 -->
-          <section class="sidebar-section folder-section" aria-labelledby="sidebarFolderTitle">
-            <div class="folder-title-row">
-              <div class="sidebar-title" id="sidebarFolderTitle">内容管理</div>
-              <div class="folder-title-actions">
-                <button type="button" class="btn-sort theme-icon-btn desc" id="docSortToggle" aria-label="切换时间排序" title="切换时间排序">
-                  <svg class="sort-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                    <path class="arrow-up" d="M12 7l-4 4h8z"></path>
-                    <path class="arrow-down" d="M12 17l4-4H8z"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="folder-list" id="folderList">
-              <!-- 搜索按钮和文件夹列表由 JS 生成 -->
-            </div>
-          </section>
-
-          <!-- 文档列表 -->
-          <section class="list-panel" id="listPanel" aria-label="文档列表">
-            <div class="doc-list" id="documentList">
-              <!-- 文档列表由 JS 生成 -->
-            </div>
-          </section>
-        </div>
-      </aside>
-    </div>
-
-   
-    
-    <!-- 右侧列 - 内容区域 -->
-    <main class="content-main">
-      <div class="content-container">
-         <!-- 编辑工具栏：显示创建日期、字数、星标与阅读模式 -->
-        <section class="main-header" id="editorToolbar" aria-label="文档工具栏">
-          <div class="main-header-left">
-            <!-- 折叠按钮 -->
-            <button type="button" class="folder-collapse-btn theme-icon-btn" id="folderToolbarCollapseBtn" aria-label="收起文件夹工具栏" title="收起/展开">
-              <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" fill="currentColor">
-                <path d="M3.608 10.442a.625.625 0 0 1 0-.884l5.4-5.4a.625.625 0 0 1 .884.884L4.934 10l4.958 4.958a.625.625 0 1 1-.884.884z"></path>
-                <path d="m14.508 4.158-5.4 5.4a.625.625 0 0 0 0 .884l5.4 5.4a.625.625 0 1 0 .884-.884L10.434 10l4.958-4.958a.625.625 0 1 0-.884-.884"></path>
-              </svg>
-            </button>
-            <!-- Logo -->
-            <a href="#" class="logo">
-              <img src="static/logo.png" alt="Fudoki" class="logo-icon">
-              <span class="logo-text" id="logoText">Fudoki</span>
-            </a>
-              <div class="new-doc-group">
-                <button type="button" class="btn-new theme-icon-btn editorNewBtn" id="newDocBtn" aria-label="新建文档" title="新建文档">
-                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="compose">
-                    <path d="m16.774 4.341-.59.589-1.109-1.11.596-.594a.784.784 0 0 1 1.103 0c.302.302.302.8 0 1.102zM8.65 12.462l6.816-6.813-1.11-1.11-6.822 6.808a1.1 1.1 0 0 0-.236.393l-.289.932c-.052.196.131.38.315.314l.932-.288a.9.9 0 0 0 .394-.236"></path>
-                    <path d="M4.375 6.25c0-1.036.84-1.875 1.875-1.875H11a.625.625 0 1 0 0-1.25H6.25A3.125 3.125 0 0 0 3.125 6.25v7.5c0 1.726 1.4 3.125 3.125 3.125h7.5c1.726 0 3.125-1.4 3.125-3.125V9a.625.625 0 1 0-1.25 0v4.75c0 1.036-.84 1.875-1.875 1.875h-7.5a1.875 1.875 0 0 1-1.875-1.875z"></path>
-                  </svg>
-                </button>
-                <button type="button" class="btn-new-dropdown theme-icon-btn" id="newDocDropdownBtn" aria-label="新建选项" title="选择文档类型">
-                  <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="arrowChevronSingleDown" style="width: 16px; height: 16px; display: block; fill: currentColor; flex-shrink: 0;">
-                    <path d="M9.558 13.442c.244.244.64.244.884 0l5.4-5.4a.625.625 0 1 0-.884-.884L10 12.116 5.042 7.158a.625.625 0 0 0-.884.884z"></path>
-                  </svg>
-                </button>
-                <div class="new-doc-dropdown-menu" id="newDocDropdownMenu">
-                  <a href="#" class="dropdown-item" data-doc-type="note">
-                    <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
-                      <path d="M4.5 3h11a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 15.5v-11A1.5 1.5 0 0 1 4.5 3zm1 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V9a.5.5 0 0 0-.5-.5zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"></path>
-                    </svg>
-                    便签
-                  </a>
-                  <a href="#" class="dropdown-item" data-doc-type="todo">
-                    <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style="width: 18px; height: 18px; display: block; fill: currentColor; flex-shrink: 0; margin-right: 8px;">
-                      <path d="M5.5 3A2.5 2.5 0 0 0 3 5.5v9A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5v-9A2.5 2.5 0 0 0 14.5 3h-9zm-.25 4.5a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM6 10a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H6zm-.75 3.75A.75.75 0 0 1 6 13h1.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75zM9.5 7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75zm.75 2.5a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3zm-.75 3.75a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75z"></path>
-                    </svg>
-                    代办事项
-                  </a>
-                </div>
-              </div>
-            <span class="editor-date" id="editorDocDate" title="创建日期"></span>
-            <span class="editor-count" id="editorCharCount" title="字数">0 字</span>
-            <button type="button" class="editor-star-toggle theme-icon-btn" id="editorStarToggle" aria-pressed="false" title="加星">☆</button>
-            
-            <button class="theme-icon-btn" id="editorDeleteBtn" aria-label="删除文档" title="删除文档">
-              <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" class="trash">
-                <path d="M8.806 8.505a.55.55 0 0 0-1.1 0v5.979a.55.55 0 1 0 1.1 0zm3.488 0a.55.55 0 0 0-1.1 0v5.979a.55.55 0 1 0 1.1 0z"></path>
-                <path d="M6.386 3.925v1.464H3.523a.625.625 0 1 0 0 1.25h.897l.393 8.646A2.425 2.425 0 0 0 7.236 17.6h5.528a2.425 2.425 0 0 0 2.422-2.315l.393-8.646h.898a.625.625 0 1 0 0-1.25h-2.863V3.925c0-.842-.683-1.525-1.525-1.525H7.91c-.842 0-1.524.683-1.524 1.525M7.91 3.65h4.18c.15 0 .274.123.274.275v1.464H7.636V3.925c0-.152.123-.275.274-.275m-.9 2.99h7.318l-.39 8.588a1.175 1.175 0 0 1-1.174 1.122H7.236a1.175 1.175 0 0 1-1.174-1.122l-.39-8.589z"></path>
-              </svg>
-            </button>
-            
-            <!-- 将阅读模式按钮改为"展开菜单"按钮，样式与功能一致 -->
-            <button class="theme-icon-btn" id="collapseMenuBtn" aria-label="展开菜单" title="展开菜单">
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path d="M5 7h14" fill="none"></path>
-                <path d="M5 12h14" fill="none"></path>
-                <path d="M5 17h14" fill="none"></path>
-              </svg>
-            </button>
-          </div>
-          <div class="main-header-right">
-            <button class="theme-icon-btn" id="syncBtn" aria-label="同步" title="同步">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-refresh" aria-hidden="true">
-                <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
-                <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
-              </svg>
-            </button>
-            <!-- 用户头像和下拉菜单 -->
-              <div class="user-profile-container" id="userProfileContainer" style="display: none;">
-                <button class="user-avatar-btn" id="userAvatarBtn" aria-label="用户菜单" title="用户菜单">
-                  <img id="userAvatarImg" src="" alt="User Avatar" style="display: none;">
-                  <svg viewBox="0 0 24 24" id="userAvatarPlaceholder">
-                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
-                  </svg>
-                </button>
-                <div class="user-dropdown-menu" id="userDropdownMenu">
-                  <div class="user-dropdown-header">
-                    <div class="user-dropdown-name" id="userDisplayName">用户名</div>
-                    <div class="user-dropdown-email" id="userEmail">user@example.com</div>
-                  </div>
-                    <button class="user-dropdown-item" id="syncDataBtn">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-                      </svg>
-                      <span data-i18n="userMenuSyncData">データを同期</span>
-                    </button>
-                    
-                    <!-- 主题选择 -->
-                    <div class="user-dropdown-item submenu-parent" id="userThemeBtn">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A1.5,1.5 0 0,0 13.5,19.5C13.5,19.11 13.35,18.76 13.11,18.5C12.88,18.23 12.73,17.88 12.73,17.5A1.5,1.5 0 0,1 14.23,16H16A5,5 0 0,0 21,11C21,6.58 16.97,3 12,3Z"/>
-                      </svg>
-                      <span id="currentThemeName">Paper White</span>
-                      <svg class="submenu-arrow" viewBox="0 0 24 24" width="16" height="16">
-                        <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
-                      </svg>
-                      <div class="user-submenu" id="themeSubmenu">
-                        <button class="submenu-item active" data-theme="paper">Paper White</button>
-                        <button class="submenu-item" data-theme="sakura">Sakura</button>
-                        <button class="submenu-item" data-theme="sticky">Sticky Note</button>
-                        <button class="submenu-item" data-theme="green">Green</button>
-                        <button class="submenu-item" data-theme="blue">Blue</button>
-                        <button class="submenu-item" data-theme="dark">Dark</button>
-                      </div>
-                    </div>
-                    
-                    <!-- 语言选择 -->
-                    <div class="user-dropdown-item submenu-parent" id="userLangBtn">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M12.87,15.07L10.33,12.56L10.36,12.53C12.1,10.59 13.34,8.36 14.07,6H17V4H10V2H8V4H1V6H12.17C11.5,7.92 10.44,9.75 9,11.35C8.07,10.32 7.3,9.19 6.69,8H4.69C5.42,9.63 6.42,11.17 7.67,12.56L2.58,17.58L4,19L9,14L12.11,17.11L12.87,15.07M18.5,10H16.5L12,22H14L15.12,19H19.87L21,22H23L18.5,10M15.88,17L17.5,12.67L19.12,17H15.88Z"/>
-                      </svg>
-                      <span id="currentLangName">日本語</span>
-                      <svg class="submenu-arrow" viewBox="0 0 24 24" width="16" height="16">
-                        <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
-                      </svg>
-                      <div class="user-submenu" id="langSubmenu">
-                        <button class="submenu-item" data-lang="en">English</button>
-                        <button class="submenu-item active" data-lang="ja">日本語</button>
-                        <button class="submenu-item" data-lang="zh">中文</button>
-                      </div>
-                    </div>
-                    <button class="user-dropdown-item" id="userSettingsBtn">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.13,5.91,7.63,6.29L5.23,5.33c-0.22-0.09-0.47,0-0.59,0.22L2.72,8.87c-0.11,0.2-0.06,0.46,0.12,0.61l2.03,1.58c-0.05,0.3-0.07,0.62-0.07,0.94c0,0.33,0.02,0.64,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.04,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.48-0.41l0.36-2.54c0.59-0.24,1.12-0.56,1.62-0.94l2.39,0.96c0.22,0.09,0.47,0,0.59-0.22l1.92-3.32c0.11-0.2,0.06-0.46-0.12-0.61L19.14,12.94z M12,15.5c-1.93,0-3.5-1.57-3.5-3.5S10.07,8.5,12,8.5s3.5,1.57,3.5,3.5S13.93,15.5,12,15.5z"/>
-                      </svg>
-                      <span data-i18n="userMenuSettings">設定</span>
-                    </button>
-                    <!-- 数据管理 -->
-                    <div class="user-dropdown-item submenu-parent" id="userDataManagementBtn">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M6,2H18A2,2 0 0,1 20,4V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2M12,4A6,6 0 0,0 6,10C6,13.31 8.69,16 12.1,16L11.22,13.77C10.95,13.29 11.11,12.68 11.59,12.4L12.45,11.9C12.93,11.63 13.54,11.79 13.82,12.27L15.74,14.69C17.12,13.59 18,11.9 18,10A6,6 0 0,0 12,4M12,9A1,1 0 0,1 13,10A1,1 0 0,1 12,11A1,1 0 0,1 11,10A1,1 0 0,1 12,9M7,18A1,1 0 0,0 6,19A1,1 0 0,0 7,20A1,1 0 0,0 8,19A1,1 0 0,0 7,18M12.09,13.27L14.58,19.58L19.17,18.08L16.68,11.77L12.09,13.27Z"/>
-                      </svg>
-                      <span data-i18n="userMenuDataManagement">データ管理</span>
-                      <svg class="submenu-arrow" viewBox="0 0 24 24" width="16" height="16">
-                        <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
-                      </svg>
-                      <div class="user-submenu" id="dataManagementSubmenu">
-                        <button class="submenu-item" id="userExportBtn">
-                          <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 8px;">
-                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z"/>
-                          </svg>
-                          <span data-i18n="userMenuExport">エクスポート</span>
-                        </button>
-                        <button class="submenu-item" id="userImportBtn">
-                          <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 8px;">
-                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
-                          </svg>
-                          <span data-i18n="userMenuImport">インポート</span>
-                        </button>
-
-                      </div>
-                    </div>
-                    <input type="file" id="userImportFile" accept="application/json" style="display:none">
-
-                    <button class="user-dropdown-item" id="userDownloadBtn">
-                      <svg viewBox="0 0 24 24" width="16" height="16" >
-                        <path d="M5 20h14v-2H5v2z"/>
-                        <path d="M12 4v8l-4-4-1.4 1.4L12 15.8l5.4-5.4L16 8l-4 4V4z"/>
-                      </svg>
-                      <span data-i18n="userMenuDownload">ダウンロード</span>
-                    </button>
-                    <button class="user-dropdown-item" id="switchAccountBtn">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M16 17v2H2v-2s0-4 7-4 7 4 7 4m-3.5-9.5A3.5 3.5 0 1 0 9 11a3.5 3.5 0 0 0 3.5-3.5m3.44 5.5A5.32 5.32 0 0 1 18 17v2h4v-2s0-3.63-6.06-4M15 4a3.4 3.4 0 0 0-1.93.59a5 5 0 0 1 0 5.82A3.4 3.4 0 0 0 15 11a3.5 3.5 0 0 0 0-7z"/>
-                      </svg>
-                      <span data-i18n="userMenuSwitchAccount">アカウントを切り替え</span>
-                    </button>
-                  <button class="user-dropdown-item logout" id="logoutBtn">
-                    <svg viewBox="0 0 24 24">
-                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-                    </svg>
-                    <span data-i18n="userMenuLogout">ログアウト</span>
-                  </button>
-                </div>
-              </div>
-              
-          </div>
-        </section>
-
-        <div class="editor-panels" id="editorPanels">
-        <!-- 输入区域 -->
-        <section class="input-section">
-          <div class="input-group">
-            <textarea id="textInput" placeholder="在此输入日语文本进行分析..."></textarea>
-            <!-- 移除分析按钮：改为在文本域失去焦点且结构变化时自动解析 -->
-          </div>
-          <div class="input-font-controls">
-            <div class="editor-fontsize-control" id="editorFontSizeControl">
-              <input type="range" id="editorFontSizeRange" min="0.8" max="1.5" step="0.05" value="1" aria-label="字号">
-              <div class="font-size-display" id="editorFontSizeValue">100%</div>
-            </div>
-
-            <!-- 字体选择（分别控制编辑区与显示区） -->
-            <div class="editor-fontfamily-controls" id="editorFontFamilyControls">
-              <label class="sr-only" for="editorInputFontSelect">编辑区字体</label>
-              <select id="editorInputFontSelect" title="编辑区字体" aria-label="编辑区字体">
-                <option value="system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,\"Noto Sans\",\"Apple Color Emoji\",\"Segoe UI Emoji\"">系统默认</option>
-                <option value="-apple-system,\"SF Pro Text\",system-ui,BlinkMacSystemFont">SF Pro</option>
-                <option value="PingFang SC,\"Microsoft YaHei\",system-ui,Arial,Helvetica">中文黑体</option>
-                <option value="Hiragino Sans,Meiryo,\"Yu Gothic\",system-ui">日文字体(无衬线)</option>
-                <option value="Hiragino Mincho Pro,Noto Serif JP,\"Times New Roman\",Georgia,serif">日文字体(衬线)</option>
-                <option value="Menlo,Monaco,Consolas,\"Courier New\",monospace">等宽字体</option>
-              </select>
-              <label class="sr-only" for="editorContentFontSelect">显示区字体</label>
-              <select id="editorContentFontSelect" title="显示区字体" aria-label="显示区字体">
-                <option value="system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,\"Noto Sans\",\"Apple Color Emoji\",\"Segoe UI Emoji\"">系统默认</option>
-                <option value="-apple-system,\"SF Pro Text\",system-ui,BlinkMacSystemFont">SF Pro</option>
-                <option value="PingFang SC,\"Microsoft YaHei\",system-ui,Arial,Helvetica">中文黑体</option>
-                <option value="Hiragino Sans,Meiryo,\"Yu Gothic\",system-ui">日文字体(无衬线)</option>
-                <option value="Hiragino Mincho Pro,Noto Serif JP,\"Times New Roman\",Georgia,serif">日文字体(衬线)</option>
-                <option value="Menlo,Monaco,Consolas,\"Courier New\",monospace">等宽字体</option>
-              </select>
-            </div>
-          </div>
-        </section>
-
-        <!-- 可拖拽的分隔条 -->
-        <div class="resizer" id="panelResizer" title="拖拽调整高度"></div>
-        
-        <!-- 结果显示区域 -->
-        <section class="content-area">
-          <!-- 顶部播放控制栏：左播放按钮 + 中进度条 + 右音量 -->
-        <div class="play-control-bar" id="headerPlayControl" aria-label="播放控制栏">
-          <div class="play-control-bar-buttons">
-            <button class="theme-icon-btn play-toggle" id="headerPlayToggle" aria-label="播放全文" title="播放全文">
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-                <path d="M8 5v14l11-7z" fill="currentColor"></path>
-              </svg>
-            </button>
-            <!-- 暂停/恢复按钮 -->
-            <button class="theme-icon-btn pause-toggle" id="headerPauseToggle" aria-label="暂停" title="暂停">
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
-                <path d="M6 5h4v14H6z" fill="currentColor"></path>
-                <path d="M14 5h4v14h-4z" fill="currentColor"></path>
-              </svg>
-            </button>
-          </div>
-          
-          <div class="play-progress" id="headerPlayProgress" aria-label="播放进度" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <div class="play-progress-fill" id="headerPlayProgressFill"></div>
-          </div>
-          
-          <!-- 头部语音与速度控件 -->
-          <div class="header-voice-controls" id="headerVoiceControls" aria-label="语音与速度设置">
-
-            <input type="range" id="headerSpeedRange" min="0.5" max="2" step="0.1" value="1" aria-label="話速">
-            <div class="speed-display" id="headerSpeedValue">1.0x</div>
-            <select id="headerVoiceSelect">
-              <option value="">音声を選択...</option>
-            </select>
-          </div>
-          <input type="range" id="headerVolume" class="play-volume" min="0" max="1" step="0.05" value="1" aria-label="音量" title="音量">
-        </div>
-
-          <div class="content-scroll-area" id="content">
-          <div class="empty-state">
-            <p id="emptyText">请在上方输入日语文本，点击"分析文本"开始处理</p>
-            </div>
-          </div>
-        </section>
+    <!-- 文档栏（桌面常驻；移动端为抽屉） -->
+    <aside class="docbar" id="docbar" aria-label="ドキュメント一覧">
+      <div class="docbar-head">
+        <a class="docbar-brand" href="#" aria-label="Fudoki">
+          <svg class="docbar-brand-mark" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor" opacity=".9"/>
+            <rect x="13" y="3" width="8" height="5" rx="2" fill="currentColor" opacity=".55"/>
+            <rect x="13" y="10" width="8" height="11" rx="2" fill="currentColor" opacity=".75"/>
+            <rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor" opacity=".35"/>
+          </svg>
+          <span class="docbar-brand-name">Fudoki</span>
+        </a>
+        <div class="docbar-search">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>
+          <input type="search" id="docSearchInput" placeholder="ドキュメントを検索…" autocomplete="off" aria-label="ドキュメントを検索">
         </div>
       </div>
-    </main>
-     <!-- 移动端侧边栏遮罩层 -->
-     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <!-- 设置弹窗 -->
-    <div class="settings-modal" id="settingsModal">
-      <div class="settings-modal-content">
-        <!-- 弹窗标题栏 -->
-        <div class="settings-modal-header">
-          <div class="settings-modal-title">
-            <svg class="settings-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-            </svg>
-            <span id="voiceTitle">系统设置</span>
-          </div>
-          <button class="settings-modal-close" id="settingsModalClose" title="关闭">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+
+      <div class="docbar-list-wrap">
+        <div class="docbar-list-head">
+          <span class="docbar-list-title" data-i18n="docListTitle">ドキュメント</span>
+          <button type="button" class="icon-btn icon-btn-sm" id="docSortToggle" aria-label="作成順を切り替え" title="並び替え：新→旧">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path class="arrow-up" d="M12 6l-4 4.2h8z" fill="currentColor"/>
+              <path class="arrow-down" d="M12 18l4-4.2H8z" fill="currentColor"/>
             </svg>
           </button>
         </div>
-      
-      <!-- 工具栏内容（弹窗内保留空容器，避免与内嵌设置重复ID） -->
-       <div class="toolbar-content" id="settingsModalBody"></div>
-     </div>
-   </div>
+        <div class="docbar-filters" id="docbarFilters" role="group" aria-label="フィルタ"></div>
+        <nav class="docbar-list" id="documentList" aria-label="ドキュメントリスト">
+          <!-- 文档列表由 JS 生成 -->
+        </nav>
+      </div>
 
-   <!-- 右侧边栏已移除，统一使用顶部齿轮打开的设置弹窗 -->
-
-  <!-- 文档搜索模态框 -->
-  <div class="search-modal" id="searchModal">
-    <div class="search-modal-content">
-      <!-- 搜索标题栏 -->
-      <div class="search-modal-header">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-        </svg>
-        <input type="text" class="search-modal-input" id="searchModalInput" placeholder="搜索文档标题或内容..." autocomplete="off">
-        <button class="search-modal-close" id="searchModalClose" title="关闭">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-          </svg>
+      <div class="docbar-foot">
+        <button type="button" class="btn btn-primary btn-block" id="newDocBtn">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" fill="currentColor"/></svg>
+          <span data-i18n="newDoc">新規ドキュメント</span>
         </button>
       </div>
-      
-      <!-- 搜索结果 -->
-      <div class="search-modal-results" id="searchModalResults">
-        <div class="search-empty-state">
-          <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" opacity="0.3">
-            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-          </svg>
-          <p>输入关键词开始搜索</p>
+    </aside>
+    <div class="docbar-backdrop" id="docbarBackdrop" hidden></div>
+
+    <!-- 主区 -->
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="icon-btn" id="docbarToggle" aria-label="ドキュメント一覧を開く" title="ドキュメント一覧">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+          </button>
+          <span class="topbar-doc-title" id="topbarDocTitle"></span>
         </div>
-      </div>
-      
-      <!-- 底部提示 -->
-      <div class="search-modal-footer">
-        <span class="search-tip">
-          <kbd>↵</kbd> 打开 
-          <kbd>Esc</kbd> 关闭
-        </span>
-      </div>
-    </div>
-  </div>
 
-  <!-- 应用程序列表侧边栏 -->
-  <div class="app-drawer" id="appDrawer" aria-hidden="true">
-    <div class="app-drawer-content">
-      <div class="app-drawer-header">
-        <h3 class="app-drawer-title" id="appDrawerTitle">应用程序</h3>
-        <button class="app-drawer-close" id="appDrawerClose" aria-label="关闭应用程序列表">✕</button>
-      </div>
-      <div class="app-drawer-body">
-        <div class="app-list">
-          <div class="app-item" data-app="fudoki">
-            <div class="app-icon-large">
-              <img src="https://fudoki.iamcheyan.com/static/logo.png" alt="Fudoki" width="32" height="32" />
-            </div>
-            <div class="app-info">
-              <div class="app-name">Fudoki</div>
-              <div class="app-desc">日本語学習者や自然言語処理研究者向けの日本語テキスト分析ツール。</div>
-            </div>
-          </div>
-
-          <div class="app-item" data-app="terebi">
-            <div class="app-icon-large">
-              <img src="https://terebi.iamcheyan.com/static/logo.png" alt="Terebi" width="32" height="32" />
-            </div>
-            <div class="app-info">
-              <div class="app-name">Terebi</div>
-              <div class="app-desc">日本全国100以上のテレビ局の公開番組をオンラインで視聴可能。</div>
-            </div>
-          </div>
-
-          <div class="app-item" data-app="kotoba">
-            <div class="app-icon-large">
-              <img src="https://kotoba.iamcheyan.com/static/favicon.svg" alt="Kotoba" width="32" height="32" />
-            </div>
-            <div class="app-info">
-              <div class="app-name">Kotoba</div>
-              <div class="app-desc">オンライン日本語単語暗記ツール。辞書切替や各種補助表示設定に対応。</div>
-            </div>
-          </div>
+        <!-- 编辑 ⇄ 分析 分段控件 -->
+        <div class="mode-seg" id="modeSegmented" role="tablist" aria-label="モード切替">
+          <button type="button" class="mode-seg-btn active" id="modeEditBtn" role="tab" aria-selected="true" data-mode="edit">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14.5 5.5l4 4" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/></svg>
+            <span data-i18n="modeEdit">編集</span>
+          </button>
+          <button type="button" class="mode-seg-btn" id="modeAnalyzeBtn" role="tab" aria-selected="false" data-mode="analyze">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M4 19V5M4 19h16M8 15l3-6 3 4 4-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            <span data-i18n="modeAnalyze">分析</span>
+          </button>
         </div>
-      </div>
-      <div class="app-drawer-footer">
-        <div class="user-profile">
-          <!-- <div class="user-avatar">
-            <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
-              <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+
+        <div class="topbar-right">
+          <span class="topbar-meta-item" id="editorDocDate" title="最終更新"></span>
+          <span class="topbar-meta-item mono" id="editorCharCount" title="文字数">0 字</span>
+          <button type="button" class="icon-btn" id="editorStarToggle" aria-pressed="false" title="お気に入り">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path class="star-outline" d="M12 4.6l2.2 4.6 5 .7-3.6 3.5.85 5L12 16l-4.45 2.4.85-5L4.8 9.9l5-.7L12 4.6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path class="star-fill" d="M12 4.6l2.2 4.6 5 .7-3.6 3.5.85 5L12 16l-4.45 2.4.85-5L4.8 9.9l5-.7L12 4.6z" fill="currentColor"/></svg>
+          </button>
+          <button type="button" class="icon-btn" id="editorDeleteBtn" aria-label="ドキュメントを削除" title="削除">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 4h6l1 2h4v2H4V6h4l1-2zM6 9.5h12l-.8 10.1a1.6 1.6 0 0 1-1.6 1.4H8.4a1.6 1.6 0 0 1-1.6-1.4L6 9.5zm3.4 2.2v7.1h1.2v-7.1H9.4zm3.8 0v7.1h1.2v-7.1h-1.2z" fill="currentColor"/></svg>
+          </button>
+          <button type="button" class="icon-btn" id="theme-toggle" aria-label="テーマを切り替え" title="テーマ切替">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path class="icon-moon" d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor"/>
+              <path class="icon-sun" d="M12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-12.6-.8-2h1.6l-.8 2zM12 21.6l-.8-2h1.6l-.8 2zM4.4 12l-2-.8v1.6l2-.8zm19.2 0-2-.8v1.6l2-.8zM6 6.9 4.6 5.4l1.1-1.1L7.1 5.8 6 6.9zm12 12.1-1.4-1.5 1.1-1.1 1.5 1.5-1.2 1.1zM18 6.9l1.4-1.5-1.1-1.1-1.5 1.5L18 6.9zM6 19l-1.4 1.5 1.1 1.1L7.1 20 6 19z" fill="currentColor"/>
             </svg>
-          </div> -->
-          <!-- <div class="user-info">
-            <div class="user-email">iamcheyan.com</div>
-          </div> -->
+          </button>
+          <button type="button" class="icon-btn" id="settingsButton" aria-label="設定" title="設定">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 8.6A3.4 3.4 0 1 0 12 15.4 3.4 3.4 0 0 0 12 8.6zm8.3 4.9-.1-.6 1.6-1.4-1.6-2.8-2 .7-.5-.3-.3-2.1h-3.2l-.3 2.1-.5.3-2-.7-1.6 2.8 1.6 1.4-.1.6.1.6-1.6 1.4 1.6 2.8 2-.7.5.3.3 2.1h3.2l.3-2.1.5-.3 2 .7 1.6-2.8-1.6-1.4.1-.6z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+          </button>
         </div>
-        <footer class="footer" role="contentinfo">
-            <div class="footer-inner">
-              <span class="footer-copy">©</span>
-              <a href="https://iamcheyan.com/" target="_blank" rel="noreferrer noopener" class="footer-brand" title="iamcheyan.com">Cheyan</a>
-              <span class="footer-copy">All Rights Reserved</span>
-              <span class="footer-sep">•</span>
-              <a href="https://github.com/iamcheyan/fudoki" target="_blank" rel="noreferrer noopener" class="footer-link" aria-label="GitHub" title="GitHub">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.58.11.8-.25.8-.56v-2.02c-3.26.71-3.95-1.4-3.95-1.4-.53-1.36-1.3-1.72-1.3-1.72-1.06-.72.08-.71.08-.71 1.18.08 1.8 1.21 1.8 1.21 1.04 1.79 2.73 1.27 3.4.97.11-.76.41-1.27.75-1.56-2.6-.3-5.33-1.3-5.33-5.8 0-1.28.46-2.32 1.21-3.14-.12-.3-.52-1.52.11-3.17 0 0 .98-.31 3.2 1.2.94-.26 1.95-.39 2.95-.39s2.01.13 2.95.39c2.22-1.51 3.19-1.2 3.19-1.2.64 1.65.24 2.87.12 3.17.76.82 1.21 1.86 1.21 3.14 0 4.51-2.73 5.5-5.34 5.79.42.36.8 1.08.8 2.18v3.23c0 .31.21.68.81.56A11.5 11.5 0 0 0 12 .5Z"></path></svg>
-                <span class="footer-link-label">GitHub</span>
-              </a>
+      </header>
+
+      <div class="work" id="work">
+
+        <!-- 编辑面板 -->
+        <section class="editor-pane" id="editorPane" data-pane="edit">
+          <div class="editor-scroll">
+            <div class="input-group">
+              <textarea id="textInput" placeholder="日本語テキストを入力…"></textarea>
             </div>
-          </footer>
-        <!-- <button class="logout-btn" id="logoutBtn">退出</button> -->
+          </div>
+          <div class="editor-foot">
+            <div class="fd-select" id="editorInputFontSelect" data-fd-select></div>
+            <div class="fd-select" id="editorContentFontSelect" data-fd-select></div>
+            <div class="font-scale">
+              <input type="range" id="editorFontSizeRange" min="0.8" max="1.5" step="0.05" value="1" aria-label="文字サイズ">
+              <span class="mono" id="editorFontSizeValue">100%</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 分析面板 -->
+        <section class="analysis-pane" id="analysisPane" data-pane="analyze" hidden>
+          <!-- TTS 迷你控制条 -->
+          <div class="tts-bar" id="ttsBar" role="group" aria-label="読み上げコントロール">
+            <button type="button" class="icon-btn tts-play" id="headerPlayToggle" aria-label="全文を読み上げる" title="再生">
+              <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+              <svg class="icon-stop" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>
+            </button>
+            <button type="button" class="icon-btn tts-pause" id="headerPauseToggle" aria-label="一時停止" title="一時停止／再開">
+              <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 5h3.4v14H7zM13.6 5H17v14h-3.4z" fill="currentColor"/></svg>
+              <svg class="icon-resume" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+            </button>
+            <div class="tts-progress" id="headerPlayProgress" role="progressbar" aria-label="再生進捗" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="tts-progress-fill" id="headerPlayProgressFill"></div>
+            </div>
+            <div class="fd-select fd-select-compact" id="headerVoiceSelect" data-fd-select></div>
+            <div class="tts-speed">
+              <input type="range" id="headerSpeedRange" min="0.5" max="2" step="0.1" value="1" aria-label="話速">
+              <span class="mono" id="headerSpeedValue">1.0x</span>
+            </div>
+            <input type="range" id="headerVolume" class="tts-volume" min="0" max="1" step="0.05" value="1" aria-label="音量" title="音量">
+          </div>
+
+          <div class="content-scroll-area" id="content">
+            <div class="empty-state">
+              <p id="emptyText">エディタでテキストを入力すると、ここに解析結果が表示されます。</p>
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
-  </div>
-  <div class="app-drawer-backdrop" id="appDrawerBackdrop" aria-hidden="true"></div>
-    
+
+      <!-- 移动端底部操作坞 -->
+      <nav class="dock" id="mobileDock" aria-label="クイック操作">
+        <button type="button" class="dock-btn" id="dockNewBtn" aria-label="新規ドキュメント">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="dock-btn" id="dockModeBtn" aria-label="編集／分析を切り替え">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path class="dock-icon-edit" d="M4 20h4L19 9l-4-4L4 16v4zM14.5 5.5l4 4" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><path class="dock-icon-analyze" d="M4 19V5M4 19h16M8 15l3-6 3 4 4-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </button>
+        <button type="button" class="dock-btn dock-play" id="dockPlayBtn" aria-label="読み上げ">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        </button>
+      </nav>
+    </main>
   </div>
 
-  <button type="button" class="reading-mode-toggle" id="readingModeToggle" aria-pressed="false" title="阅读模式">
-    <span class="reading-toggle-icon" aria-hidden="true">
-      <span class="reading-icon-lines"></span>
-    </span>
+  <!-- 阅读模式切换 -->
+  <button type="button" class="reading-mode-toggle" id="readingModeToggle" aria-pressed="false" title="読み上げフォロー">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 5.5C6.5 4 9.5 4 12 5.5c2.5-1.5 5.5-1.5 8 0v13c-2.5-1.5-5.5-1.5-8 0-2.5-1.5-5.5-1.5-8 0v-13z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
   </button>
 
-  <!-- 同步进度提示 -->
-  <div class="sync-progress-toast" id="syncProgressToast">
-    <div class="sync-progress-content">
-      <div class="sync-spinner"></div>
-      <div class="sync-progress-text" id="syncProgressText">データを同期中...</div>
+  <!-- 设置弹窗（自绘 dialog，内容运行时注入） -->
+  <div class="settings-modal" id="settingsModal" role="dialog" aria-modal="true" aria-label="設定">
+    <div class="settings-modal-content">
+      <div class="settings-modal-header">
+        <span class="settings-modal-title" id="settingsModalTitle" data-i18n="settingsTitle">設定</span>
+        <button type="button" class="icon-btn" id="settingsModalClose" aria-label="閉じる" title="閉じる">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+        </button>
+      </div>
+      <div class="toolbar-content" id="settingsModalBody"></div>
+      <input type="file" id="importJsonFile" accept="application/json" hidden>
     </div>
+  </div>
+
+  <!-- 通用提示（复用原 ID：示例复制等轻量通知） -->
+  <div class="info-toast" id="syncProgressToast" role="status" aria-live="polite">
+    <span class="info-toast-text" id="syncProgressText"></span>
   </div>
 
   <!-- 错误提示 -->
-  <div class="error-toast" id="errorToast">
+  <div class="error-toast" id="errorToast" role="alert">
     <div class="error-toast-content">
-      <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+      <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/>
       </svg>
       <div class="error-text" id="errorText">エラーが発生しました</div>
     </div>
   </div>
 
-  
-  <!-- JavaScript文件 -->
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, getDocs, getDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyCULsnd2JYsVTbMP-XTSOaCFS7ae4-a2hw",
-      authDomain: "fudoki-f370e.firebaseapp.com",
-      projectId: "fudoki-f370e",
-      storageBucket: "fudoki-f370e.firebasestorage.app",
-      messagingSenderId: "1031570984525",
-      appId: "1:1031570984525:web:6b173b3764a99ed0091604",
-      measurementId: "G-747S3VQ0YJ"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    // 暴露到全局，供其他脚本使用
-    window.firebaseDB = db;
-    window.firebaseAuth = auth;
-    window.firebaseSignOut = () => signOut(auth); // 暴露 signOut 方法
-    window.firestoreHelpers = { collection, doc, setDoc, getDocs, getDoc, deleteDoc, serverTimestamp };
-
-    // 检查用户登录状态
-    let authCheckCompleted = false;
-    onAuthStateChanged(auth, async (user) => {
-      if (authCheckCompleted) return; // 只执行一次
-      authCheckCompleted = true;
-      
-      if (!user) {
-        // F-P0-03 访客模式：选择"跳过登录"的用户留在主应用本地使用
-        // （云同步由 performDataSync 的登录校验自然拦截，不改动 Firebase 链路）
-        if (localStorage.getItem('fudoki:guest') === '1') {
-          console.log('Guest mode active, staying in local app');
-          return;
-        }
-        // 用户未登录，跳转到登录页
-        console.log('User not authenticated, redirecting to login...');
-        window.location.href = 'login.html';
-      } else {
-        // 已登录用户：清除访客标记
-        try { localStorage.removeItem('fudoki:guest'); } catch (_) {}
-        // 用户已登录，更新 localStorage
-        console.log('User authenticated:', user.email);
-        localStorage.setItem('fudoki:user', JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL
-        }));
-        
-        // 登录成功后自动同步一次（延迟执行，等待页面完全加载）
-        setTimeout(async () => {
-          if (typeof window.performDataSync === 'function') {
-            console.log('Performing initial sync after login...');
-            try {
-              await window.performDataSync();
-              console.log('Initial sync completed');
-              
-              // 启动自动同步定时器
-              if (typeof window.startAutoSync === 'function') {
-                window.startAutoSync();
-              }
-            } catch (error) {
-              console.error('Initial sync failed:', error);
-              // 即使初始同步失败，也启动自动同步
-              if (typeof window.startAutoSync === 'function') {
-                window.startAutoSync();
-              }
-            }
-          }
-        }, 2000); // 2秒后执行，确保页面和 documentManager 已初始化
-      }
-    });
-  </script>
-  
-  <!-- EasyMDE Markdown 编辑器 -->
+  <!-- JavaScript（纯本地：无任何 SDK / 远端模块） -->
   <script src="static/libs/easymde/easymde.min.js"></script>
   <script src="static/libs/kuromoji.js"></script>
   <script src="static/libs/kuroshiro.min.js"></script>

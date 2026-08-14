@@ -1,32 +1,239 @@
+/**
+ * Fudoki UI 工具集
+ *  - FDSelect：自绘下拉组件（替代原生 <select>，深浅双主题）
+ *  - showDeleteConfirm：自绘确认对话框（替代原生 confirm）
+ *  - debounce：简易防抖
+ */
 (function () {
   'use strict';
 
-  // 全局通知
-  function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      color: white;
-      font-weight: 500;
-      z-index: 1000;
-      animation: slideIn 0.3s ease;
-    `;
-    const colors = { success: '#10b981', warning: '#f59e0b', error: '#ef4444', info: '#3b82f6' };
-    notification.style.backgroundColor = colors[type] || colors.info;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => { try { document.body.removeChild(notification); } catch (_) {} }, 300);
-    }, 3000);
-  }
+  /* ============================================================
+   * FDSelect — 自绘下拉
+   * 用法：
+   *   const sel = FDSelect.create(mountEl, {
+   *     options: [{ value, label, disabled? }],   // 或 getOptions: () => [...]
+   *     value: 'x',
+   *     placeholder: '…',
+   *     onChange: (value, option) => {},
+   *     compact: true
+   *   });
+   *   sel.setOptions(options); sel.setValue(value); sel.getValue();
+   * ============================================================ */
+  const FDSelect = {
+    _registry: new Map(),
 
-  // 删除确认对话框（居中）
-  function showDeleteConfirm(message, onConfirm, onCancel) {
+    create(mountEl, config = {}) {
+      if (!mountEl) return null;
+      if (FDSelect._registry.has(mountEl)) {
+        FDSelect._registry.get(mountEl).destroy();
+      }
+
+      const state = {
+        options: [],
+        value: config.value != null ? config.value : '',
+        placeholder: config.placeholder || '',
+        onChange: config.onChange || function () {},
+        open: false,
+        focusIndex: -1,
+        handles: [],
+      };
+
+      mountEl.classList.add('fd-select');
+      if (config.compact) mountEl.classList.add('fd-select-compact');
+      mountEl.setAttribute('data-fd-select', '');
+      mountEl.innerHTML = `
+        <button type="button" class="fd-select-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span class="fd-select-value"></span>
+          <svg class="chev" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 15.2 6.4 9.6l1.1-1.1L12 13l4.5-4.5 1.1 1.1z" fill="currentColor"/></svg>
+        </button>
+        <div class="fd-select-menu" role="listbox"></div>
+      `;
+
+      const btn = mountEl.querySelector('.fd-select-btn');
+      const valueEl = mountEl.querySelector('.fd-select-value');
+      const menu = mountEl.querySelector('.fd-select-menu');
+
+      function getOptions() {
+        return typeof config.getOptions === 'function' ? config.getOptions() : state.options;
+      }
+
+      function optionByValue(v) {
+        return getOptions().find(function (o) { return String(o.value) === String(v); }) || null;
+      }
+
+      function renderValue() {
+        const opt = optionByValue(state.value);
+        valueEl.textContent = opt ? opt.label : (state.placeholder || '—');
+      }
+
+      function renderMenu() {
+        const opts = getOptions();
+        menu.innerHTML = '';
+        opts.forEach(function (o, i) {
+          const item = document.createElement('div');
+          item.className = 'fd-select-item' + (String(o.value) === String(state.value) ? ' selected' : '');
+          item.setAttribute('role', 'option');
+          if (o.disabled) item.setAttribute('disabled', '');
+          item.innerHTML = `<span class="fd-select-item-label"></span>
+            <svg class="fd-check" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M9.5 16.2 5.3 12l-1.1 1.1 5.3 5.3L20 7.9l-1.1-1.1z" fill="currentColor"/></svg>`;
+          item.querySelector('.fd-select-item-label').textContent = o.label;
+          item.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (o.disabled) return;
+            setValue(o.value, true);
+            close();
+          });
+          menu.appendChild(item);
+        });
+      }
+
+      function positionMenu() {
+        const rect = btn.getBoundingClientRect();
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        const mw = menu.offsetWidth;
+        const mh = menu.offsetHeight;
+        menu.style.display = '';
+        menu.style.visibility = '';
+        let left = Math.min(rect.left, window.innerWidth - mw - 8);
+        left = Math.max(8, left);
+        let top = rect.bottom + 4;
+        if (top + mh > window.innerHeight - 8) {
+          const above = rect.top - mh - 4;
+          top = above >= 8 ? above : Math.max(8, window.innerHeight - mh - 8);
+        }
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+        menu.style.minWidth = Math.max(rect.width, 140) + 'px';
+      }
+
+      function open() {
+        if (state.open) return;
+        renderMenu();
+        state.open = true;
+        mountEl.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        positionMenu();
+        const selectedIdx = getOptions().findIndex(function (o) { return String(o.value) === String(state.value); });
+        state.focusIndex = selectedIdx >= 0 ? selectedIdx : 0;
+        updateFocus();
+      }
+
+      function close() {
+        if (!state.open) return;
+        state.open = false;
+        mountEl.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+
+      function updateFocus() {
+        const items = menu.querySelectorAll('.fd-select-item');
+        items.forEach(function (el, i) {
+          el.classList.toggle('focused', i === state.focusIndex);
+          if (i === state.focusIndex) el.scrollIntoView({ block: 'nearest' });
+        });
+      }
+
+      function setValue(v, fire) {
+        state.value = v;
+        renderValue();
+        // 默认编程式赋值不触发 onChange（与原生 select 语义一致），
+        // 仅用户交互（点选/键盘确认）以 fire === true 显式触发，
+        // 避免 onChange → setValue 的无限递归。
+        if (fire === true) {
+          const opt = optionByValue(v);
+          state.onChange(v, opt);
+          if (state.open) renderMenu();
+        }
+      }
+
+      function setOptions(options, keepValue) {
+        state.options = options || [];
+        if (!keepValue || !optionByValue(state.value)) {
+          state.value = state.options.length ? state.options[0].value : '';
+        }
+        renderValue();
+        if (state.open) { renderMenu(); positionMenu(); }
+      }
+
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (state.open) { close(); } else {
+          FDSelect.closeAll(mountEl);
+          open();
+        }
+      });
+
+      btn.addEventListener('keydown', function (e) {
+        const opts = getOptions();
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (!state.open) { open(); return; }
+          const dir = e.key === 'ArrowDown' ? 1 : -1;
+          state.focusIndex = Math.min(opts.length - 1, Math.max(0, state.focusIndex + dir));
+          updateFocus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (state.open) {
+            const opt = opts[state.focusIndex];
+            if (opt && !opt.disabled) { setValue(opt.value, true); close(); }
+          } else {
+            open();
+          }
+        } else if (e.key === 'Escape' && state.open) {
+          e.stopPropagation();
+          close();
+        }
+      });
+
+      const handle = {
+        get value() { return state.value; },
+        set value(v) { setValue(v); },
+        setValue: function (v) { setValue(v); },
+        getValue: function () { return state.value; },
+        setOptions: setOptions,
+        setPlaceholder: function (p) { state.placeholder = p; renderValue(); },
+        onChange: function (fn) { state.onChange = fn || function () {}; },
+        close: close,
+        destroy: function () {
+          close();
+          FDSelect._registry.delete(mountEl);
+        },
+      };
+
+      // 初始化
+      if (typeof config.getOptions !== 'function') state.options = config.options || [];
+      renderValue();
+
+      FDSelect._registry.set(mountEl, handle);
+      return handle;
+    },
+
+    closeAll: function (except) {
+      FDSelect._registry.forEach(function (handle, el) {
+        if (el !== except) handle.close();
+      });
+    },
+
+    get: function (el) {
+      return FDSelect._registry.get(el) || null;
+    },
+  };
+
+  // 点击外部关闭所有下拉
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest || !e.target.closest('.fd-select')) FDSelect.closeAll();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') FDSelect.closeAll();
+  });
+  window.addEventListener('resize', function () { FDSelect.closeAll(); });
+  window.addEventListener('scroll', function () { FDSelect.closeAll(); }, true);
+
+  /* ============================================================
+   * 自绘确认对话框（替代原生 confirm）
+   * ============================================================ */
+  function showDeleteConfirm(message, onConfirm, onCancel, targetElement) {
     const existingConfirm = document.querySelector('.delete-confirm');
     const existingBackdrop = document.querySelector('.modal-backdrop');
     if (existingConfirm) existingConfirm.remove();
@@ -34,226 +241,90 @@
 
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
-    backdrop.setAttribute('aria-hidden', 'false');
 
-    const deleteConfirm = document.createElement('div');
-    deleteConfirm.className = 'delete-confirm';
-    deleteConfirm.setAttribute('role', 'dialog');
-    deleteConfirm.setAttribute('aria-modal', 'true');
-    deleteConfirm.setAttribute('aria-labelledby', 'deleteConfirmTitle');
-    deleteConfirm.innerHTML = `
-      <div class="delete-confirm-header">
-        <div class="delete-confirm-title" id="deleteConfirmTitle">削除</div>
-        <button class="delete-confirm-close" aria-label="关闭">×</button>
-      </div>
-      <div class="delete-confirm-content">
-        <div class="delete-confirm-message">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="delete-confirm-icon">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-          </svg>
-          <span class="delete-confirm-text"></span>
-        </div>
-        <div class="delete-confirm-actions">
-          <button class="btn delete-confirm-cancel">取消</button>
-          <button class="btn btn-danger delete-confirm-ok">删除</button>
-        </div>
+    const dialog = document.createElement('div');
+    dialog.className = 'delete-confirm';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-labelledby', 'deleteConfirmTitle');
+    dialog.innerHTML = `
+      <button type="button" class="delete-confirm-close" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+      </button>
+      <h3 class="delete-confirm-title" id="deleteConfirmTitle">確認</h3>
+      <p class="delete-confirm-text"></p>
+      <div class="delete-confirm-buttons">
+        <button type="button" class="btn btn-secondary delete-confirm-cancel">キャンセル</button>
+        <button type="button" class="btn btn-danger delete-confirm-ok">削除</button>
       </div>
     `;
 
     document.body.appendChild(backdrop);
-    document.body.appendChild(deleteConfirm);
+    document.body.appendChild(dialog);
 
-    const msgEl = deleteConfirm.querySelector('.delete-confirm-text');
+    const msgEl = dialog.querySelector('.delete-confirm-text');
     if (msgEl) msgEl.textContent = message || '';
 
-    const okBtn = deleteConfirm.querySelector('.delete-confirm-ok');
-    const cancelBtn = deleteConfirm.querySelector('.delete-confirm-cancel');
-    const closeBtn = deleteConfirm.querySelector('.delete-confirm-close');
-    setTimeout(() => { if (okBtn) okBtn.focus(); }, 0);
+    const okBtn = dialog.querySelector('.delete-confirm-ok');
+    const cancelBtn = dialog.querySelector('.delete-confirm-cancel');
+    const closeBtn = dialog.querySelector('.delete-confirm-close');
+    setTimeout(function () { if (okBtn) okBtn.focus(); }, 0);
 
+    let done = false;
     function cleanup() {
-      try { deleteConfirm.remove(); } catch (_) {}
-      try { backdrop.remove(); } catch (_) {}
+      if (done) return;
+      done = true;
       document.removeEventListener('keydown', onKeyDown);
+      backdrop.remove();
+      dialog.remove();
     }
     function onKeyDown(e) {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        e.preventDefault();
         cleanup();
         if (onCancel) onCancel();
       }
     }
     document.addEventListener('keydown', onKeyDown);
 
-    okBtn && okBtn.addEventListener('click', () => { cleanup(); if (onConfirm) onConfirm(); });
-    cancelBtn && cancelBtn.addEventListener('click', () => { cleanup(); if (onCancel) onCancel(); });
-    closeBtn && closeBtn.addEventListener('click', () => { cleanup(); if (onCancel) onCancel(); });
-    backdrop.addEventListener('click', () => { cleanup(); if (onCancel) onCancel(); });
+    okBtn && okBtn.addEventListener('click', function () { cleanup(); if (onConfirm) onConfirm(); });
+    cancelBtn && cancelBtn.addEventListener('click', function () { cleanup(); if (onCancel) onCancel(); });
+    closeBtn && closeBtn.addEventListener('click', function () { cleanup(); if (onCancel) onCancel(); });
+    backdrop.addEventListener('click', function () { cleanup(); if (onCancel) onCancel(); });
     return true;
   }
 
-  // 简易防抖
+  /* ============================================================
+   * 通用通知（轻量 toast）
+   * ============================================================ */
+  function showNotification(message, type = 'info') {
+    const el = document.createElement('div');
+    el.className = 'toast toast-' + (type || 'info');
+    el.innerHTML = '<span class="toast-dot"></span><span class="toast-text"></span>';
+    el.querySelector('.toast-text').textContent = message;
+    document.body.appendChild(el);
+    setTimeout(function () {
+      el.classList.add('toast-leaving');
+      setTimeout(function () { el.remove(); }, 220);
+    }, 2600);
+  }
+
+  /* ============================================================
+   * 简易防抖
+   * ============================================================ */
   function debounce(fn, delay = 200) {
     let timer = null;
-    return function(...args) {
+    return function () {
+      const args = arguments;
+      const self = this;
       clearTimeout(timer);
-      timer = setTimeout(() => fn.apply(this, args), delay);
+      timer = setTimeout(function () { fn.apply(self, args); }, delay);
     };
   }
 
-  // 注入通知动画样式（若未注入）
-  (function injectNotifyKeyframes() {
-    if (document.getElementById('ui-utils-keyframes')) return;
-    const style = document.createElement('style');
-    style.id = 'ui-utils-keyframes';
-    style.textContent = `
-      @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-      @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-    `;
-    document.head.appendChild(style);
-  })();
-
   // 暴露到全局
+  window.FDSelect = FDSelect;
   window.showNotification = window.showNotification || showNotification;
   window.showDeleteConfirm = window.showDeleteConfirm || showDeleteConfirm;
   window.debounce = window.debounce || debounce;
-
-  // 面板高度拖拽
-  (function initPanelResizer() {
-    if (window.__panelResizerInitialized) return;
-
-    const resizer = document.getElementById('panelResizer');
-    const panels = document.getElementById('editorPanels');
-    const inputSection = document.querySelector('#editorPanels .input-section');
-    const contentArea = document.querySelector('#editorPanels .content-area');
-
-    // 如果元素还没加载完成，等待 DOM 加载后再试
-    if (!resizer || !panels || !inputSection || !contentArea) {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPanelResizer);
-      }
-      return;
-    }
-    
-    // 只有成功找到所有元素后才标记为已初始化
-    window.__panelResizerInitialized = true;
-
-    let startY = 0;
-    let startInputHeight = 0;
-    let layoutTotalHeight = null;
-    let dragging = false;
-
-    const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
-
-    const computeTotalHeight = () => {
-      const inputRect = inputSection.getBoundingClientRect();
-      const contentRect = contentArea.getBoundingClientRect();
-      const total = inputRect.height + contentRect.height;
-      return total > 0 ? total : null;
-    };
-
-    const applyHeights = (inputHeight) => {
-      const total = layoutTotalHeight || computeTotalHeight();
-      if (!total) return;
-      const minInput = 140;
-      const minContent = 180;
-      const maxInput = Math.max(minInput, total - minContent);
-      const clampedInput = clamp(inputHeight, minInput, maxInput);
-      const contentHeight = Math.max(minContent, total - clampedInput);
-      layoutTotalHeight = total;
-      inputSection.style.flex = '0 0 auto';
-      contentArea.style.flex = '0 0 auto';
-      inputSection.style.height = `${clampedInput}px`;
-      contentArea.style.height = `${contentHeight}px`;
-      inputSection.style.minHeight = `${minInput}px`;
-      contentArea.style.minHeight = `${minContent}px`;
-    };
-
-    const onPointerMove = (event) => {
-      if (!dragging) return;
-      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
-      const delta = clientY - startY;
-      applyHeights(startInputHeight + delta);
-      event.preventDefault();
-    };
-
-    const stopDragging = () => {
-      if (!dragging) return;
-      dragging = false;
-      layoutTotalHeight = null;
-      resizer.classList.remove('resizing');
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
-      document.removeEventListener('mousemove', onPointerMove);
-      document.removeEventListener('mouseup', stopDragging);
-      document.removeEventListener('touchmove', onPointerMove);
-      document.removeEventListener('touchend', stopDragging);
-      document.removeEventListener('touchcancel', stopDragging);
-    };
-
-    const startDragging = (event) => {
-      // 检查是否在 two-pane 模式下（不应该拖拽）
-      const mainContainer = document.querySelector('.main-container');
-      if (mainContainer && mainContainer.classList.contains('two-pane')) {
-        return;
-      }
-      
-      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
-      startY = clientY;
-      startInputHeight = inputSection.getBoundingClientRect().height;
-      layoutTotalHeight = computeTotalHeight();
-      if (!layoutTotalHeight) {
-        const autoTotal = panels.getBoundingClientRect().height - resizer.offsetHeight;
-        layoutTotalHeight = autoTotal > 0 ? autoTotal : null;
-      }
-      if (!layoutTotalHeight) {
-        layoutTotalHeight = startInputHeight + contentArea.getBoundingClientRect().height;
-      }
-      dragging = true;
-      resizer.classList.add('resizing');
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'row-resize';
-      document.addEventListener('mousemove', onPointerMove, { passive: false });
-      document.addEventListener('mouseup', stopDragging);
-      document.addEventListener('touchmove', onPointerMove, { passive: false });
-      document.addEventListener('touchend', stopDragging);
-      document.addEventListener('touchcancel', stopDragging);
-      event.preventDefault();
-      event.stopPropagation();
-    };
-
-    resizer.addEventListener('mousedown', startDragging, { passive: false });
-    resizer.addEventListener('touchstart', startDragging, { passive: false });
-    
-    // 添加调试信息
-    console.log('Resizer initialized successfully:', {
-      resizer: !!resizer,
-      panels: !!panels,
-      inputSection: !!inputSection,
-      contentArea: !!contentArea
-    });
-    window.addEventListener('resize', () => {
-      if (dragging) return;
-      const mainContainer = document.querySelector('.main-container');
-      // 在 two-pane 模式下不调整高度
-      if (mainContainer && mainContainer.classList.contains('two-pane')) return;
-      layoutTotalHeight = null;
-      const total = computeTotalHeight() || (panels.clientHeight - resizer.offsetHeight);
-      const storedInput = parseFloat(inputSection.style.height) || (total * 0.5);
-      applyHeights(storedInput);
-    });
-
-    // 初始高度：输入区与显示区各占一半（仅在非 two-pane 模式下）
-    // 使用 requestAnimationFrame 确保在首次渲染后执行
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        const mainContainer = document.querySelector('.main-container');
-        // 如果是 two-pane 模式，不应用高度设置
-        if (mainContainer && mainContainer.classList.contains('two-pane')) return;
-        layoutTotalHeight = computeTotalHeight() || (panels.clientHeight - resizer.offsetHeight);
-        if (layoutTotalHeight && layoutTotalHeight > 0) {
-          applyHeights(layoutTotalHeight * 0.5);
-        }
-      }, 100);
-    });
-  })();
 })();

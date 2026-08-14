@@ -34,17 +34,18 @@
       return;
     }
     var el = document.createElement('div');
-    el.className = 'fudoki-swipe-hint';
-    el.textContent = msg;
+    el.className = 'toast toast-info';
+    el.innerHTML = '<span class="toast-dot"></span><span class="toast-text"></span>';
+    el.querySelector('.toast-text').textContent = msg;
     document.body.appendChild(el);
-    setTimeout(function () { el.remove(); }, 1800);
+    setTimeout(function () { el.remove(); }, 2200);
   };
 
   /* ------------------------------------------------
    * 1. EasyMDE 预览切换大按钮：追加本地化文字标签
    * ------------------------------------------------ */
   function decoratePreviewButton() {
-    var btn = document.querySelector('.input-section .EasyMDEContainer .editor-toolbar button.preview');
+    var btn = document.querySelector('.editor-pane .EasyMDEContainer .editor-toolbar button.preview');
     if (!btn || btn.querySelector('.mde-preview-label')) return;
     var label = document.createElement('span');
     label.className = 'mde-preview-label';
@@ -96,13 +97,15 @@
     };
 
     var drawerOpen = function () {
-      var mc = document.querySelector('.main-container');
-      return mc && !mc.classList.contains('collapsed');
+      return document.body.classList.contains('docbar-open');
     };
 
     document.addEventListener('touchstart', function (e) {
       if (!isMobile() || !drawerOpen() || e.touches.length !== 1) return;
-      if (window.scrollY > 0 && document.querySelector('.sidebar-scroll').scrollTop > 0) return;
+      if (window.scrollY > 0) {
+        var wrap = document.querySelector('.docbar-list-wrap');
+        if (wrap && wrap.scrollTop > 0) return;
+      }
       var target = e.touches[0].target;
       if (target.closest && target.closest('input, textarea, select, button, .doc-action-btn')) return;
       startY = e.touches[0].clientY;
@@ -159,7 +162,7 @@
       if (!isMobile() || !gesturesEnabled() || e.touches.length !== 1) return;
       var target = e.touches[0].target;
       // 仅在分析结果区滑动时生效
-      if (!target.closest || !target.closest('.content-area')) return;
+      if (!target.closest || !target.closest('.content-scroll-area')) return;
       // 词条/卡片/按钮上滑动不切文档
       if (target.closest('.token-pill, .token-details, button, input, select, a')) return;
       if (window.getSelection && String(window.getSelection())) return;
@@ -234,7 +237,7 @@
     function showFab() {
       if (!isMobile() || standalone || dismissed() || fab || !deferred) return;
       fab = document.createElement('button');
-      fab.className = 'fudoki-install-fab';
+      fab.className = 'mde-install-fab';
       fab.textContent = t('インストール', '安装', 'Install');
       fab.addEventListener('click', async function () {
         if (!deferred) return;
@@ -249,7 +252,7 @@
         pressTimer = setTimeout(function () {
           removeFab();
           try { localStorage.setItem(dismissKey, '1'); } catch (_) {}
-          notify(t('今後はユーザーメニューからインストールできます', '之后可从用户菜单安装', 'Install later from the user menu'));
+          notify(t('今後は設定からインストールできます', '之后可从设置中安装', 'Install later from Settings'));
         }, 600);
       }, { passive: true });
       fab.addEventListener('touchend', function () { clearTimeout(pressTimer); }, { passive: true });

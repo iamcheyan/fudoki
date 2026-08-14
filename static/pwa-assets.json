@@ -1,8 +1,7 @@
 {
-  "version": "5",
+  "version": "6",
   "assets": [
     "index.html",
-    "login.html",
     "manifest.json",
     "static/styles.css",
     "static/mobile.css",
@@ -13,6 +12,7 @@
     "static/js/i18n.js",
     "static/js/dictionary.js",
     "static/js/ui-utils.js",
+    "static/js/mobile-ux.js",
     "static/libs/easymde/easymde.min.css",
     "static/libs/easymde/easymde.min.js",
     "static/libs/kuromoji.js",
@@ -188,9 +188,6 @@
     "static/icons/icon-512x512.png",
     "static/logo.png",
     "static/logo.svg",
-    "static/favicon.svg",
-    "static/flags/ja.svg",
-    "static/flags/en.svg",
-    "static/flags/zh.svg"
+    "static/favicon.svg"
   ]
 }

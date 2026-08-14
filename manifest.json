@@ -4,8 +4,8 @@
   "description": "言葉の「風土」を記す、日本語解析ツール",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4a90e2",
+  "background_color": "#08090a",
+  "theme_color": "#08090a",
   "orientation": "any",
   "icons": [
     {
@@ -44,4 +44,3 @@
   "lang": "ja",
   "dir": "auto"
 }
-
