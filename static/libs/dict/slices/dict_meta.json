@@ -1,0 +1,384 @@
+{
+ "version": "3.6.1",
+ "scheme": 1,
+ "generated": "2026-08-14T11:32:41.985Z",
+ "total_entries": 213554,
+ "headwords": 451803,
+ "buckets": {
+  "other": {
+   "file": "dict_other.json",
+   "entries": 7,
+   "bytes": 770
+  },
+  "お": {
+   "file": "dict_お.json",
+   "entries": 6227,
+   "bytes": 875289
+  },
+  "ど": {
+   "file": "dict_ど.json",
+   "entries": 2501,
+   "bytes": 315949
+  },
+  "の": {
+   "file": "dict_の.json",
+   "entries": 1406,
+   "bytes": 192330
+  },
+  "ま": {
+   "file": "dict_ま.json",
+   "entries": 3481,
+   "bytes": 457886
+  },
+  "え": {
+   "file": "dict_え.json",
+   "entries": 3632,
+   "bytes": 440701
+  },
+  "し": {
+   "file": "dict_し.json",
+   "entries": 14062,
+   "bytes": 1765010
+  },
+  "て": {
+   "file": "dict_て.json",
+   "entries": 3369,
+   "bytes": 427085
+  },
+  "あ": {
+   "file": "dict_あ.json",
+   "entries": 7999,
+   "bytes": 1043312
+  },
+  "め": {
+   "file": "dict_め.json",
+   "entries": 2039,
+   "bytes": 259364
+  },
+  "い": {
+   "file": "dict_い.json",
+   "entries": 6958,
+   "bytes": 932585
+  },
+  "う": {
+   "file": "dict_う.json",
+   "entries": 3228,
+   "bytes": 453689
+  },
+  "か": {
+   "file": "dict_か.json",
+   "entries": 11567,
+   "bytes": 1498181
+  },
+  "が": {
+   "file": "dict_が.json",
+   "entries": 2075,
+   "bytes": 254663
+  },
+  "き": {
+   "file": "dict_き.json",
+   "entries": 7979,
+   "bytes": 1016896
+  },
+  "ぎ": {
+   "file": "dict_ぎ.json",
+   "entries": 1463,
+   "bytes": 182071
+  },
+  "く": {
+   "file": "dict_く.json",
+   "entries": 3534,
+   "bytes": 473160
+  },
+  "ぐ": {
+   "file": "dict_ぐ.json",
+   "entries": 1251,
+   "bytes": 141617
+  },
+  "け": {
+   "file": "dict_け.json",
+   "entries": 3423,
+   "bytes": 426394
+  },
+  "げ": {
+   "file": "dict_げ.json",
+   "entries": 1768,
+   "bytes": 216517
+  },
+  "こ": {
+   "file": "dict_こ.json",
+   "entries": 9580,
+   "bytes": 1207030
+  },
+  "ご": {
+   "file": "dict_ご.json",
+   "entries": 1581,
+   "bytes": 218454
+  },
+  "さ": {
+   "file": "dict_さ.json",
+   "entries": 5470,
+   "bytes": 694975
+  },
+  "ざ": {
+   "file": "dict_ざ.json",
+   "entries": 792,
+   "bytes": 100367
+  },
+  "じ": {
+   "file": "dict_じ.json",
+   "entries": 7067,
+   "bytes": 869284
+  },
+  "す": {
+   "file": "dict_す.json",
+   "entries": 4142,
+   "bytes": 503713
+  },
+  "ず": {
+   "file": "dict_ず.json",
+   "entries": 305,
+   "bytes": 41288
+  },
+  "せ": {
+   "file": "dict_せ.json",
+   "entries": 5988,
+   "bytes": 727429
+  },
+  "そ": {
+   "file": "dict_そ.json",
+   "entries": 3290,
+   "bytes": 417083
+  },
+  "ぞ": {
+   "file": "dict_ぞ.json",
+   "entries": 490,
+   "bytes": 61835
+  },
+  "た": {
+   "file": "dict_た.json",
+   "entries": 4994,
+   "bytes": 663431
+  },
+  "だ": {
+   "file": "dict_だ.json",
+   "entries": 2526,
+   "bytes": 325182
+  },
+  "ち": {
+   "file": "dict_ち.json",
+   "entries": 5001,
+   "bytes": 632417
+  },
+  "っ": {
+   "file": "dict_っ.json",
+   "entries": 25,
+   "bytes": 4368
+  },
+  "つ": {
+   "file": "dict_つ.json",
+   "entries": 2166,
+   "bytes": 321199
+  },
+  "で": {
+   "file": "dict_で.json",
+   "entries": 2284,
+   "bytes": 271717
+  },
+  "と": {
+   "file": "dict_と.json",
+   "entries": 4926,
+   "bytes": 654884
+  },
+  "な": {
+   "file": "dict_な.json",
+   "entries": 3021,
+   "bytes": 420556
+  },
+  "に": {
+   "file": "dict_に.json",
+   "entries": 3545,
+   "bytes": 466556
+  },
+  "ぬ": {
+   "file": "dict_ぬ.json",
+   "entries": 356,
+   "bytes": 51709
+  },
+  "ね": {
+   "file": "dict_ね.json",
+   "entries": 1420,
+   "bytes": 181126
+  },
+  "は": {
+   "file": "dict_は.json",
+   "entries": 5587,
+   "bytes": 739731
+  },
+  "ば": {
+   "file": "dict_ば.json",
+   "entries": 2190,
+   "bytes": 264446
+  },
+  "ぱ": {
+   "file": "dict_ぱ.json",
+   "entries": 1158,
+   "bytes": 130361
+  },
+  "ひ": {
+   "file": "dict_ひ.json",
+   "entries": 4315,
+   "bytes": 586793
+  },
+  "び": {
+   "file": "dict_び.json",
+   "entries": 1321,
+   "bytes": 153402
+  },
+  "ぴ": {
+   "file": "dict_ぴ.json",
+   "entries": 581,
+   "bytes": 68570
+  },
+  "ふ": {
+   "file": "dict_ふ.json",
+   "entries": 5522,
+   "bytes": 680237
+  },
+  "ぶ": {
+   "file": "dict_ぶ.json",
+   "entries": 2302,
+   "bytes": 282940
+  },
+  "へ": {
+   "file": "dict_へ.json",
+   "entries": 1495,
+   "bytes": 183516
+  },
+  "べ": {
+   "file": "dict_べ.json",
+   "entries": 1058,
+   "bytes": 127611
+  },
+  "ぺ": {
+   "file": "dict_ぺ.json",
+   "entries": 477,
+   "bytes": 52334
+  },
+  "ほ": {
+   "file": "dict_ほ.json",
+   "entries": 3329,
+   "bytes": 421641
+  },
+  "ぼ": {
+   "file": "dict_ぼ.json",
+   "entries": 1456,
+   "bytes": 178515
+  },
+  "ぽ": {
+   "file": "dict_ぽ.json",
+   "entries": 626,
+   "bytes": 72507
+  },
+  "み": {
+   "file": "dict_み.json",
+   "entries": 2837,
+   "bytes": 383279
+  },
+  "む": {
+   "file": "dict_む.json",
+   "entries": 1584,
+   "bytes": 212647
+  },
+  "も": {
+   "file": "dict_も.json",
+   "entries": 2178,
+   "bytes": 296824
+  },
+  "や": {
+   "file": "dict_や.json",
+   "entries": 1772,
+   "bytes": 251472
+  },
+  "ゆ": {
+   "file": "dict_ゆ.json",
+   "entries": 2023,
+   "bytes": 252708
+  },
+  "よ": {
+   "file": "dict_よ.json",
+   "entries": 2422,
+   "bytes": 325421
+  },
+  "ら": {
+   "file": "dict_ら.json",
+   "entries": 1615,
+   "bytes": 181320
+  },
+  "れ": {
+   "file": "dict_れ.json",
+   "entries": 1702,
+   "bytes": 198276
+  },
+  "ろ": {
+   "file": "dict_ろ.json",
+   "entries": 1616,
+   "bytes": 190213
+  },
+  "わ": {
+   "file": "dict_わ.json",
+   "entries": 1579,
+   "bytes": 214804
+  },
+  "ゐ": {
+   "file": "dict_ゐ.json",
+   "entries": 2,
+   "bytes": 213
+  },
+  "ゑ": {
+   "file": "dict_ゑ.json",
+   "entries": 2,
+   "bytes": 213
+  },
+  "ぜ": {
+   "file": "dict_ぜ.json",
+   "entries": 1237,
+   "bytes": 154502
+  },
+  "ゔ": {
+   "file": "dict_ゔ.json",
+   "entries": 81,
+   "bytes": 8920
+  },
+  "ぷ": {
+   "file": "dict_ぷ.json",
+   "entries": 1020,
+   "bytes": 111532
+  },
+  "り": {
+   "file": "dict_り.json",
+   "entries": 3021,
+   "bytes": 352791
+  },
+  "る": {
+   "file": "dict_る.json",
+   "entries": 456,
+   "bytes": 52758
+  },
+  "を": {
+   "file": "dict_を.json",
+   "entries": 18,
+   "bytes": 2928
+  },
+  "づ": {
+   "file": "dict_づ.json",
+   "entries": 14,
+   "bytes": 2322
+  },
+  "ん": {
+   "file": "dict_ん.json",
+   "entries": 20,
+   "bytes": 3160
+  }
+ }
+}

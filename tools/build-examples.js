@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CHUNK_DIR = path.join(ROOT, 'static/libs/dict/chunks');
+const SLICE_DIR = path.join(ROOT, 'static/libs/dict/slices');
 const OUT_DIR = path.join(ROOT, 'static/libs/dict/examples');
 const SRC = process.argv[2] || '/tmp/tanaka/examples.utf';
 const MAX_PER_WORD = 3;
@@ -37,14 +37,15 @@ function bucketChar(ch) {
 // ---- 1. 读取词典分片：headword → 桶（首现优先）----
 const headwordBucket = new Map(); // word -> bucket
 let entryCount = 0;
-for (const file of fs.readdirSync(CHUNK_DIR).filter(f => /^jmdict_chunk_\d+\.json$/.test(f)).sort()) {
-  const chunk = JSON.parse(fs.readFileSync(path.join(CHUNK_DIR, file), 'utf8'));
-  for (const e of chunk.words) {
+for (const file of fs.readdirSync(SLICE_DIR).filter(f => /^dict_(?!index|meta).+\.json$/.test(f)).sort()) {
+  const slice = JSON.parse(fs.readFileSync(path.join(SLICE_DIR, file), 'utf8'));
+  for (const e of slice.w || []) {
     entryCount++;
-    const bucket = e.kana && e.kana[0] && e.kana[0].text ? bucketChar([...e.kana[0].text][0]) : null;
+    const reading = e.r && e.r[0] ? e.r[0][0] : null;
+    const bucket = reading ? bucketChar([...reading][0]) : null;
     if (!bucket) continue;
-    for (const form of [...(e.kanji || []), ...(e.kana || [])]) {
-      if (form.text && !headwordBucket.has(form.text)) headwordBucket.set(form.text, bucket);
+    for (const form of [...(e.k || []), ...(e.r || [])]) {
+      if (form[0] && !headwordBucket.has(form[0])) headwordBucket.set(form[0], bucket);
     }
   }
 }

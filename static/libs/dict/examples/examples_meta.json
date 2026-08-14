@@ -1,328 +1,328 @@
 {
  "version": 1,
- "generated": "2026-08-14T11:12:09.383Z",
+ "generated": "2026-08-14T11:31:35.826Z",
  "source": "Tanaka Corpus (EDRDG / tatoeba.org, CC-BY 2.0 FR)",
  "max_per_word": 3,
  "buckets": {
   "あ": {
    "file": "ex_あ.json",
-   "words": 1140,
-   "bytes": 194725
+   "words": 1195,
+   "bytes": 205339
   },
   "か": {
    "file": "ex_か.json",
-   "words": 1707,
-   "bytes": 302372
+   "words": 1755,
+   "bytes": 309784
   },
-  "は": {
-   "file": "ex_は.json",
-   "words": 883,
-   "bytes": 148790
+  "さ": {
+   "file": "ex_さ.json",
+   "words": 795,
+   "bytes": 138198
   },
   "い": {
    "file": "ex_い.json",
-   "words": 1278,
-   "bytes": 234615
+   "words": 1322,
+   "bytes": 244019
   },
   "せ": {
    "file": "ex_せ.json",
-   "words": 767,
-   "bytes": 136649
+   "words": 752,
+   "bytes": 133526
   },
   "の": {
    "file": "ex_の.json",
-   "words": 235,
-   "bytes": 42295
+   "words": 229,
+   "bytes": 41024
+  },
+  "う": {
+   "file": "ex_う.json",
+   "words": 592,
+   "bytes": 103745
   },
   "な": {
    "file": "ex_な.json",
-   "words": 627,
-   "bytes": 112404
+   "words": 619,
+   "bytes": 111006
   },
-  "で": {
-   "file": "ex_で.json",
-   "words": 231,
-   "bytes": 41515
-  },
-  "と": {
-   "file": "ex_と.json",
-   "words": 780,
-   "bytes": 141122
-  },
-  "こ": {
-   "file": "ex_こ.json",
-   "words": 1303,
-   "bytes": 231953
-  },
-  "が": {
-   "file": "ex_が.json",
-   "words": 310,
-   "bytes": 53882
+  "て": {
+   "file": "ex_て.json",
+   "words": 521,
+   "bytes": 89742
   },
   "じ": {
    "file": "ex_じ.json",
-   "words": 911,
-   "bytes": 160355
+   "words": 918,
+   "bytes": 161599
   },
-  "ひ": {
-   "file": "ex_ひ.json",
-   "words": 761,
-   "bytes": 132243
+  "こ": {
+   "file": "ex_こ.json",
+   "words": 1318,
+   "bytes": 235052
+  },
+  "げ": {
+   "file": "ex_げ.json",
+   "words": 245,
+   "bytes": 43517
+  },
+  "え": {
+   "file": "ex_え.json",
+   "words": 331,
+   "bytes": 58030
+  },
+  "た": {
+   "file": "ex_た.json",
+   "words": 801,
+   "bytes": 141375
   },
   "だ": {
    "file": "ex_だ.json",
-   "words": 405,
-   "bytes": 71654
+   "words": 394,
+   "bytes": 69277
+  },
+  "で": {
+   "file": "ex_で.json",
+   "words": 226,
+   "bytes": 40444
   },
   "れ": {
    "file": "ex_れ.json",
-   "words": 196,
-   "bytes": 33883
+   "words": 188,
+   "bytes": 32249
   },
   "を": {
    "file": "ex_を.json",
    "words": 7,
    "bytes": 1688
   },
-  "よ": {
-   "file": "ex_よ.json",
-   "words": 451,
-   "bytes": 82613
+  "と": {
+   "file": "ex_と.json",
+   "words": 776,
+   "bytes": 139730
   },
   "き": {
    "file": "ex_き.json",
-   "words": 1170,
-   "bytes": 213169
+   "words": 1190,
+   "bytes": 216814
   },
   "に": {
    "file": "ex_に.json",
-   "words": 462,
-   "bytes": 81379
+   "words": 451,
+   "bytes": 79658
   },
   "お": {
    "file": "ex_お.json",
-   "words": 1107,
-   "bytes": 196748
+   "words": 1147,
+   "bytes": 204284
   },
   "そ": {
    "file": "ex_そ.json",
-   "words": 532,
-   "bytes": 98324
+   "words": 528,
+   "bytes": 97467
+  },
+  "ひ": {
+   "file": "ex_ひ.json",
+   "words": 742,
+   "bytes": 128118
   },
   "わ": {
    "file": "ex_わ.json",
-   "words": 265,
-   "bytes": 47696
-  },
-  "た": {
-   "file": "ex_た.json",
-   "words": 804,
-   "bytes": 141088
+   "words": 252,
+   "bytes": 44981
   },
   "ぼ": {
    "file": "ex_ぼ.json",
-   "words": 200,
-   "bytes": 35176
-  },
-  "さ": {
-   "file": "ex_さ.json",
-   "words": 776,
-   "bytes": 134776
+   "words": 198,
+   "bytes": 34577
   },
   "ば": {
    "file": "ex_ば.json",
-   "words": 269,
-   "bytes": 44707
+   "words": 266,
+   "bytes": 44084
   },
   "ぬ": {
    "file": "ex_ぬ.json",
-   "words": 66,
-   "bytes": 9305
+   "words": 67,
+   "bytes": 9485
   },
   "み": {
    "file": "ex_み.json",
-   "words": 531,
-   "bytes": 92195
-  },
-  "て": {
-   "file": "ex_て.json",
-   "words": 526,
-   "bytes": 90469
+   "words": 511,
+   "bytes": 88127
   },
   "す": {
    "file": "ex_す.json",
-   "words": 585,
-   "bytes": 101191
+   "words": 590,
+   "bytes": 103229
   },
   "も": {
    "file": "ex_も.json",
-   "words": 409,
-   "bytes": 73513
-  },
-  "え": {
-   "file": "ex_え.json",
-   "words": 317,
-   "bytes": 55125
+   "words": 395,
+   "bytes": 70567
   },
   "ぺ": {
    "file": "ex_ぺ.json",
-   "words": 52,
-   "bytes": 7382
+   "words": 51,
+   "bytes": 7198
   },
   "へ": {
    "file": "ex_へ.json",
-   "words": 181,
-   "bytes": 31462
+   "words": 176,
+   "bytes": 30941
+  },
+  "は": {
+   "file": "ex_は.json",
+   "words": 871,
+   "bytes": 146509
+  },
+  "が": {
+   "file": "ex_が.json",
+   "words": 313,
+   "bytes": 54628
   },
   "ま": {
    "file": "ex_ま.json",
-   "words": 560,
-   "bytes": 100163
-  },
-  "く": {
-   "file": "ex_く.json",
-   "words": 512,
-   "bytes": 91180
+   "words": 546,
+   "bytes": 97516
   },
   "つ": {
    "file": "ex_つ.json",
-   "words": 465,
-   "bytes": 80888
+   "words": 453,
+   "bytes": 78576
   },
   "ち": {
    "file": "ex_ち.json",
-   "words": 634,
-   "bytes": 110961
+   "words": 624,
+   "bytes": 108906
   },
   "し": {
    "file": "ex_し.json",
-   "words": 2037,
-   "bytes": 360571
+   "words": 2054,
+   "bytes": 364797
   },
   "ほ": {
    "file": "ex_ほ.json",
-   "words": 517,
-   "bytes": 92135
+   "words": 504,
+   "bytes": 89977
   },
   "け": {
    "file": "ex_け.json",
-   "words": 477,
-   "bytes": 88967
+   "words": 479,
+   "bytes": 89394
   },
   "ね": {
    "file": "ex_ね.json",
-   "words": 233,
-   "bytes": 39767
-  },
-  "う": {
-   "file": "ex_う.json",
-   "words": 567,
-   "bytes": 98606
+   "words": 227,
+   "bytes": 38704
   },
   "む": {
    "file": "ex_む.json",
-   "words": 226,
-   "bytes": 37008
+   "words": 222,
+   "bytes": 36401
   },
   "め": {
    "file": "ex_め.json",
-   "words": 323,
-   "bytes": 57178
+   "words": 316,
+   "bytes": 55363
   },
   "や": {
    "file": "ex_や.json",
-   "words": 325,
-   "bytes": 58414
+   "words": 310,
+   "bytes": 55267
   },
   "ざ": {
    "file": "ex_ざ.json",
    "words": 102,
-   "bytes": 19108
+   "bytes": 19052
   },
   "ふ": {
    "file": "ex_ふ.json",
-   "words": 716,
-   "bytes": 124262
+   "words": 704,
+   "bytes": 121535
   },
   "ゆ": {
    "file": "ex_ゆ.json",
-   "words": 281,
-   "bytes": 48569
+   "words": 266,
+   "bytes": 45778
+  },
+  "よ": {
+   "file": "ex_よ.json",
+   "words": 439,
+   "bytes": 79946
   },
   "ど": {
    "file": "ex_ど.json",
-   "words": 430,
-   "bytes": 72662
+   "words": 420,
+   "bytes": 71069
   },
   "ぴ": {
    "file": "ex_ぴ.json",
-   "words": 52,
-   "bytes": 7326
+   "words": 53,
+   "bytes": 7503
   },
   "ぎ": {
    "file": "ex_ぎ.json",
-   "words": 172,
-   "bytes": 33477
+   "words": 171,
+   "bytes": 32992
+  },
+  "く": {
+   "file": "ex_く.json",
+   "words": 519,
+   "bytes": 92216
   },
   "り": {
    "file": "ex_り.json",
-   "words": 346,
-   "bytes": 60538
+   "words": 338,
+   "bytes": 58921
   },
   "べ": {
    "file": "ex_べ.json",
-   "words": 123,
-   "bytes": 20470
+   "words": 121,
+   "bytes": 20183
   },
   "ぶ": {
    "file": "ex_ぶ.json",
-   "words": 247,
-   "bytes": 44603
+   "words": 249,
+   "bytes": 44984
   },
   "ぐ": {
    "file": "ex_ぐ.json",
    "words": 109,
-   "bytes": 17360
+   "bytes": 17239
   },
   "ろ": {
    "file": "ex_ろ.json",
-   "words": 166,
-   "bytes": 29160
+   "words": 158,
+   "bytes": 28057
   },
   "ぜ": {
    "file": "ex_ぜ.json",
-   "words": 182,
-   "bytes": 31584
-  },
-  "げ": {
-   "file": "ex_げ.json",
-   "words": 243,
-   "bytes": 42656
+   "words": 184,
+   "bytes": 32050
   },
   "ぞ": {
    "file": "ex_ぞ.json",
-   "words": 63,
-   "bytes": 9822
+   "words": 61,
+   "bytes": 9394
   },
   "ぱ": {
    "file": "ex_ぱ.json",
    "words": 97,
-   "bytes": 17367
+   "bytes": 17608
   },
   "ご": {
    "file": "ex_ご.json",
-   "words": 222,
-   "bytes": 37950
+   "words": 218,
+   "bytes": 37387
   },
   "ら": {
    "file": "ex_ら.json",
-   "words": 141,
-   "bytes": 23359
+   "words": 140,
+   "bytes": 23090
   },
   "び": {
    "file": "ex_び.json",
    "words": 146,
-   "bytes": 25401
+   "bytes": 25146
   },
   "ず": {
    "file": "ex_ず.json",
@@ -336,23 +336,18 @@
   },
   "る": {
    "file": "ex_る.json",
-   "words": 29,
-   "bytes": 5911
+   "words": 28,
+   "bytes": 5600
   },
   "ぽ": {
    "file": "ex_ぽ.json",
-   "words": 58,
-   "bytes": 8367
+   "words": 56,
+   "bytes": 7939
   },
   "っ": {
    "file": "ex_っ.json",
-   "words": 10,
-   "bytes": 1626
-  },
-  "ん": {
-   "file": "ex_ん.json",
-   "words": 3,
-   "bytes": 496
+   "words": 11,
+   "bytes": 1693
   },
   "づ": {
    "file": "ex_づ.json",
@@ -363,6 +358,11 @@
    "file": "ex_ゔ.json",
    "words": 3,
    "bytes": 405
+  },
+  "ん": {
+   "file": "ex_ん.json",
+   "words": 1,
+   "bytes": 81
   }
  }
 }

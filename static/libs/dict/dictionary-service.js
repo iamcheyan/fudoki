@@ -1,19 +1,34 @@
 /**
- * JMDict Dictionary Service
- * 提供日语词汇查询和翻译功能
+ * JMDict Dictionary Service — PERF-02 按需分片版
  *
- * F-P0-02：加载时构建 headword → 词条下标 内存索引（kanji+kana 双键合并），
- * 查询 O(1)；未命中不再全表线性扫描。
- * PERF-03：查询结果 LRU 缓存（100 条），重复点击零开销。
- * PERF-04：加载/索引进度可通过 onProgress(cb) 订阅，UI 显示真实百分比。
+ * 构建期（tools/build-dict-slices.js）按词条主读音首字把 JMdict 切成 ~75 个
+ * 分片（共 ~27MB，最大 1.77MB）+ 全局索引 dict_index.json（headword → 桶字符，
+ * '*'=other 桶，多桶词如 する→"すそ"）。
+ *
+ * 运行时查询链路：索引 O(1)（hasOwnProperty 守卫防原型键）→ 单分片按需 fetch
+ * → 分片内 headword→下标 Map O(1)。首查网络量从 109MB 降至 索引(~1.5MB gzip)
+ * + 单分片。isReady = 索引就绪（秒级），词条分片懒加载。
+ *
+ * 分片缓存三层：
+ *   1. 内存 LRU（SLICE_CACHE_MAX 片，防 75 片全驻留导致堆膨胀）
+ *   2. IndexedDB（fudoki-dict/slices，body+ETag 持久化，跨会话零下载）
+ *   3. Service Worker Cache（cacheFirst，同源静态资源天然覆盖）
+ * 带 ETag 条件请求：304 用本地副本；网络失败时回落 IDB（离线可用）。
+ *
+ * 兼容：lookup/getMainTranslation/getDetailedInfo/formatEntry/getStats/isReady/
+ * onProgress/getProgress/getExamples 签名与语义不变（formatEntry 改读投影字段）。
  */
 class DictionaryService {
   constructor() {
-    this.jmdictData = null;
-    this.isLoaded = false;
+    this.isLoaded = false;       // = 全局索引就绪
     this.loadPromise = null;
-    // F-P0-02 内存索引：headword（汉字写法或假名读音）→ 词条下标数组（升序）
-    this.headwordIndex = new Map();
+    // 全局索引：普通对象（JSON.parse 产物），查询用 hasOwnProperty 守卫
+    this.indexMap = null;
+    this.meta = null;            // dict_meta.json（统计/版本）
+    // 分片内存 LRU：桶 → {words, hwIndex}
+    this.sliceCache = new Map();
+    this.slicePromises = new Map();
+    this.SLICE_CACHE_MAX = 14;   // ≈ 峰值 30-50MB 解析对象，堆保护上限
     // PERF-03 LRU 查询缓存（Map 保持插入序，队首最旧）
     this.lookupCache = new Map();
     this.LOOKUP_CACHE_MAX = 100;
@@ -22,6 +37,7 @@ class DictionaryService {
     // PERF-04 进度状态与订阅
     this.progress = { phase: 'idle', fraction: 0, entries: 0, totalEntries: 0 };
     this._progressListeners = [];
+    this._idbPromise = null;
   }
 
   /**
@@ -57,7 +73,7 @@ class DictionaryService {
   }
 
   /**
-   * 初始化词典服务，加载JMDict数据
+   * 初始化：加载全局索引（~5.5MB 原文 / ~1.5MB gzip），不加载词条分片
    */
   async init() {
     if (this.loadPromise) {
@@ -65,7 +81,7 @@ class DictionaryService {
     }
 
     // 加载失败时清空 loadPromise，允许下次查询重试
-    this.loadPromise = this.loadJMDict().catch((err) => {
+    this.loadPromise = this._loadIndex().catch((err) => {
       this.loadPromise = null;
       this._setProgress({ phase: 'error', fraction: 0 });
       throw err;
@@ -73,53 +89,45 @@ class DictionaryService {
     return this.loadPromise;
   }
 
-  /**
-   * 加载JMDict JSON数据（支持分片文件）
-   */
-  async loadJMDict() {
+  async _loadIndex() {
+    console.log('加载词典全局索引（按需分片模式）...');
+    this._setProgress({ phase: 'loading', fraction: 0, entries: 0, totalEntries: 0 });
+
+    // 索引下载 85% + 解析 15%
+    const text = await this._fetchText(
+      '/static/libs/dict/slices/dict_index.json',
+      (received, total) => {
+        this._setProgress({ phase: 'loading', fraction: 0.85 * (received / total) });
+      }
+    );
+    const index = JSON.parse(text);
+    this.indexMap = index;
+    this._setProgress({ phase: 'loading', fraction: 0.99, entries: 0 });
+
     try {
-      console.log('开始加载JMDict词典数据...');
+      const metaRes = await fetch('/static/libs/dict/slices/dict_meta.json');
+      if (metaRes.ok) this.meta = await metaRes.json();
+    } catch (_) { /* 元数据缺失不影响查询，仅统计退化 */ }
 
-      if (this.isLoaded && this.jmdictData) {
-        return this.jmdictData;
-      }
-
-      // 首先尝试加载元数据文件
-      let metadata;
-      try {
-        const metadataResponse = await fetch('/static/libs/dict/chunks/jmdict_metadata.json');
-        if (metadataResponse.ok) {
-          metadata = await metadataResponse.json();
-          console.log(`发现分片文件，共 ${metadata.total_chunks} 个分片`);
-        }
-      } catch (error) {
-        console.log('未找到分片元数据，尝试加载原始文件...');
-      }
-
-      if (metadata) {
-        // 加载分片文件
-        return await this.loadChunkedJMDict(metadata);
-      } else {
-        // 未找到分片元数据时直接报错，不再回退到原始文件
-        throw new Error('JMDict metadata not found');
-      }
-    } catch (error) {
-      console.error('加载JMDict词典失败:', error);
-      throw error;
-    }
+    const totalEntries = this.meta ? Number(this.meta.total_entries) || 0 : 0;
+    this.isLoaded = true;
+    this._setProgress({ phase: 'ready', fraction: 1, entries: totalEntries, totalEntries });
+    const headwords = Object.keys(index).length;
+    console.log(`词典索引就绪：${headwords} 词头，词条分片按需加载`);
+    return index;
   }
 
   /**
-   * 流式 fetch 单个分片，边下载边回报字节进度（无 body/长度时回退普通 fetch）
+   * 流式 fetch 文本，边下载边回报字节进度（无 body/长度时回退普通 fetch）
    */
-  async _fetchChunkJSON(url, onBytes) {
+  async _fetchText(url, onBytes) {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to load ${url}: ${response.status}`);
     }
     const total = Number(response.headers.get('Content-Length')) || 0;
     if (!response.body || !total || typeof onBytes !== 'function') {
-      return response.json();
+      return response.text();
     }
     const reader = response.body.getReader();
     const parts = [];
@@ -131,100 +139,122 @@ class DictionaryService {
       received += value.length;
       onBytes(received, total);
     }
-    return new Response(new Blob(parts)).json();
+    return new Response(new Blob(parts)).text();
+  }
+
+  // ---- IndexedDB（fudoki-dict/slices）：分片持久缓存，不可用时静默降级 ----
+
+  _idb() {
+    if (!this._idbPromise) {
+      this._idbPromise = new Promise((resolve, reject) => {
+        if (!window.indexedDB) return reject(new Error('IndexedDB unavailable'));
+        const req = window.indexedDB.open('fudoki-dict', 1);
+        req.onupgradeneeded = () => {
+          if (!req.result.objectStoreNames.contains('slices')) {
+            req.result.createObjectStore('slices', { keyPath: 'bucket' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error || new Error('IndexedDB open failed'));
+      }).catch(() => null);
+    }
+    return this._idbPromise;
+  }
+
+  async _idbGet(bucket) {
+    const db = await this._idb();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      try {
+        const req = db.transaction('slices', 'readonly').objectStore('slices').get(bucket);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      } catch (_) { resolve(null); }
+    });
+  }
+
+  async _idbPut(record) {
+    const db = await this._idb();
+    if (!db) return;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction('slices', 'readwrite');
+        tx.objectStore('slices').put(record);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch (_) { resolve(); }
+    });
   }
 
   /**
-   * 将词条下标写入内存索引（汉字写法与假名读音都可作为查询键）
+   * 拉取单个词条分片文本：ETag 条件请求，304/网络失败回落 IndexedDB 副本
    */
-  _indexEntry(entry, index) {
-    const put = (text) => {
-      if (!text) return;
-      let list = this.headwordIndex.get(text);
-      if (!list) {
-        list = [];
-        this.headwordIndex.set(text, list);
+  async _fetchSliceBody(bucket) {
+    const url = `/static/libs/dict/slices/dict_${encodeURIComponent(bucket)}.json`;
+    const cached = await this._idbGet(bucket);
+    try {
+      const res = await fetch(url, cached && cached.etag
+        ? { headers: { 'If-None-Match': cached.etag } }
+        : undefined);
+      if (res.status === 304 && cached) return cached.body;
+      if (res.ok) {
+        const body = await res.text();
+        this._idbPut({ bucket, etag: res.headers.get('ETag') || '', body });
+        return body;
       }
-      // 同一词条可能同时以汉字与假名命中同一键，去重
-      if (list[list.length - 1] !== index) list.push(index);
-    };
-    if (entry.kanji) {
-      for (const k of entry.kanji) put(k.text);
-    }
-    if (entry.kana) {
-      for (const k of entry.kana) put(k.text);
+      throw new Error(`Failed to load slice ${bucket}: ${res.status}`);
+    } catch (err) {
+      if (cached) return cached.body; // 离线/网络失败 → 本地副本兜底
+      throw err;
     }
   }
 
   /**
-   * 加载分片的JMDict数据（F-P0-02：边加载边建索引，全程回报进度）
+   * 加载并解析分片，构建分片内 headword → 词条下标 索引；内存 LRU 淘汰
    */
-  async loadChunkedJMDict(metadata) {
-    const allWords = [];
-    this.headwordIndex = new Map();
-    const totalEntries = Number(metadata.total_words) || 0;
-    this._setProgress({ phase: 'loading', fraction: 0, entries: 0, totalEntries });
-
-    // 总进度 = 字节下载 70% + 解析建索引 30%（按词条数折算）
-    const chunkWeights = [];
-    for (let i = 0; i < metadata.total_chunks; i++) {
-      chunkWeights.push(1 / metadata.total_chunks);
+  _loadSlice(bucket) {
+    const hit = this.sliceCache.get(bucket);
+    if (hit) {
+      this.sliceCache.delete(bucket);
+      this.sliceCache.set(bucket, hit);
+      return Promise.resolve(hit);
     }
+    const existing = this.slicePromises.get(bucket);
+    if (existing) return existing;
 
-    for (let i = 0; i < metadata.total_chunks; i++) {
-      console.log(`加载分片 ${i + 1}/${metadata.total_chunks}...`);
-      const chunkBase = i / metadata.total_chunks;
-      const chunkSpan = chunkWeights[i];
-
-      const chunkData = await this._fetchChunkJSON(
-        `/static/libs/dict/chunks/jmdict_chunk_${i.toString().padStart(3, '0')}.json`,
-        (received, total) => {
-          const fraction = chunkBase + chunkSpan * 0.7 * (received / total);
-          this._setProgress({ phase: 'loading', fraction });
-        }
-      );
-
-      if (!Array.isArray(chunkData.words)) continue;
-
-      // 分批追加并建索引，避免一次性传入过多参数导致栈溢出
-      const batchSize = 10000;
-      for (let j = 0; j < chunkData.words.length; j += batchSize) {
-        const batch = chunkData.words.slice(j, j + batchSize);
-        Array.prototype.push.apply(allWords, batch);
-        // 为本批词条建立索引（下标 = allWords 追加前的长度起）
-        const baseIndex = allWords.length - batch.length;
-        for (let k = 0; k < batch.length; k++) {
-          this._indexEntry(batch[k], baseIndex + k);
-        }
-        // 让事件循环有机会处理其他任务
-        await new Promise(r => setTimeout(r));
-        const indexedEntries = allWords.length;
-        const parseFraction = totalEntries ? indexedEntries / totalEntries : 1;
-        this._setProgress({
-          phase: 'loading',
-          entries: indexedEntries,
-          fraction: chunkBase + chunkSpan * (0.7 + 0.3 * parseFraction)
-        });
+    const p = this._fetchSliceBody(bucket).then((text) => {
+      const words = (JSON.parse(text).w) || [];
+      const hwIndex = new Map();
+      const put = (key, idx) => {
+        if (!key) return;
+        let list = hwIndex.get(key);
+        if (!list) { list = []; hwIndex.set(key, list); }
+        // 同一词条可能以汉字与假名命中同一键，去重
+        if (list[list.length - 1] !== idx) list.push(idx);
+      };
+      for (let i = 0; i < words.length; i++) {
+        const e = words[i];
+        if (e.k) for (const k of e.k) put(k[0], i);
+        if (e.r) for (const r of e.r) put(r[0], i);
       }
-    }
-
-    this.jmdictData = {
-      words: allWords,
-      version: metadata.version || 'unknown',
-      date: metadata.date || 'unknown'
-    };
-
-    this.isLoaded = true;
-    this._setProgress({ phase: 'ready', fraction: 1, entries: allWords.length, totalEntries });
-    console.log(`JMDict词典加载完成，共 ${allWords.length} 个词条，索引 ${this.headwordIndex.size} 个词头`);
-
-    return this.jmdictData;
+      const slice = { words, hwIndex };
+      this.slicePromises.delete(bucket);
+      this.sliceCache.set(bucket, slice);
+      while (this.sliceCache.size > this.SLICE_CACHE_MAX) {
+        const oldest = this.sliceCache.keys().next().value;
+        this.sliceCache.delete(oldest);
+      }
+      return slice;
+    }).catch((err) => {
+      this.slicePromises.delete(bucket);
+      throw err;
+    });
+    this.slicePromises.set(bucket, p);
+    return p;
   }
 
-  // 原始 JMDict 回退已移除：请确保使用分片文件 jmdict_metadata.json 与对应 chunks
-
   /**
-   * 查询词汇翻译（F-P0-02：内存索引 O(1)；PERF-03：LRU 缓存）
+   * 查询词汇翻译（索引 O(1) → 分片 O(1)；PERF-03：LRU 缓存）
    * @param {string} word - 要查询的词汇
    * @returns {Array} 匹配的词典条目
    */
@@ -233,7 +263,7 @@ class DictionaryService {
       await this.init();
     }
 
-    if (!word || !this.jmdictData) {
+    if (!word || !this.indexMap) {
       return [];
     }
 
@@ -250,15 +280,24 @@ class DictionaryService {
       return cached;
     }
 
-    // F-P0-02 索引查询：汉字写法与假名读音统一索引，下标升序 = 原线性扫描顺序
-    const indices = this.headwordIndex.get(searchTerm);
+    const has = Object.prototype.hasOwnProperty;
+    const bucketsStr = has.call(this.indexMap, searchTerm) ? this.indexMap[searchTerm] : null;
     const results = [];
-    if (indices) {
-      for (const idx of indices) {
-        results.push(this.formatEntry(this.jmdictData.words[idx]));
-        if (results.length >= 10) {
-          break;
+    if (bucketsStr) {
+      const seen = new Set();
+      // 索引值为桶字符连串（'*'=other），按码点迭代
+      for (const ch of bucketsStr) {
+        const bucket = ch === '*' ? 'other' : ch;
+        if (seen.has(bucket)) continue;
+        seen.add(bucket);
+        const slice = await this._loadSlice(bucket);
+        const indices = slice.hwIndex.get(searchTerm);
+        if (!indices) continue;
+        for (const idx of indices) {
+          results.push(this.formatEntry(slice.words[idx]));
+          if (results.length >= 10) break;
         }
+        if (results.length >= 10) break;
       }
     }
 
@@ -273,40 +312,29 @@ class DictionaryService {
   }
 
   /**
-   * 格式化词典条目
-   * @param {Object} entry - 原始词典条目
+   * 格式化词典条目（输入为构建期投影的紧凑分片条目：
+   * k=[[汉字写法,常用?1:0]], r=[[假名读音,…]], s=[{p,g,f,m,i,c}]）
+   * @param {Object} entry - 分片内词条
    * @returns {Object} 格式化后的条目
    */
   formatEntry(entry) {
+    const forms = (arr) => (arr || []).map((f) => ({ text: f[0], common: !!f[1] }));
     const formatted = {
       id: entry.id,
-      kanji: entry.kanji ? entry.kanji.map(k => ({
-        text: k.text,
-        common: k.common || false
-      })) : [],
-      kana: entry.kana ? entry.kana.map(k => ({
-        text: k.text,
-        common: k.common || false
-      })) : [],
+      kanji: forms(entry.k),
+      kana: forms(entry.r),
       senses: []
     };
 
-    // 处理词义
-    if (entry.sense) {
-      formatted.senses = entry.sense.map(sense => {
-        // 提取中文词源信息
-        const chineseSource = sense.languageSource ? 
-          sense.languageSource.find(ls => ls.lang === 'chi') : null;
-        
-        return {
-          partOfSpeech: sense.partOfSpeech || [],
-          gloss: sense.gloss ? sense.gloss.map(g => g.text).join('; ') : '',
-          field: sense.field || [],
-          misc: sense.misc || [],
-          info: sense.info || [],
-          chineseSource: chineseSource ? chineseSource.text : null
-        };
-      });
+    if (entry.s) {
+      formatted.senses = entry.s.map((s) => ({
+        partOfSpeech: s.p || [],
+        gloss: s.g || '',
+        field: s.f || [],
+        misc: s.m || [],
+        info: s.i || [],
+        chineseSource: s.c || null
+      }));
     }
 
     return formatted;
@@ -319,7 +347,7 @@ class DictionaryService {
    */
   async getMainTranslation(word) {
     const results = await this.lookup(word);
-    
+
     if (results.length === 0) {
       return null;
     }
@@ -339,13 +367,13 @@ class DictionaryService {
    */
   async getDetailedInfo(word) {
     const results = await this.lookup(word);
-    
+
     if (results.length === 0) {
       return null;
     }
 
     const entry = results[0];
-    
+
     return {
       word: word,
       kanji: entry.kanji,
@@ -357,7 +385,7 @@ class DictionaryService {
   }
 
   /**
-   * 检查词典是否已加载
+   * 检查词典是否已加载（= 全局索引就绪；词条分片按需加载）
    * @returns {boolean} 是否已加载
    */
   isReady() {
@@ -383,8 +411,15 @@ class DictionaryService {
     let shardPromise = this.exampleShards.get(bucket);
     if (!shardPromise) {
       shardPromise = fetch(`/static/libs/dict/examples/ex_${encodeURIComponent(bucket)}.json`)
-        .then(r => (r.ok ? r.json() : {}))
-        .catch(() => ({}));
+        .then((r) => {
+          if (!r.ok) throw new Error(String(r.status));
+          return r.json();
+        })
+        .catch(() => {
+          // 失败不缓存：本会话下次点击重试，避免离线一次后例句永久失效
+          this.exampleShards.delete(bucket);
+          return {};
+        });
       this.exampleShards.set(bucket, shardPromise);
     }
     const shard = await shardPromise;
@@ -404,15 +439,15 @@ class DictionaryService {
    * @returns {Object} 统计信息
    */
   getStats() {
-    if (!this.isLoaded || !this.jmdictData) {
+    if (!this.isLoaded || !this.meta) {
       return null;
     }
 
     return {
-      totalEntries: this.jmdictData.words ? this.jmdictData.words.length : 0,
-      headwords: this.headwordIndex.size,
-      version: this.jmdictData.version || 'unknown',
-      dictDate: this.jmdictData.dictDate || 'unknown'
+      totalEntries: this.meta.total_entries || 0,
+      headwords: this.meta.headwords || 0,
+      version: this.meta.version || 'unknown',
+      dictDate: this.meta.generated || 'unknown'
     };
   }
 }

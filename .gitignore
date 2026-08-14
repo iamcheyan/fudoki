@@ -15,5 +15,5 @@ __pycache__/
 *.tmp
 *.log
 
-# 未使用的 JMdict 原始 zip（运行时只读 chunks 分片）
-static/libs/dict/*.zip
+# 旧版 JMdict 全量 chunks（109MB，已由 slices/ 按需分片替代，本地保留可重建）
+static/libs/dict/chunks/
