@@ -280,7 +280,19 @@
         'bold', 'italic', 'heading', '|',
         'quote', 'unordered-list', 'ordered-list', '|',
         'link', '|',
-        'preview', 'fullscreen'
+        'preview',
+        // EasyMDE 对移动 UA（isMobile() UA 正则）会跳过 fullscreen/side-by-side 两个内置按钮的渲染，
+        // 移动端因此完全没有双栏预览入口。这里移动端用自定义按钮（对象形式不受 noMobile 过滤）
+        // 直接驱动 easymde.toggleSideBySide()，桌面端保持原 fullscreen 拦截逻辑不变。
+        (/Mobi|Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+          ? {
+              name: 'side-by-side-mobile',
+              className: 'fa fa-columns',
+              title: 'Side by Side',
+              noDisable: true,
+              action: (editor) => { try { editor.toggleSideBySide(); } catch (_) {} }
+            }
+          : 'fullscreen')
       ],
       autofocus: false,
       lineWrapping: true,
