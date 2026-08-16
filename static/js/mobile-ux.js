@@ -202,7 +202,9 @@
     var doc = docs[next];
     try {
       dm.switchToDocument(doc.id);
-      notify((dir > 0 ? '› ' : '‹ ') + (doc.title || ''));
+      // 文档对象无 title 字段，标题从首行内容取（与主界面 getDocumentTitle 一致）
+      var docTitle = (typeof dm.getDocumentTitle === 'function' ? dm.getDocumentTitle(doc.content) : '') || '';
+      notify((dir > 0 ? '› ' : '‹ ') + docTitle);
     } catch (_) {}
   }
 
