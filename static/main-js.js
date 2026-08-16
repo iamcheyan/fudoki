@@ -861,10 +861,11 @@
     if (browserLang.startsWith('zh')) return 'zh';
     if (browserLang.startsWith('ja')) return 'ja';
     if (browserLang.startsWith('en')) return 'en';
+    if (browserLang.startsWith('es')) return 'es';
     return 'zh'; // 默认使用中文
   }
   
-  let currentLang = (storedLang === 'ja' || storedLang === 'en' || storedLang === 'zh') ? storedLang : detectBrowserLanguage();
+  let currentLang = (storedLang === 'ja' || storedLang === 'en' || storedLang === 'zh' || storedLang === 'es') ? storedLang : detectBrowserLanguage();
   if (storedLang !== currentLang) {
     try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
   }
@@ -1636,6 +1637,8 @@
         return playing ? '停止' : '全文再生';
       case 'en':
         return playing ? 'Stop' : 'Play All';
+      case 'es':
+        return playing ? 'Detener' : 'Leer todo';
       case 'zh':
       default:
         return playing ? '停止' : '播放全文';
@@ -1734,7 +1737,7 @@
 
   // 导航国旗点击切换语言
   function setLanguage(lang) {
-    if (!lang || (lang !== 'ja' && lang !== 'en' && lang !== 'zh')) return;
+    if (!lang || (lang !== 'ja' && lang !== 'en' && lang !== 'zh' && lang !== 'es')) return;
     currentLang = lang;
     try { localStorage.setItem(LS.lang, currentLang); } catch (e) {}
     if (langFdSelect) langFdSelect.setValue(currentLang);
@@ -1809,6 +1812,7 @@
     switch (currentLang) {
       case 'ja': return 'ダークモードに切り替え';
       case 'en': return 'Switch to Dark Theme';
+      case 'es': return 'Cambiar a tema oscuro';
       default: return '切换到暗色主题';
     }
   }
@@ -1816,6 +1820,7 @@
     switch (currentLang) {
       case 'ja': return 'ライトモードに切り替え';
       case 'en': return 'Switch to Light Theme';
+      case 'es': return 'Cambiar a tema claro';
       default: return '切换到浅色主题';
     }
   }
@@ -5035,7 +5040,8 @@ Try Fudoki and enjoy Japanese language analysis!`;
       langFdSelect.setOptions([
         { value: 'ja', label: '日本語' },
         { value: 'en', label: 'English' },
-        { value: 'zh', label: '中文' }
+        { value: 'zh', label: '中文' },
+        { value: 'es', label: 'Español' }
       ], true);
     }
     if (scriptFdSelect) {

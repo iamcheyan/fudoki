@@ -1,6 +1,6 @@
 /**
  * Fudoki - 国际化（i18n）翻译词典
- * 支持语言：日语 (ja)、英语 (en)、中文 (zh)
+ * 支持语言：日语 (ja)、英语 (en)、中文 (zh)、西班牙语 (es)
  */
 
 const I18N = {
@@ -339,5 +339,117 @@ const I18N = {
     delete: '删除',
     cancel: '取消',
     close: '关闭'
+  },
+  es: {
+    title: 'Fudoki',
+    textareaPlaceholder: 'Introduce aquí texto japonés para analizar…',
+    analyzeBtn: 'Analizar',
+    emptyText: 'Escribe japonés en el editor; el análisis aparecerá aquí',
+    // Barra de documentos y shell
+    docListTitle: 'Documentos',
+    newDoc: 'Nuevo documento',
+    deleteDoc: 'Eliminar documento',
+    modeEdit: 'Editar',
+    modeAnalyze: 'Analizar',
+    settingsTitle: 'Ajustes',
+    folderAll: 'Todos',
+    folderFavorites: 'Favoritos',
+    folderSamples: 'Artículos de ejemplo',
+    favorite: 'Favorito',
+    unfavorite: 'Quitar de favoritos',
+    cannotDeleteDefault: 'No se puede eliminar el documento predeterminado',
+    confirmDelete: '¿Eliminar el documento «{title}»?',
+    untitledDocument: 'Documento sin título',
+    // Voz
+    voiceTitle: 'Ajustes de voz',
+    voiceSelectLabel: 'Voz',
+    selectVoice: 'Seleccionar voz...',
+    noJapaneseVoice: 'No hay voz japonesa disponible',
+    play: 'Reproducir',
+    stop: 'Detener',
+    pause: 'Pausar',
+    resume: 'Reanudar',
+    playThisLine: 'Reproducir esta línea',
+    autoRead: 'Lectura automática',
+    repeatPlay: 'Repetición',
+    pleaseInputText: 'Introduce texto primero',
+    // Visualización
+    displayTitle: 'Ajustes de visualización',
+    showKana: 'Mostrar furigana',
+    showRomaji: 'Mostrar romaji',
+    showPos: 'Mostrar categoría gramatical',
+    showUnderline: 'Subrayado de color por categoría',
+    showDetails: 'Mostrar detalles del token',
+    tokenAlignLeft: 'Alinear tokens a la izquierda',
+    haAsWaLabel: 'Leer la partícula «は» como «わ»',
+    readingScript: 'Escritura de la lectura',
+    katakanaLabel: 'Katakana',
+    hiraganaLabel: 'Hiragana',
+    fontSizeLabel: 'Tamaño de letra',
+    // Tipografías
+    fontSystem: 'Predeterminada del sistema',
+    fontSans: 'Gótica (sans)',
+    fontSerif: 'Mincho (serif)',
+    fontHei: 'Hei china',
+    fontMono: 'Monoespaciada',
+    // Sistema
+    systemTitle: 'Ajustes del sistema',
+    themeLabel: 'Modo del tema',
+    themeLight: 'Modo claro',
+    themeDark: 'Modo oscuro',
+    langLabel: 'Idioma de la interfaz',
+    // Modo lectura
+    readingToggleEnter: 'Modo lectura',
+    readingToggleExit: 'Salir de lectura',
+    readingToggleTooltipEnter: 'Activar modo lectura',
+    readingToggleTooltipExit: 'Salir del modo lectura',
+    // Análisis
+    loading: 'Analizando texto…',
+    errorPrefix: 'Error de análisis: ',
+    expand: 'Expandir',
+    collapse: 'Plegar',
+    // Diccionario y traducción
+    lbl_surface: 'Forma superficial',
+    lbl_base: 'Forma básica',
+    lbl_reading: 'Lectura',
+    lbl_translation: 'Traducción',
+    lbl_examples: 'Ejemplos',
+    lbl_pos: 'Categoría gramatical',
+    lbl_pos_raw: 'Etiquetas originales',
+    lbl_field: 'Campo',
+    lbl_note: 'Nota',
+    lbl_chinese: 'Chino',
+    dict_init: 'Inicializando diccionario…',
+    dict_loading: 'Cargando diccionario {p}% ({n} entradas)',
+    translation_loading: 'Cargando traducción…',
+    no_translation: 'No se encontró traducción',
+    translation_failed: 'Error al cargar la traducción',
+    dlg_detail_translation: ' — detalles',
+    // PWA
+    pwaTitle: 'Paquete sin conexión',
+    pwaPreparing: 'Preparando recursos para uso sin conexión…',
+    pwaProgress: 'Guardando en caché {completed}/{total} archivos ({percent}%)',
+    pwaComplete: 'Todos los recursos están guardados. Ya puedes usar Fudoki sin conexión.',
+    pwaPartial: 'No se pudieron guardar {failed} archivos. Inténtalo de nuevo.',
+    pwaError: 'Error de caché: {message}',
+    pwaUnsupported: 'Este navegador no admite la instalación sin conexión.',
+    pwaAlreadyCaching: 'Descarga en curso…',
+    pwaDismiss: 'Cerrar',
+    pwaResetting: 'Limpiando datos antiguos sin conexión…',
+    pwaResetFailed: 'Error al restablecer la caché: {message}',
+    pwaOffline: 'Conéctate a internet antes de descargar.',
+    // Copia de seguridad
+    exportBtn: 'Exportar datos',
+    importBtn: 'Importar datos',
+    exporting: 'Exportando datos...',
+    exportSuccess: 'Copia de seguridad JSON exportada.',
+    exportError: 'Error al exportar.',
+    importSuccess: 'Copia de seguridad importada.',
+    importError: 'Error al importar.',
+    importConfirmOverwrite: 'La importación sobrescribirá los datos y ajustes actuales. ¿Continuar?',
+    // Genérico
+    delete: 'Eliminar',
+    cancel: 'Cancelar',
+    close: 'Cerrar'
   }
 };
