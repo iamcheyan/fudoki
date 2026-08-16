@@ -1304,6 +1304,10 @@ body.token-align-left .line-container { text-align: left; }
   box-shadow: var(--shadow-float);
 }
 .pwa-toast[hidden] { display: none; }
+.pwa-toast__icon { flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: var(--text-2); }
+.pwa-toast__icon svg { display: block; }
+.pwa-toast.is-success .pwa-toast__icon { color: var(--success, #4caf7d); }
+.pwa-toast.is-error .pwa-toast__icon { color: var(--danger, #e5484d); }
 .pwa-toast__content { flex: 1; min-width: 0; }
 .pwa-toast__title { font-size: 12.5px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
 .pwa-toast__message { font-size: 11.5px; color: var(--text-3); }
