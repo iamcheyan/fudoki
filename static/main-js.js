@@ -2469,6 +2469,24 @@ Try Fudoki and enjoy Japanese language analysis!`;
       docs.push(newDoc);
       this.saveAllDocuments(docs);
       this.setActiveId(newDoc.id);
+      // 修复：favorites/samples 筛选或搜索词会把新建的空文档（favorite=false、folder=null）
+      // 从列表过滤掉，activeId 指向不可见文档，用户感知"点了没反应"。
+      // 新建时若当前视图会隐藏新文档，自动切回"全部"并清空搜索，保证可见反馈。
+      try {
+        const activeFolder = (typeof getActiveFolderId === 'function') ? getActiveFolderId() : 'all';
+        const searchHides = String(this.searchQuery || '').trim().length > 0;
+        const folderHides = activeFolder === 'favorites' || activeFolder === 'samples';
+        if (folderHides || searchHides) {
+          if (typeof selectFilter === 'function') {
+            selectFilter('all'); // 内部会 setActiveFolderId + 重渲染 chips
+          } else {
+            setActiveFolderId('all');
+          }
+          this.searchQuery = '';
+          const searchInput = document.getElementById('docSearchInput');
+          if (searchInput) searchInput.value = '';
+        }
+      } catch (_) {}
       // 新建文档时清空右侧内容区，展示空状态
       try {
         if (typeof showEmptyState === 'function') {
