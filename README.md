@@ -225,4 +225,4 @@ Made with ❤️ for Japanese language learners worldwide
 
 ### Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=iamcheyan/fudoki&type=Date)](https://star-history.com/#iamcheyan/fudoki&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=iamcheyan/fudoki&type=Date)](https://star-history.dera.page/#iamcheyan/fudoki&Date)
