@@ -141,6 +141,9 @@ body[data-mode="analyze"] .dock-icon-edit { display: none; }
 
 /* ---------- 编辑面板底栏 ---------- */
 .editor-foot {
+  /* 左 16px 与顶栏/编辑卡片对齐；右保底 60px 让出右下角阅读模式开关，避免控件被压 */
+  padding-left: 16px;
+  padding-right: max(60px, 16px);
   padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   gap: 6px;
 }

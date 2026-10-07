@@ -541,6 +541,11 @@ input, textarea, select {
   min-height: 0;
 }
 
+/* `hidden` 属性必须真正生效：上面的 display:flex 是作者样式，会盖掉 UA 的
+   [hidden]{display:none}，导致 JS 初始化前两个面板同时显示（各占一半宽度），
+   并把 CodeMirror 的行宽测成一半（编辑卡片高度永久算成 2 倍）。 */
+.editor-pane[hidden], .analysis-pane[hidden] { display: none; }
+
 /* 模式切换 */
 body[data-mode="analyze"] #editorPane { display: none; }
 body[data-mode="edit"] #analysisPane { display: none; }
@@ -623,8 +628,19 @@ body[data-mode="edit"] #analysisPane { display: none; }
 .editor-pane .editor-toolbar button:before { line-height: 22px; }
 .editor-pane .editor-toolbar .separator { border-left-color: var(--border); border-right: none; }
 
-.editor-pane .EasyMDEContainer .editor-preview {
-  background: transparent;
+.editor-pane .EasyMDEContainer .editor-preview,
+.editor-pane .EasyMDEContainer .editor-preview-full {
+  /* EasyMDE 的预览层与 .CodeMirror 完全重合（absolute/z-index 7），必须不透明，
+     否则源码与渲染结果会叠成重影（原为 transparent）。 */
+  background: var(--bg-panel);
+  padding: 18px 22px;
+  color: var(--text-2);
+  line-height: 1.9;
+}
+/* 移动端“边写边预览”：预览栏固定在右半屏，同样需要不透明底色与分隔线 */
+.editor-pane .EasyMDEContainer .editor-preview-side {
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
   padding: 18px 22px;
   color: var(--text-2);
   line-height: 1.9;
@@ -639,7 +655,11 @@ body[data-mode="edit"] #analysisPane { display: none; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+  /* 左右与 `.editor-scroll` / `.content-scroll-area` 同一套公式（含 24px 下限），
+     右侧再保底 60px 给右下角浮动按钮（阅读模式开关）留栏位，确保任意宽度不重叠。 */
+  padding: 8px max(60px, calc((100% - var(--content-max-width)) / 2))
+    calc(8px + env(safe-area-inset-bottom, 0px))
+    max(24px, calc((100% - var(--content-max-width)) / 2));
   border-top: 1px solid var(--border);
   flex-shrink: 0;
   flex-wrap: wrap;
@@ -921,7 +941,8 @@ body.token-align-left .line-container { text-align: left; }
   position: fixed;
   right: 16px;
   bottom: 16px;
-  z-index: 60;
+  /* 高于 .reading-overlay(80)：激活时开关即“退出阅读”，必须可见可点 */
+  z-index: 90;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -949,6 +970,38 @@ body.token-align-left .line-container { text-align: left; }
   color: var(--text-1);
   padding: 12vh max(24px, calc((100% - 40rem) / 2)) 14vh;
 }
+
+/* 阅读模式浮层工具栏：自绘关闭按钮（此前无任何样式，渲染为原生 button） */
+.reading-overlay .overlay-toolbar {
+  position: fixed;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: 16px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reading-overlay .overlay-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-lg);
+  background: var(--bg-float);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 19px;
+  line-height: 1;
+  box-shadow: var(--shadow-float);
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.reading-overlay .overlay-close:hover {
+  color: var(--text-1);
+  border-color: var(--border-strong);
+  background: var(--bg-btn-hover);
+}
+.reading-overlay .overlay-content { min-width: 0; }
 .reading-line-active {
   background: var(--accent-soft);
   border-radius: var(--r-sm);

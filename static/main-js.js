@@ -303,6 +303,15 @@
       }
     });
 
+    // 布局稳定后重新量一次：首帧若在未完成的宽度下测量（移动端初始布局是两栏
+    // 各占一半），CodeMirror 会把内容高度存成约 2 倍并一直沿用，编辑卡片下方
+    // 出现大片空白。refresh() 只重算尺寸，不影响内容与滚动位置。
+    const refreshEditorMetrics = () => {
+      try { if (easymde && easymde.codemirror) easymde.codemirror.refresh(); } catch (_) {}
+    };
+    requestAnimationFrame(() => requestAnimationFrame(refreshEditorMetrics));
+    window.addEventListener('load', refreshEditorMetrics, { once: true });
+
     // 覆盖 textInput 对象的属性和方法，使其与 markdown 编辑器兼容
     // 由于 textInput 本身是一个 HTML 元素，我们可以添加新的属性/方法
     const originalGetValue = function() { return this.value; };
