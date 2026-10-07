@@ -240,7 +240,15 @@
       if (!isMobile() || standalone || dismissed() || fab || !deferred) return;
       fab = document.createElement('button');
       fab.className = 'mde-install-fab';
-      fab.textContent = t('インストール', '安装', 'Install');
+      // 仅图标（36×36，见 mobile.css）：带文字的胶囊会与阅读模式开关、编辑页脚滑块
+      // 争夺右下角同一块空间。名称保留在 aria-label/title 上。
+      var installLabel = t('インストール', '安装', 'Install');
+      fab.type = 'button';
+      fab.setAttribute('aria-label', installLabel);
+      fab.title = installLabel;
+      fab.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">' +
+        '<path d="M11 3h2v9.2l3.1-3.1 1.4 1.4L12 16l-5.5-5.5 1.4-1.4L11 12.2V3z" fill="currentColor"/>' +
+        '<path d="M5 18h14v2H5z" fill="currentColor"/></svg>';
       fab.addEventListener('click', async function () {
         if (!deferred) return;
         deferred.prompt();

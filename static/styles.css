@@ -762,7 +762,9 @@ input[type="range"]:hover::-moz-range-thumb { background: var(--accent); }
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 28px max(24px, calc((100% - var(--content-max-width)) / 2)) 96px;
+  /* 左右下限 28px：行播放按钮定位为 left:-26px/宽 20px，需要 ≥26px 的左侧空隙，
+     否则窄视口下会被屏幕左缘裁掉一半（移动端 16px、窄桌面 24px 时实测 x=-10..10）。 */
+  padding: 28px max(28px, calc((100% - var(--content-max-width)) / 2)) 96px;
   line-height: var(--content-line-height);
   font-size: calc(15px * var(--font-scale));
   font-family: var(--content-font-family, var(--font-content));

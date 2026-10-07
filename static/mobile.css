@@ -10,6 +10,12 @@
   flex-direction: column;
 }
 
+/* 主区必须撑满壳层高度：否则内容短时 .main 只按内容高度收缩
+   （实测 785.8/844），底部露出一条不属于主区的空白，坞与页脚留白也失去基准。 */
+.app > .main {
+  flex: 1 1 auto;
+}
+
 /* ---------- 文档栏 → 抽屉 ---------- */
 .docbar {
   position: fixed;
@@ -78,7 +84,8 @@ body.docbar-open .docbar-backdrop {
 }
 
 .content-scroll-area {
-  padding: 18px 16px calc(120px + env(safe-area-inset-bottom, 0px));
+  /* 左右 28px：给行播放按钮（left:-26px）留出完整空隙，避免被屏幕左缘裁掉 */
+  padding: 18px 28px calc(120px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ---------- TTS 条 ---------- */
@@ -135,9 +142,10 @@ body.docbar-open .docbar-backdrop {
 }
 .dock-play:active { background: var(--accent-press); }
 
-/* 编辑模式时 dock 的模式按钮显示"分析"图标，反之显示"编辑" */
-body[data-mode="edit"] .dock-icon-analyze { display: none; }
-body[data-mode="analyze"] .dock-icon-edit { display: none; }
+/* 编辑模式时 dock 的模式按钮显示"分析"图标，反之显示"编辑"（提示下一个动作）。
+   原实现写反了：编辑模式显示铅笔、分析模式显示折线图，与注释和"切换"语义相反。 */
+body[data-mode="edit"] .dock-icon-edit { display: none; }
+body[data-mode="analyze"] .dock-icon-analyze { display: none; }
 
 /* ---------- 编辑面板底栏 ---------- */
 .editor-foot {
@@ -149,7 +157,9 @@ body[data-mode="analyze"] .dock-icon-edit { display: none; }
 }
 .editor-foot .fd-select { flex: 1; }
 .font-scale { margin-left: 0; width: 100%; justify-content: space-between; }
-.font-scale input[type="range"] { flex: 1; }
+/* 挂载点被 flex 拉伸（154px）而内部按钮按内容宽（112.6px）→ 第二个下拉右缘比
+   同行右缘短 63px；让按钮填满挂载点，两个下拉与下方滑块行左右对齐。 */
+.editor-foot .fd-select-btn { width: 100%; }
 
 /* EasyMDE 占满宽度 */
 .editor-pane .EasyMDEContainer { border-radius: var(--r-lg); }
@@ -216,21 +226,23 @@ body.kb-open .reading-mode-toggle { display: none; }
 .fudoki-ptr .spin { display: inline-block; animation: ptr-spin 0.9s linear infinite; }
 @keyframes ptr-spin { to { transform: rotate(360deg); } }
 
-/* ---------- PWA 安装 FAB（mobile-ux.js） ---------- */
+/* ---------- PWA 安装 FAB（mobile-ux.js） ----------
+   仅图标按钮：落在底部操作坞（居中 111..279）右侧的空档 279..376 内，
+   与坞、阅读模式开关（bottom 78）和编辑页脚滑块行都不重叠。带文字的胶囊
+   （宽 103px）在此位置必然压到其中至少一个控件。 */
 .mde-install-fab {
   position: fixed;
   right: 14px;
-  bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   z-index: 92;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 36px;
   height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
+  padding: 0;
+  border-radius: 50%;
   background: var(--accent);
   color: var(--accent-text-on);
-  font-size: 12.5px;
-  font-weight: 500;
   box-shadow: var(--shadow-float);
 }
