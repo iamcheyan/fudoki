@@ -6,7 +6,11 @@
 >
 > 让日语结构可视化的 Web 工具（文本分析与语音朗读）
 
-![Screenshot](static/fudoki.png)
+| Desktop 1280×800（dark / 分析） | Mobile 390×844（dark / 分析） |
+|---|---|
+| <img src="screenshots/ui-audit-2026-10-08/final-d1280-analyze-dark.png" alt="Fudoki desktop: document bar, editor/analyze shell and POS-colored token analysis" width="620"> | <img src="screenshots/ui-audit-2026-10-08/final-m390-hero.png" alt="Fudoki mobile: drawer, token analysis and bottom action dock" width="185"> |
+
+> Latest UI screenshots are produced by the 2026-10-08 audit — see [`docs/ui-audit-2026-10-08.md`](docs/ui-audit-2026-10-08.md) (all evidence under `screenshots/ui-audit-2026-10-08/`).
 
 ---
 
@@ -21,9 +25,10 @@ Fudoki is a browser-based, fully local tool that segments Japanese text, shows p
 - Speech synthesis: play word/line/all; speed 0.5–2.0; voice selection.
 - Playback controls: separate Pause/Resume; Play button shows a stop icon while playing.
 - Instant setting changes: changing voice or speed during playback restarts near the current position; settings persist in localStorage.
-- Dictionary: JMdict integration; click a word card to view translations.
-- **Markdown editor**: EasyMDE with a minimal toolbar (bold, italic, heading, quote, lists, link, preview).
-- UI: dark/light themes, Linear-style design, custom dropdowns and dialogs (no native controls), multilingual interface (ja/en/zh).
+- Dictionary: JMdict integration; click a word card to view translations, readings and Tanaka Corpus example sentences (offline slices, lazy-loaded).
+- **Reading mode**: distraction-free overlay that follows the spoken line, with a close button and a toggle that stays reachable while active.
+- **Markdown editor**: EasyMDE with a minimal toolbar (bold, italic, heading, quote, lists, link, preview, full-screen side-by-side preview; desktop and mobile entry points).
+- UI: dark/light themes, Linear-style design, custom dropdowns and dialogs (no native controls), multilingual interface (ja/en/zh/es).
 - Data: JSON export/import backup; PWA offline pack for full offline use.
 - Mobile-first: doc drawer, bottom dock, safe-area aware at 390×844.
 
@@ -60,18 +65,21 @@ fudoki/
 │       ├── kuromoji.js
 │       └── dict/
 │           ├── *.dat.gz
-│           └── jmdict slices
 └── README.md
 ```
 
 - Design tokens (colors, radii, POS hues) live in `static/styles.css` CSS variables.
-- Place updated JMdict data under `static/libs/dict/`.
-- After editing JS, run `node --check static/main-js.js`.
+- Place updated JMdict data under `static/libs/dict/`; example sentences come from `tools/build-examples.js`.
+- After editing JS, run `node --check static/main-js.js`; keep localStorage keys behind the `fudoki:` prefix.
+- UI audit (2026-10-08): findings UA-01…UA-18, per-round before/after evidence and breakpoint coverage are in
+  [`docs/ui-audit-2026-10-08.md`](docs/ui-audit-2026-10-08.md); screenshots in `screenshots/ui-audit-2026-10-08/`
+  (PC 1280×800 / 1920×1080, tablet 768×1024, mobile 390×844 / 365×800 / 320×720, dark + light).
 
 ### License and Third-party
 - MIT License
 - Kuromoji.js — Apache License 2.0
 - JMdict — Creative Commons Attribution-ShareAlike 3.0
+- Tanaka Corpus (example sentences) — CC BY 2.0 FR (EDRDG / tatoeba.org)
 
 ### Contributing and Feedback
 Pull requests are welcome. For issues and feature requests, use GitHub Issues: https://github.com/iamcheyan/fudoki/issues
@@ -89,9 +97,10 @@ Fudoki はブラウザで動作する、完全ローカルの日本語テキス�
 - 音声合成：単語・行・全文の再生、話速 0.5–2.0、音色選択。
 - 再生制御：一時停止／再開は専用ボタン。再生中は再生ボタンが停止アイコンになります。
 - 設定の即時反映：再生中に音色や話速を変更すると、現在位置付近から新設定で再開します。設定は localStorage に保存。
-- 辞書：JMdict と連携、単語カードのクリックで訳語を表示。
-- **Markdown エディタ**：EasyMDE（最小構成ツールバー：太字・斜体・見出し・引用・リスト・リンク・プレビュー）。
-- UI：ダーク／ライトテーマ、Linear 風デザイン、自描画ドロップダウンとダイアログ（ネイティブ部品不使用）、多言語 UI（日／英／中）。
+- 辞書：JMdict と連携。単語カードで訳語・読み・Tanaka Corpus の例文（オフライン分片・遅延読み込み）を表示。
+- **リーディングモード**：朗読に追従する集中表示のオーバーレイ。閉じるボタンと、表示中も押せる切替ボタンを備えます。
+- **Markdown エディタ**：EasyMDE（最小構成ツールバー：太字・斜体・見出し・引用・リスト・リンク・プレビュー、全画面2カラムプレビュー。PC／モバイル両方に入口）。
+- UI：ダーク／ライトテーマ、Linear 風デザイン、自描画ドロップダウンとダイアログ（ネイティブ部品不使用）、多言語 UI（日／英／中／西）。
 - データ：JSON エクスポート／インポート。PWA オフラインパックで完全オフライン動作。
 - モバイル：ドキュメントドロワー、ボトムドック、safe-area 対応（390×844 第一級）。
 
@@ -120,11 +129,14 @@ python3 -m http.server 8000
 - デザイントークン（色・角丸・品詞色）は `static/styles.css` の CSS 変数。
 - JMdict データ：`static/libs/dict/` に配置。
 - JS 編集後は `node --check static/main-js.js` を実行。
+- UI 監査（2026-10-08）：指摘 UA-01…UA-18、修正前後の証跡、ブレークポイント別の確認結果は
+  [`docs/ui-audit-2026-10-08.md`](docs/ui-audit-2026-10-08.md)、スクリーンショットは `screenshots/ui-audit-2026-10-08/`。
 
 ### ライセンスと利用ライブラリ
 - MIT License
 - Kuromoji.js — Apache License 2.0
 - JMdict — Creative Commons Attribution-ShareAlike 3.0
+- Tanaka Corpus（例文）— CC BY 2.0 FR（EDRDG / tatoeba.org）
 
 ### 貢献・フィードバック
 Issue／PR を歓迎します。https://github.com/iamcheyan/fudoki/issues
@@ -142,9 +154,10 @@ Fudoki 是一款纯本地、基于浏览器的日语文本分析与语音朗读�
 - 语音合成：按单词/按行/全文播放；语速 0.5–2.0；音色选择。
 - 播放控制：暂停/继续为独立按钮；播放中播放按钮显示"停止"图标。
 - 即时设置生效：播放中更改语速或音色，会在当前段附近按新设置续播；设置持久化到 localStorage。
-- 词典：整合 JMdict；点击词卡查看释义。
-- **Markdown 编辑器**：EasyMDE 精简工具栏（粗体、斜体、标题、引用、列表、链接、预览）。
-- 界面：深/浅双主题、Linear 式设计、全自绘下拉与对话框（无原生控件）、多语言 UI（日/英/中）。
+- 词典：整合 JMdict；点击词卡查看释义、读音与 Tanaka Corpus 例句（离线分片、按需加载）。
+- **阅读模式**：跟随朗读进度的沉浸式浮层，带关闭按钮，激活期间开关仍然可点。
+- **Markdown 编辑器**：EasyMDE 精简工具栏（粗体、斜体、标题、引用、列表、链接、预览、全屏双栏预览；桌面与移动端都有入口）。
+- 界面：深/浅双主题、Linear 式设计、全自绘下拉与对话框（无原生控件）、多语言 UI（日/英/中/西）。
 - 数据：JSON 导出/导入备份；PWA 离线资源包支持完全离线。
 - 移动优先：文档抽屉、底部操作坞、safe-area 适配（390×844 第一公民）。
 
@@ -173,11 +186,14 @@ python3 -m http.server 8000
 - 设计令牌（颜色、圆角、词性色）在 `static/styles.css` 的 CSS 变量中。
 - JMdict 数据：放置在 `static/libs/dict/`。
 - 修改 JS 后运行 `node --check static/main-js.js`。
+- UI 审计（2026-10-08）：UA-01…UA-18 全部发现、修复前后证据、各断点覆盖结果见
+  [`docs/ui-audit-2026-10-08.md`](docs/ui-audit-2026-10-08.md)，截图目录 `screenshots/ui-audit-2026-10-08/`。
 
 ### 许可与第三方
 - MIT License
 - Kuromoji.js — Apache License 2.0
 - JMdict — Creative Commons Attribution-ShareAlike 3.0
+- Tanaka Corpus（例句）— CC BY 2.0 FR（EDRDG / tatoeba.org）
 
 ### 贡献与反馈
 欢迎 Issue／PR：https://github.com/iamcheyan/fudoki/issues
