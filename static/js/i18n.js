@@ -9,6 +9,7 @@ const I18N = {
     textareaPlaceholder: 'ここに日本語テキストを入力して解析…',
     analyzeBtn: '解析する',
     emptyText: 'エディタでテキストを入力すると、ここに解析結果が表示されます',
+    noContent: '内容がありません',
     // ドキュメント栏・壳层
     docListTitle: 'ドキュメント',
     newDoc: '新規ドキュメント',
@@ -121,6 +122,7 @@ const I18N = {
     textareaPlaceholder: 'Enter Japanese text here for analysis…',
     analyzeBtn: 'Analyze',
     emptyText: 'Type Japanese in the editor; analysis appears here',
+    noContent: 'No content',
     // Doc bar & shell
     docListTitle: 'Documents',
     newDoc: 'New Document',
@@ -233,6 +235,7 @@ const I18N = {
     textareaPlaceholder: '在此输入日语文本进行分析...',
     analyzeBtn: '分析文本',
     emptyText: '在编辑器输入文本后，解析结果将显示在这里',
+    noContent: '暂无内容',
     // 文档栏与壳层
     docListTitle: '文档',
     newDoc: '新建文档',
@@ -345,6 +348,7 @@ const I18N = {
     textareaPlaceholder: 'Introduce aquí texto japonés para analizar…',
     analyzeBtn: 'Analizar',
     emptyText: 'Escribe japonés en el editor; el análisis aparecerá aquí',
+    noContent: 'Sin contenido',
     // Barra de documentos y shell
     docListTitle: 'Documentos',
     newDoc: 'Nuevo documento',

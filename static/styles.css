@@ -946,6 +946,34 @@ body.token-align-left .line-container { text-align: left; }
 }
 .empty-state p { margin: 0; max-width: 34em; line-height: 1.9; }
 
+/* 加载 / 错误状态：与 .empty-state 同一套排版，改用设计令牌
+   （原实现是内联样式 + 硬编码 #a0aec0/#667eea/#e53e3e，且 .loading 这个 spinner
+   类全站没有 CSS，转圈根本不可见）。 */
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 13.5px;
+}
+.state-block p { margin: 0; max-width: 34em; line-height: 1.9; }
+.state-spinner {
+  width: 26px;
+  height: 26px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  animation: state-spin 900ms linear infinite;
+}
+@keyframes state-spin { to { transform: rotate(360deg); } }
+.state-block.is-error { color: hsl(0 62% 60%); }
+.state-block.is-error .btn { margin-top: 14px; }
+
 /* ---------- 阅读模式 ---------- */
 .reading-mode-toggle {
   position: fixed;

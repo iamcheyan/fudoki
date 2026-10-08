@@ -1564,7 +1564,7 @@
                   contentWrap.classList.add('markdown-content');
                 } catch (e) {
                   console.warn('Markdown 渲染失败:', e);
-                  contentWrap.innerHTML = original.innerHTML || '<p class="empty-state">暂无内容</p>';
+                  contentWrap.innerHTML = original.innerHTML || `<div class="empty-state"><p>${escapeHtml(t('noContent'))}</p></div>`;
                 }
               } else {
                 // 纯文本，保留换行
@@ -1575,7 +1575,7 @@
               }
             } else {
               // 如果没有输入文本，显示原始内容或空状态
-              contentWrap.innerHTML = original.innerHTML || '<p class="empty-state">暂无内容</p>';
+              contentWrap.innerHTML = original.innerHTML || `<div class="empty-state"><p>${escapeHtml(t('noContent'))}</p></div>`;
             }
           }
         }
@@ -2408,10 +2408,12 @@ Try Fudoki and enjoy Japanese language analysis!`;
     getDocumentTitle(content) {
       if (Array.isArray(content)) {
         const firstLine = content[0]?.trim() || '';
-        return firstLine || '无标题文档';
+        // 无标题文档的占位标题必须走 i18n（此前硬编码简体中文，
+        // 日/英/西界面下顶栏与文档列表都会显示中文；i18n.untitledDocument 一直未被引用）
+        return firstLine || t('untitledDocument');
       }
       const firstLine = (content || '').split('\n')[0]?.trim() || '';
-      return firstLine || '无标题文档';
+      return firstLine || t('untitledDocument');
     }
 
     // 清理 Markdown 标记
@@ -3591,24 +3593,23 @@ Try Fudoki and enjoy Japanese language analysis!`;
     }
   }
 
+  // 空状态：与 index.html 首屏静态空状态保持同一套结构与类名（applyI18n 会按语言刷新）
   function showEmptyState() {
     clearReadingLineHighlight();
     content.innerHTML = `
-      <div style="text-align: center; color: #a0aec0; padding: 2rem;">
-        <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.5;" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7,13H17V11H7"/>
-        </svg>
-        <p>${t('emptyText')}</p>
+      <div class="empty-state">
+        <p id="emptyText">${t('emptyText')}</p>
       </div>
     `;
     syncReadingLineAttributes(isReadingMode);
   }
 
+  // 加载 / 错误状态：改用设计令牌（.state-block/.state-spinner），不再使用内联硬编码色
   function showLoadingState() {
     clearReadingLineHighlight();
     content.innerHTML = `
-      <div style="text-align: center; color: #667eea; padding: 2rem;">
-        <div class="loading" style="margin: 0 auto 1rem;"></div>
+      <div class="state-block">
+        <div class="state-spinner" aria-hidden="true"></div>
         <p>${t('loading')}</p>
       </div>
     `;
@@ -3618,12 +3619,9 @@ Try Fudoki and enjoy Japanese language analysis!`;
   function showErrorState(message) {
     clearReadingLineHighlight();
     content.innerHTML = `
-      <div style="text-align: center; color: #e53e3e; padding: 2rem;">
-        <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.7;" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M12,2L13.09,8.26L22,9L13.09,9.74L12,16L10.91,9.74L2,9L10.91,8.26L12,2Z"/>
-        </svg>
-        <p>${t('errorPrefix')}${message}</p>
-        <button class="btn btn-secondary" onclick="analyzeText()" style="margin-top: 1rem;">${t('analyzeBtn')}</button>
+      <div class="state-block is-error">
+        <p>${escapeHtml(t('errorPrefix') + String(message || ''))}</p>
+        <button class="btn btn-secondary" onclick="analyzeText()">${escapeHtml(t('analyzeBtn'))}</button>
       </div>
     `;
     syncReadingLineAttributes(isReadingMode);
