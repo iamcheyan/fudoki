@@ -513,6 +513,14 @@ input, textarea, select {
   font-size: 11.5px;
   color: var(--text-4);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap; /* 元信息永不换行：窄窗口下换行会把右块撑到 35.6/53.4px 高（顶栏只有 52px） */
+}
+
+/* 窄桌面（769–1040px）隐藏"更新时间"：它是右块里最长的项，保留会让 1fr 列放不下
+   日期+字数+4 个图标按钮 → 日期折成 2–3 行、整条顶栏视觉错位。
+   1041px 起右块需求约 291px 已能容纳，恢复显示。 */
+@media (max-width: 1040px) {
+  #editorDocDate { display: none; }
 }
 
 #editorStarToggle .star-fill { display: none; color: hsl(44 80% 58%); }
