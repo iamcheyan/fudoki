@@ -2686,6 +2686,44 @@ Try Fudoki and enjoy Japanese language analysis!`;
       this.saveAllDocuments(docs);
       // 保存后刷新顶部工具栏的日期显示（改为显示最后保存时间）
       try { updateEditorToolbar(); } catch (_) {}
+      // 同步刷新文档列表中该条目的标题/字数/时间：此前只更新顶栏，
+      // 列表要等到切换/筛选/搜索才会重绘，输入后侧栏标题与字数长时间滞后。
+      try {
+        if (String(this.searchQuery || '').trim()) {
+          this.render(); // 搜索态下标题变化可能改变匹配结果，整表重绘
+        } else {
+          this.refreshActiveListItem(); // 其余情况只改这一项，保留列表滚动位置
+        }
+      } catch (_) {}
+    }
+
+    // 就地刷新文档列表中"当前文档"条目的标题/字数/时间（不重建整表）
+    refreshActiveListItem() {
+      if (!documentList) return;
+      const activeId = this.getActiveId();
+      if (!activeId) return;
+      const item = documentList.querySelector(`.doc-item[data-doc-id="${activeId}"]`);
+      if (!item) return;
+      const doc = this.getAllDocuments().find(d => d.id === activeId);
+      if (!doc) return;
+
+      const title = this.getDocumentTitle(doc.content);
+      const contentText = Array.isArray(doc.content) ? doc.content.join('\n') : String(doc.content || '');
+      const charCount = contentText.replace(/\s/g, '').length;
+
+      const titleEl = item.querySelector('.doc-item-title');
+      if (titleEl) {
+        const cleanTitle = this.stripMarkdown(title);
+        titleEl.textContent = this.truncateTitle(title, 24);
+        titleEl.setAttribute('title', cleanTitle);
+      }
+      const meta = item.querySelector('.doc-item-meta');
+      if (meta) {
+        const countEl = meta.querySelector('.doc-item-count');
+        if (countEl) countEl.textContent = String(charCount);
+        const timeEl = meta.querySelector('span:last-child');
+        if (timeEl) timeEl.textContent = this.formatShortTime(doc.updatedAt || doc.createdAt);
+      }
     }
 
     // 删除空文档（仅在失去焦点时调用）

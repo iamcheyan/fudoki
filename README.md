@@ -71,7 +71,7 @@ fudoki/
 - Design tokens (colors, radii, POS hues) live in `static/styles.css` CSS variables.
 - Place updated JMdict data under `static/libs/dict/`; example sentences come from `tools/build-examples.js`.
 - After editing JS, run `node --check static/main-js.js`; keep localStorage keys behind the `fudoki:` prefix.
-- UI audit (2026-10-08): findings UA-01…UA-18, per-round before/after evidence and breakpoint coverage are in
+- UI audit (2026-10-08): findings UA-01…UA-20, per-round before/after evidence and breakpoint coverage are in
   [`docs/ui-audit-2026-10-08.md`](docs/ui-audit-2026-10-08.md); screenshots in `screenshots/ui-audit-2026-10-08/`
   (PC 1280×800 / 1920×1080, tablet 768×1024, mobile 390×844 / 365×800 / 320×720, dark + light).
 
@@ -129,7 +129,7 @@ python3 -m http.server 8000
 - デザイントークン（色・角丸・品詞色）は `static/styles.css` の CSS 変数。
 - JMdict データ：`static/libs/dict/` に配置。
 - JS 編集後は `node --check static/main-js.js` を実行。
-- UI 監査（2026-10-08）：指摘 UA-01…UA-18、修正前後の証跡、ブレークポイント別の確認結果は
+- UI 監査（2026-10-08）：指摘 UA-01…UA-20、修正前後の証跡、ブレークポイント別の確認結果は
   [`docs/ui-audit-2026-10-08.md`](docs/ui-audit-2026-10-08.md)、スクリーンショットは `screenshots/ui-audit-2026-10-08/`。
 
 ### ライセンスと利用ライブラリ
@@ -186,7 +186,7 @@ python3 -m http.server 8000
 - 设计令牌（颜色、圆角、词性色）在 `static/styles.css` 的 CSS 变量中。
 - JMdict 数据：放置在 `static/libs/dict/`。
 - 修改 JS 后运行 `node --check static/main-js.js`。
-- UI 审计（2026-10-08）：UA-01…UA-18 全部发现、修复前后证据、各断点覆盖结果见
+- UI 审计（2026-10-08）：UA-01…UA-20 全部发现、修复前后证据、各断点覆盖结果见
   [`docs/ui-audit-2026-10-08.md`](docs/ui-audit-2026-10-08.md)，截图目录 `screenshots/ui-audit-2026-10-08/`。
 
 ### 许可与第三方
